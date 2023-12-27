@@ -27,5 +27,7 @@ target_precompile_headers(
     "CorePCH.hpp"
 )
 
+target_link_libraries(Core PUBLIC nvrhi)
+
 # Now set the FOLDER property for the fetched target
 set_target_properties(Core PROPERTIES FOLDER "Internal")

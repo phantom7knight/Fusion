@@ -40,12 +40,9 @@
 namespace wrl = Microsoft::WRL;
 namespace math = DirectX;
 
-
-// Setup constexpr indicating which build configuration was used.
-#ifdef _DEBUG
-constexpr bool FUSION_DEBUG_MODE = true;
+// todo_rt: remove this
+#if _DEBUG
 #else
-constexpr bool FUSION_DEBUG_MODE = false;
 #endif
 
 // Global variables.

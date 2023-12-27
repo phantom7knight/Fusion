@@ -1,9 +1,15 @@
-#include  <iostream>
+#pragma once
+
+#include "../../Core/CorePCH.hpp"
+#include "../../Core/App/App.h"
+#include "Init.h"
 
 int main()
 {
+	STDUniquePtr<App> app = STDMakeUniquePtr<InitApp>("Hello World!!!", 512, 512);
 
-	std::cout << "Hello World!!!" << std::endl;
+
+	
 
 	return 0;
 }
