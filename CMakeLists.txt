@@ -13,4 +13,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Bin/Release)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Bin/Release)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Bin/Release)
 
-add_subdirectory(ThirdParty)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(PREDEFINED_TARGETS_FOLDER "CustomTargets")
+
+set(FusionRootDir "${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_subdirectory(External)
+add_subdirectory(Fusion)
+
+
+set_target_properties(uninstall PROPERTIES FOLDER "CMakePredefinedTargets")
