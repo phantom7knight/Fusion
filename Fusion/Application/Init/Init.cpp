@@ -2,8 +2,6 @@
 
 #include <nvrhi/nvrhi.h>
 
-
-
 void InitApp::Init()
 {
 }
