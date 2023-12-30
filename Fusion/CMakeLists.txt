@@ -1,2 +1,2 @@
-add_subdirectory(Application)
+add_subdirectory(Applications)
 add_subdirectory(Core)

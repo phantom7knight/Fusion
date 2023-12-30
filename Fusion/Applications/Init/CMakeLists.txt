@@ -11,4 +11,4 @@ target_link_libraries(Init PUBLIC External Core) #nvrhi.lib nvrhi_vk.lib nvrhi_d
 target_compile_definitions(Init PRIVATE USE_DX12=1) #USE_VK=1
 
 # Now set the FOLDER property for the fetched target
-set_target_properties(Init PROPERTIES FOLDER "Applications")
+set_target_properties(Init PROPERTIES FOLDER "Applications/Raster")

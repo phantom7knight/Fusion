@@ -13,6 +13,15 @@ cd /d "%folderPath%" || exit /b
 rem Delete all files and subfolders in the "Build" folder
 rd /s /q .
 
+rem Update the folder path by changing it to the GLTF Models
+set "folderPath=%scriptPath%Assets/GLTFModels"
+
+rem Navigate to the "Build" folder
+cd /d "%folderPath%" || exit /b
+
+rem Delete all files and subfolders in the "Build" folder
+rd /s /q .
+
 echo All files in %folderPath% have been deleted.
 
 pause
