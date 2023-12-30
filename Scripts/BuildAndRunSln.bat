@@ -10,6 +10,9 @@ rem Turn off command echoing
 rem Display a message indicating that the project is being built
 echo Building the project...
 
+rem Move to root folder
+cd ../
+
 rem Create a "build" directory
 mkdir Build
 

@@ -5,7 +5,7 @@ rem Get the path where the script resides
 set "scriptPath=%~dp0"
 
 rem Define the folder path by concatenating the script path and "\Build"
-set "folderPath=%scriptPath%Build"
+set "folderPath=%scriptPath%../Build"
 
 rem Navigate to the "Build" folder
 cd /d "%folderPath%" || exit /b

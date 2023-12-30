@@ -2,6 +2,9 @@
 rem This batch script creates a "Build" directory, navigates into it,
 rem configures the project using CMake, and then pauses execution.
 
+rem Move to root folder
+cd ../
+
 rem Create a "Build" directory
 mkdir Build
 

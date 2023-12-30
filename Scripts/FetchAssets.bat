@@ -8,10 +8,13 @@ rem Get the path where the script resides
 set "scriptPath=%~dp0"
 
 rem Set the assets directory
-set "assetsDir=%scriptPath%\Assets"
+set "assetsDir=%scriptPath%..\Assets"
 
 set "destinationDir=%assetsDir%\GLTFModels"
 
+cd ../
+
+mkdir Assets
 cd Assets
 
 mkdir GLTFModels
