@@ -65,12 +65,18 @@ freely, subject to the following restrictions:
 #include <nvrhi/vulkan.h>
 #endif
 
-#define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
-#include <GLFW/glfw3.h>
-#ifdef _WIN32
-#define GLFW_EXPOSE_NATIVE_WIN32
-#endif // _WIN32
-#include <GLFW/glfw3native.h>
+//#define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
+//#include <GLFW/glfw3.h>
+//#ifdef _WIN32
+//#define GLFW_EXPOSE_NATIVE_WIN32
+//#endif // _WIN32
+//#include <GLFW/glfw3native.h>
+
+
+#include <SDL.h>
+#include <SDL_syswm.h>
+#include <imgui_impl_sdl.h>
+
 #include <nvrhi/nvrhi.h>
 #include <donut/core/log.h>
 

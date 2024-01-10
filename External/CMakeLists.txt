@@ -84,7 +84,7 @@ add_library(libimgui
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp # todo_rt: Uncomment this
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
 target_include_directories(libimgui PUBLIC 
