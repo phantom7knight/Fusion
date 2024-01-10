@@ -41,7 +41,7 @@ FetchContent_Declare(
 )
 
 # todo_rt: Uncomment the libs when needed
-FetchContent_MakeAvailable(nvrhi tinygltf) #D3D12MemoryAllocator stb)
+FetchContent_MakeAvailable(nvrhi tinygltf) # D3D12MemoryAllocator stb)
 
 option(SDL_TEST "" OFF)
 option(SDL_TESTS "" OFF)
@@ -84,7 +84,7 @@ add_library(libimgui
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
-    #${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp // todo_rt: Uncomment this
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp # todo_rt: Uncomment this
 )
 
 target_include_directories(libimgui PUBLIC 
@@ -93,11 +93,11 @@ ${imgui_SOURCE_DIR}/backends
 ${sdl2_SOURCE_DIR}/include
 )
 
-target_link_libraries(libimgui PUBLIC SDL2::SDL2main SDL2::SDL2-static)
+target_link_libraries(libimgui PUBLIC SDL2::SDL2main SDL2::SDL2-static Vulkan::Headers)
 
 add_library(External INTERFACE)
-target_link_libraries(External INTERFACE nvrhi tinygltf libimgui SDL2::SDL2main) #D3D12MemoryAllocator
-target_include_directories(External INTERFACE ${nvrhi_SOURCE_DIR}/include ${sdl2_SOURCE_DIR}/include ${tinygltf_SOURCE_DIR}) #${D3D12MemoryAllocator_SOURCE_DIR}/include ${stb_SOURCE_DIR}
+target_link_libraries(External INTERFACE nvrhi tinygltf libimgui SDL2::SDL2main Vulkan::Headers)#vulkan-1.lib) #D3D12MemoryAllocator
+target_include_directories(External INTERFACE ${nvrhi_SOURCE_DIR}/include ${sdl2_SOURCE_DIR}/include ${tinygltf_SOURCE_DIR} )#${nvrhi_vulkan_target} ${nvrhi_SOURCE_DIR}/thirdparty/Vulkan-Headers/include/vulkan) #${D3D12MemoryAllocator_SOURCE_DIR}/include ${stb_SOURCE_DIR}
 
 # Now set the FOLDER property for the fetched target
 set_target_properties(libimgui PROPERTIES FOLDER "External")
@@ -106,5 +106,4 @@ set_target_properties(tinygltf PROPERTIES FOLDER "External")
 set_target_properties(SDL2main PROPERTIES FOLDER "External")
 set_target_properties(SDL2-static PROPERTIES FOLDER "External")
 set_target_properties(sdl_headers_copy PROPERTIES FOLDER "External")
-#set_target_properties(D3D12MemoryAllocator PROPERTIES FOLDER "External")
 #set_target_properties(stb PROPERTIES FOLDER "External")

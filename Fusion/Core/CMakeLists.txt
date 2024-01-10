@@ -5,12 +5,12 @@ set(SRC_FILES
     "App/DX12/DeviceManager_DX12.cpp"
     "App/Vulkan/DeviceManager_VK.cpp"
 	
-    "App/Imgui/imgui_console.h"
-    "App/Imgui/imgui_console.cpp"
-    "App/Imgui/imgui_nvrhi.h"
-    "App/Imgui/imgui_nvrhi.cpp"
-    "App/Imgui/imgui_renderer.h"
-    "App/Imgui/imgui_renderer.cpp"
+    # "App/Imgui/imgui_console.h"
+    # "App/Imgui/imgui_console.cpp"
+    # "App/Imgui/imgui_nvrhi.h"
+    # "App/Imgui/imgui_nvrhi.cpp"
+    # "App/Imgui/imgui_renderer.h"
+    # "App/Imgui/imgui_renderer.cpp"
 	
     "App/DeviceManager.h"
     "App/DeviceManager.cpp"
@@ -32,7 +32,7 @@ set(SRC_FILES
 source_group("App\\Camera" FILES "App/Camera/Camera.h" "App/Camera/Camera.cpp")
 source_group("App\\DX12" FILES "App/DX12/DeviceManager_DX12.cpp")
 source_group("App\\Vulkan" FILES "App/Vulkan/DeviceManager_VK.cpp")
-source_group("App\\Imgui" FILES "App/Imgui/imgui_console.h" "App/Imgui/imgui_console.cpp" "App/Imgui/imgui_nvrhi.h" "App/Imgui/imgui_nvrhi.cpp" "App/Imgui/imgui_renderer.h" "App/Imgui/imgui_renderer.cpp")
+# source_group("App\\Imgui" FILES "App/Imgui/imgui_console.h" "App/Imgui/imgui_console.cpp" "App/Imgui/imgui_nvrhi.h" "App/Imgui/imgui_nvrhi.cpp" "App/Imgui/imgui_renderer.h" "App/Imgui/imgui_renderer.cpp")
 source_group("App" FILES "App/DeviceManager.h" "App/DeviceManager.cpp" "App/ApplicationBase.h" "App/ApplicationBase.cpp")
 
 source_group("Threading" FILES "Threading/BS_ThreadPool_Light.hpp" "Threading/BS_ThreadPool.hpp")
@@ -57,7 +57,7 @@ target_precompile_headers(
     "CorePCH.hpp"
 )
 
-target_link_libraries(Core PUBLIC nvrhi)
+target_link_libraries(Core PUBLIC nvrhi Vulkan::Headers)
 
 # Now set the FOLDER property for the fetched target
 set_target_properties(Core PROPERTIES FOLDER "Internal")

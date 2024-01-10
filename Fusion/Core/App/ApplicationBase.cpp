@@ -20,11 +20,11 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/app/ApplicationBase.h>
-#include <donut/engine/Scene.h>
-#include <donut/engine/TextureCache.h>
-#include <donut/engine/CommonRenderPasses.h>
-#include <donut/core/vfs/VFS.h>
+#include "ApplicationBase.h"
+//#include <donut/engine/Scene.h>
+//#include <donut/engine/TextureCache.h>
+//#include <donut/engine/CommonRenderPasses.h>
+#include "VFS/VFS.h"
 
 #include <cstdlib>
 #include <sstream>

@@ -51,8 +51,8 @@ freely, subject to the following restrictions:
 #include <algorithm>
 #include <vector>
 
-#include <donut/app/DeviceManager.h>
-#include <donut/core/log.h>
+#include "../DeviceManager.h"
+//#include <donut/core/log.h>
 
 #include <Windows.h>
 #include <dxgi1_5.h>

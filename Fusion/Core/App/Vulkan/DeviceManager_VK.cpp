@@ -51,7 +51,7 @@ freely, subject to the following restrictions:
 #include <queue>
 #include <unordered_set>
 
-#include <donut/app/DeviceManager.h>
+#include "../DeviceManager.h"
 
 #include <nvrhi/vulkan.h>
 #include <nvrhi/validation.h>

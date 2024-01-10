@@ -22,12 +22,14 @@
 
 #pragma once
 
-#include <donut/app/DeviceManager.h>
-#include <donut/core/vfs/VFS.h>
+#include "DeviceManager.h"
 #include <nvrhi/nvrhi.h>
 #include <filesystem>
 #include <thread>
 #include <vector>
+
+// todo_rt: testing
+#include "VFS/VFS.h"
 
 namespace donut::engine
 {
@@ -57,12 +59,12 @@ namespace donut::app
 
         virtual void Render(nvrhi::IFramebuffer* framebuffer) override;
 
-        virtual void RenderScene(nvrhi::IFramebuffer* framebuffer);
-        virtual void RenderSplashScreen(nvrhi::IFramebuffer* framebuffer);
-        virtual void BeginLoadingScene(std::shared_ptr<vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName);
-        virtual bool LoadScene(std::shared_ptr<vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) = 0;
-        virtual void SceneUnloading();
-        virtual void SceneLoaded();
+        //virtual void RenderScene(nvrhi::IFramebuffer* framebuffer);
+        //virtual void RenderSplashScreen(nvrhi::IFramebuffer* framebuffer);
+        //virtual void BeginLoadingScene(std::shared_ptr<vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName);
+        //virtual bool LoadScene(std::shared_ptr<vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) = 0;
+        //virtual void SceneUnloading();
+        //virtual void SceneLoaded();
 
         void SetAsynchronousLoadingEnabled(bool enabled);
         bool IsSceneLoading() const;
