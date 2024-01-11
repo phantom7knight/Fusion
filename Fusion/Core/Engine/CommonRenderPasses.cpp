@@ -20,12 +20,12 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/engine/CommonRenderPasses.h>
-#include <donut/engine/ShaderFactory.h>
-#include <donut/engine/BindingCache.h>
+#include "CommonRenderPasses.h"
+#include "ShaderFactory.h"
+#include "BindingCache.h"
 
 using namespace donut::math;
-#include <donut/shaders/blit_cb.h>
+#include "../../../Assets/Shaders/blit_cb.h"
 
 using namespace donut::engine;
 

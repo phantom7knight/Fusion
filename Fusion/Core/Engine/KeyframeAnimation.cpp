@@ -34,10 +34,12 @@ jurisdictions which recognize such a disclaimer. In such jurisdictions,
 this software is released into the Public Domain.
 */
 
-#include <donut/engine/KeyframeAnimation.h>
-#include <donut/core/json.h>
-#include <donut/core/log.h>
-#include <json/value.h>
+// todo_rt: fix the json lib include and the whole folder
+
+#include "KeyframeAnimation.h"
+#include "../Utilities/Logger/Log.h"
+#include "../Utilities/json.h"
+//#include <json/value.h> // todo_rt: fix this
 #include <cassert>
 
 using namespace donut::math;
@@ -152,49 +154,49 @@ float Sampler::GetEndTime() const
 
 void Sampler::Load(Json::Value& node)
 {
-    if (node["mode"].isString())
-    {
-        std::string mode = node["mode"].asString();
-        if (mode == "step")
-            SetInterpolationMode(InterpolationMode::Step);
-        else if (mode == "linear")
-            SetInterpolationMode(InterpolationMode::Linear);
-        if (mode == "spline")
-            SetInterpolationMode(InterpolationMode::CatmullRomSpline);
-    }
+    //if (node["mode"].isString())
+    //{
+    //    std::string mode = node["mode"].asString();
+    //    if (mode == "step")
+    //        SetInterpolationMode(InterpolationMode::Step);
+    //    else if (mode == "linear")
+    //        SetInterpolationMode(InterpolationMode::Linear);
+    //    if (mode == "spline")
+    //        SetInterpolationMode(InterpolationMode::CatmullRomSpline);
+    //}
 
-    bool warningPrinted = false;
-    Json::Value& valuesNode = node["values"];
-    if (valuesNode.isArray())
-    {
-        for (Json::Value& valueNode : valuesNode)
-        {
-            Keyframe keyframe;
-            keyframe.time = valueNode["time"].asFloat();
-            if (valueNode.isNumeric())
-            {
-                keyframe.value.x = valueNode.asFloat();
-            }
-            else if (valueNode.isArray())
-            {
-                if (valueNode.size() >= 1) keyframe.value.x = valueNode[0].asFloat();  // NOLINT(readability-container-size-empty)
-                if (valueNode.size() >= 2) keyframe.value.y = valueNode[1].asFloat();
-                if (valueNode.size() >= 3) keyframe.value.z = valueNode[2].asFloat();
-                if (valueNode.size() >= 4) keyframe.value.w = valueNode[3].asFloat();
-            }
-            else if ((valueNode.isObject() || valueNode.isString()) && !warningPrinted)
-            {
-                log::warning("Objects and strings are not supported as animation keyframe values.");
-                warningPrinted = true;
-                continue;
-            }
+    //bool warningPrinted = false;
+    //Json::Value& valuesNode = node["values"];
+    //if (valuesNode.isArray())
+    //{
+    //    for (Json::Value& valueNode : valuesNode)
+    //    {
+    //        Keyframe keyframe;
+    //        keyframe.time = valueNode["time"].asFloat();
+    //        if (valueNode.isNumeric())
+    //        {
+    //            keyframe.value.x = valueNode.asFloat();
+    //        }
+    //        else if (valueNode.isArray())
+    //        {
+    //            if (valueNode.size() >= 1) keyframe.value.x = valueNode[0].asFloat();  // NOLINT(readability-container-size-empty)
+    //            if (valueNode.size() >= 2) keyframe.value.y = valueNode[1].asFloat();
+    //            if (valueNode.size() >= 3) keyframe.value.z = valueNode[2].asFloat();
+    //            if (valueNode.size() >= 4) keyframe.value.w = valueNode[3].asFloat();
+    //        }
+    //        else if ((valueNode.isObject() || valueNode.isString()) && !warningPrinted)
+    //        {
+    //            log::warning("Objects and strings are not supported as animation keyframe values.");
+    //            warningPrinted = true;
+    //            continue;
+    //        }
 
-            AddKeyframe(keyframe);
-        }
-        
-        std::sort(m_Keyframes.begin(), m_Keyframes.end(),
-            [](const Keyframe& a, const Keyframe& b) { return a.time < b.time; });
-    }
+    //        AddKeyframe(keyframe);
+    //    }
+    //    
+    //    std::sort(m_Keyframes.begin(), m_Keyframes.end(),
+    //        [](const Keyframe& a, const Keyframe& b) { return a.time < b.time; });
+    //}
 }
 
 std::optional<dm::float4> Sequence::Evaluate(const std::string& name, float time, bool extrapolateLastValues)
@@ -214,12 +216,12 @@ void Sequence::AddTrack(const std::string& name, const std::shared_ptr<Sampler>&
 
 void Sequence::Load(Json::Value& node)
 {
-    for (auto& trackNode : node)
+    /*for (auto& trackNode : node)
     {
         auto track = std::make_shared<Sampler>();
         track->Load(trackNode);
 
         std::string name = trackNode["name"].asString();
         AddTrack(name, track);
-    }
+    }*/
 }

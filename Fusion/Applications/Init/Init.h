@@ -1,9 +1,9 @@
 #pragma once
 
 //#include "../../Core/CorePCH.hpp"
-#include "../../Core/App/App.h"
+#include "../../Core/App/ApplicationBase.h"
 
-class InitApp : protected App
+class InitApp : protected donut::app::ApplicationBase
 {
 
 public:

@@ -20,9 +20,9 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/engine/SceneGraph.h>
-#include <donut/core/log.h>
-#include <donut/core/json.h>
+#include "SceneGraph.h"
+#include "../Utilities/Logger/Log.h"
+#include "../Utilities/json.h"
 #include <sstream>
 
 using namespace donut::engine;

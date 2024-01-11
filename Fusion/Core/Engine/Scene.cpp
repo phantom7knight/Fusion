@@ -34,15 +34,15 @@ jurisdictions which recognize such a disclaimer. In such jurisdictions,
 this software is released into the Public Domain.
 */
 
-#include <donut/engine/Scene.h>
-#include <donut/engine/GltfImporter.h>
-#include <donut/core/json.h>
-#include <donut/core/log.h>
-#include <donut/core/string_utils.h>
+#include "Scene.h"
+#include "GltfImporter.h"
+#include "../Utilities/json.h"
+#include "../Utilities/Logger/Log.h"
+#include "../Utilities/string_utils.h"
 #include <nvrhi/common/misc.h>
 #include <json/value.h>
 
-#include "donut/engine/ShaderFactory.h"
+#include "ShaderFactory.h"
 
 
 #ifdef DONUT_WITH_TASKFLOW
@@ -50,9 +50,9 @@ this software is released into the Public Domain.
 #endif
 
 using namespace donut::math;
-#include <donut/shaders/material_cb.h>
-#include <donut/shaders/skinning_cb.h>
-#include <donut/shaders/bindless.h>
+#include "../../../Assets/Shaders/material_cb.h"
+#include "../../../Assets/Shaders/skinning_cb.h"
+#include "../../../Assets/Shaders/bindless.h"
 
 using namespace donut::vfs;
 using namespace donut::engine;
@@ -94,6 +94,7 @@ Scene::Scene(
     m_EnableBindlessResources = !!m_DescriptorTable;
     m_RayTracingSupported = m_Device->queryFeatureSupport(nvrhi::Feature::RayTracingAccelStruct);
 
+    // todo_rt: fix this
     m_SkinningShader = shaderFactory.CreateShader("donut/skinning_cs", "main", nullptr, nvrhi::ShaderType::Compute);
 
     {
