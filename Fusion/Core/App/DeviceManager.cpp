@@ -47,19 +47,15 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include <donut/app/DeviceManager.h>
-#include <donut/core/math/math.h>
-#include <donut/core/log.h>
+#include "DeviceManager.h"
 #include <nvrhi/utils.h>
+#include "../Utilities/Math/math.h"
+#include "../Utilities/Logger/Log.h"
 
 #include <cstdio>
 #include <iomanip>
 #include <thread>
 #include <sstream>
-
-#if USE_DX11
-#include <d3d11.h>
-#endif
 
 #if USE_DX12
 #include <d3d12.h>
@@ -85,7 +81,7 @@ public:
 	}
 
 	void UpdateAllJoysticks(const std::list<IRenderPass*>& passes);
-	
+
 	void EraseDisconnectedJoysticks();
 	void EnumerateJoysticks();
 
@@ -99,70 +95,70 @@ private:
 	std::list<int> m_JoystickIDs, m_RemovedJoysticks;
 };
 
-static void ErrorCallback_GLFW(int error, const char *description)
+static void ErrorCallback_GLFW(int error, const char* description)
 {
-    fprintf(stderr, "GLFW error: %s\n", description);
-    exit(1);
+	fprintf(stderr, "GLFW error: %s\n", description);
+	exit(1);
 }
 
-static void WindowIconifyCallback_GLFW(GLFWwindow *window, int iconified)
+static void WindowIconifyCallback_GLFW(GLFWwindow* window, int iconified)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->WindowIconifyCallback(iconified);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->WindowIconifyCallback(iconified);
 }
 
-static void WindowFocusCallback_GLFW(GLFWwindow *window, int focused)
+static void WindowFocusCallback_GLFW(GLFWwindow* window, int focused)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->WindowFocusCallback(focused);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->WindowFocusCallback(focused);
 }
 
-static void WindowRefreshCallback_GLFW(GLFWwindow *window)
+static void WindowRefreshCallback_GLFW(GLFWwindow* window)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->WindowRefreshCallback();
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->WindowRefreshCallback();
 }
 
-static void WindowCloseCallback_GLFW(GLFWwindow *window)
+static void WindowCloseCallback_GLFW(GLFWwindow* window)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->WindowCloseCallback();
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->WindowCloseCallback();
 }
 
-static void WindowPosCallback_GLFW(GLFWwindow *window, int xpos, int ypos)
+static void WindowPosCallback_GLFW(GLFWwindow* window, int xpos, int ypos)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->WindowPosCallback(xpos, ypos);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->WindowPosCallback(xpos, ypos);
 }
 
-static void KeyCallback_GLFW(GLFWwindow *window, int key, int scancode, int action, int mods)
+static void KeyCallback_GLFW(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->KeyboardUpdate(key, scancode, action, mods);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->KeyboardUpdate(key, scancode, action, mods);
 }
 
-static void CharModsCallback_GLFW(GLFWwindow *window, unsigned int unicode, int mods)
+static void CharModsCallback_GLFW(GLFWwindow* window, unsigned int unicode, int mods)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->KeyboardCharInput(unicode, mods);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->KeyboardCharInput(unicode, mods);
 }
 
-static void MousePosCallback_GLFW(GLFWwindow *window, double xpos, double ypos)
+static void MousePosCallback_GLFW(GLFWwindow* window, double xpos, double ypos)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->MousePosUpdate(xpos, ypos);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->MousePosUpdate(xpos, ypos);
 }
 
-static void MouseButtonCallback_GLFW(GLFWwindow *window, int button, int action, int mods)
+static void MouseButtonCallback_GLFW(GLFWwindow* window, int button, int action, int mods)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->MouseButtonUpdate(button, action, mods);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->MouseButtonUpdate(button, action, mods);
 }
 
-static void MouseScrollCallback_GLFW(GLFWwindow *window, double xoffset, double yoffset)
+static void MouseScrollCallback_GLFW(GLFWwindow* window, double xoffset, double yoffset)
 {
-    DeviceManager *manager = reinterpret_cast<DeviceManager *>(glfwGetWindowUserPointer(window));
-    manager->MouseScrollUpdate(xoffset, yoffset);
+	DeviceManager* manager = reinterpret_cast<DeviceManager*>(glfwGetWindowUserPointer(window));
+	manager->MouseScrollUpdate(xoffset, yoffset);
 }
 
 static void JoystickConnectionCallback_GLFW(int joyId, int connectDisconnect)
@@ -795,10 +791,6 @@ donut::app::DeviceManager* donut::app::DeviceManager::Create(nvrhi::GraphicsAPI 
 {
     switch (api)
     {
-#if USE_DX11
-    case nvrhi::GraphicsAPI::D3D11:
-        return CreateD3D11();
-#endif
 #if USE_DX12
     case nvrhi::GraphicsAPI::D3D12:
         return CreateD3D12();

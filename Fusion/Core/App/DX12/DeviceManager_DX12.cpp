@@ -52,7 +52,7 @@ freely, subject to the following restrictions:
 #include <vector>
 
 #include "../DeviceManager.h"
-//#include <donut/core/log.h>
+#include "../../Utilities/Logger/Log.h"
 
 #include <Windows.h>
 #include <dxgi1_5.h>
@@ -137,7 +137,7 @@ static bool IsNvDeviceID(UINT id)
     return id == 0x10DE;
 }
 
-// Adjust window rect so that it is centred on the given adapter.  Clamps to fit if it's too big.
+// Adjust window rect so that it is centered on the given adapter. Clamps to fit if it's too big.
 static bool MoveWindowOntoAdapter(IDXGIAdapter* targetAdapter, RECT& rect)
 {
     assert(targetAdapter != NULL);

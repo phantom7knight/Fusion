@@ -49,15 +49,8 @@ freely, subject to the following restrictions:
 
 #pragma once
 
-#if USE_DX11 || USE_DX12
-#include <DXGI.h>
-#endif
-
-#if USE_DX11
-#include <d3d11.h>
-#endif
-
 #if USE_DX12
+#include <DXGI.h>
 #include <d3d12.h>
 #endif
 
@@ -65,20 +58,21 @@ freely, subject to the following restrictions:
 #include <nvrhi/vulkan.h>
 #endif
 
-//#define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
-//#include <GLFW/glfw3.h>
-//#ifdef _WIN32
-//#define GLFW_EXPOSE_NATIVE_WIN32
-//#endif // _WIN32
-//#include <GLFW/glfw3native.h>
-
-
-#include <SDL.h>
-#include <SDL_syswm.h>
-#include <imgui_impl_sdl.h>
+#define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
+#include <GLFW/glfw3.h>
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif // _WIN32
+#include <GLFW/glfw3native.h>
+#define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
+#include <GLFW/glfw3.h>
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif // _WIN32
+#include <GLFW/glfw3native.h>
 
 #include <nvrhi/nvrhi.h>
-#include <donut/core/log.h>
+#include "../Utilities/Logger/Log.h"
 
 #include <list>
 #include <functional>
@@ -129,7 +123,7 @@ namespace donut::app
         // Severity of the information log messages from the device manager, like the device name or enabled extensions.
         log::Severity infoLogSeverity = log::Severity::Info;
 
-        // Index of the adapter (DX11, DX12) or physical device (Vk) on which to initialize the device.
+        // Index of the adapter (DX11/DX12) or physical device (Vk) on which to initialize the device.
         // Negative values mean automatic detection.
         // The order of indices matches that returned by DeviceManager::EnumerateAdapters.
         int adapterIndex = -1;
@@ -145,7 +139,7 @@ namespace donut::app
         // and respond to DPI scale factor changes by resizing the backbuffer explicitly
         bool enablePerMonitorDPI = false;
 
-#if USE_DX11 || USE_DX12
+#if USE_DX12
         DXGI_USAGE swapChainUsage = DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_RENDER_TARGET_OUTPUT;
         D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
 #endif
@@ -166,7 +160,7 @@ namespace donut::app
         uint32_t vendorID = 0;
         uint32_t deviceID = 0;
         uint64_t dedicatedVideoMemory = 0;
-#if USE_DX11 || USE_DX12
+#if USE_DX12
         nvrhi::RefCountPtr<IDXGIAdapter> dxgiAdapter;
 #endif
 #if USE_VK
@@ -211,7 +205,7 @@ namespace donut::app
         bool m_windowVisible = false;
 
         DeviceCreationParameters m_DeviceParams;
-        GLFWwindow *m_Window = nullptr;
+        GLFWwindow* m_Window = nullptr;
         bool m_EnableRenderDuringWindowMovement = false;
         // set to true if running on NV GPU
         bool m_IsNvidia = false;
@@ -244,6 +238,7 @@ namespace donut::app
         void Render();
         void UpdateAverageFrameTime(double elapsedTime);
         void AnimateRenderPresent();
+        
         // device-specific methods
         virtual bool CreateInstanceInternal() = 0;
         virtual bool CreateDevice() = 0;
@@ -314,7 +309,6 @@ namespace donut::app
         } m_callbacks;
 
     private:
-        static DeviceManager* CreateD3D11();
         static DeviceManager* CreateD3D12();
         static DeviceManager* CreateVK();
 

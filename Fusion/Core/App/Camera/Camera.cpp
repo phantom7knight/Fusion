@@ -21,9 +21,9 @@
 */
 
 #include <cassert>
-#include <donut/app/Camera.h>
+#include "Camera.h"
 
-#include "donut/engine/View.h"
+#include "../../Engine/View.h"
 
 using namespace donut::math;
 using namespace donut::app;

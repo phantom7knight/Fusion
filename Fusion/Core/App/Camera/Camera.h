@@ -25,7 +25,7 @@
 #include <unordered_map>
 #include <array>
 
-#include <donut/core/math/math.h>
+#include "../../Utilities/Math/math.h"
 
 #define GLFW_INCLUDE_NONE // Do not include any OpenGL headers
 #include <GLFW/glfw3.h>
