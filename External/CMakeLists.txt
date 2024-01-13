@@ -27,10 +27,13 @@ FetchContent_Declare(
 # Set up GLFW
 option(GLFW_BUILD_DOCS "" OFF)
 option(GLFW_BUILD_WIN32 "" OFF)
+option(GLFW_BUILD_EXAMPLES "" OFF)
+option(GLFW_BUILD_TESTS "" OFF)
+# option(GLFW_INSTALL "" OFF)
 FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
-  GIT_TAG b4c3ef9d0fdf46845f3e81e5d989dab06e71e6c1
+  GIT_TAG 7482de6071d21db77a7236155da44c172a7f6c9e
   GIT_PROGRESS TRUE
 )
 
