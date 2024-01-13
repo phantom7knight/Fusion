@@ -44,8 +44,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <donut/app/imgui_renderer.h>
-#include <donut/core/vfs/VFS.h>
+#include "imgui_renderer.h"
+#include "../../VFS/VFS.h"
 
 using namespace donut::vfs;
 using namespace donut::engine;

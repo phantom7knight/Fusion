@@ -46,8 +46,8 @@ SOFTWARE.
 
 #pragma once
 
-#include <donut/core/circular_buffer.h>
-#include <donut/core/log.h>
+#include "../circular_buffer.h"
+#include "../../Utilities/Logger/log.h"
 
 #include <imgui.h>
 

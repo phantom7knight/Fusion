@@ -49,9 +49,9 @@ SOFTWARE.
 #include <imgui.h>
 
 #include <nvrhi/nvrhi.h>
-#include <donut/engine/ShaderFactory.h>
+#include "../../Engine/ShaderFactory.h"
 
-#include <donut/app/imgui_nvrhi.h>
+#include "imgui_nvrhi.h"
 
 using namespace donut::engine;
 using namespace donut::app;

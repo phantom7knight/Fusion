@@ -46,8 +46,8 @@ SOFTWARE.
 
 #pragma once
 
-#include <donut/app/DeviceManager.h>
-#include <donut/app/imgui_nvrhi.h>
+#include "../DeviceManager.h"
+#include "imgui_nvrhi.h"
 
 #include <filesystem>
 #include <memory>

@@ -44,12 +44,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <donut/app/imgui_console.h>
-#include <donut/app/imgui_renderer.h>
+#include "imgui_console.h"
+#include "imgui_renderer.h"
 
-#include <donut/engine/ConsoleInterpreter.h>
-#include <donut/engine/ConsoleObjects.h>
-#include <donut/core/string_utils.h>
+#include "../../Engine/ConsoleInterpreter.h"
+#include "../../Engine/ConsoleObjects.h"
+#include "../../Utilities/string_utils.h"
 
 #include <cstdarg>
 #include <cctype>
