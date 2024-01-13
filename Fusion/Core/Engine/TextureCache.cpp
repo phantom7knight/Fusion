@@ -45,13 +45,13 @@ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/engine/TextureCache.h>
+#include "TextureCache.h"
 
-#include <donut/engine/CommonRenderPasses.h>
-#include <donut/engine/ConsoleObjects.h>
-#include <donut/engine/DDSFile.h>
-#include <donut/core/vfs/VFS.h>
-#include <donut/core/log.h>
+#include "CommonRenderPasses.h"
+#include "ConsoleObjects.h"
+#include "DDSFile.h"
+#include "../VFS/VFS.h"
+#include "../Utilities/Logger/Log.h"
 
 #ifdef DONUT_WITH_TASKFLOW
 #include <taskflow/taskflow.hpp>

@@ -20,13 +20,13 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/engine/View.h>
+#include "View.h"
 #include <algorithm>
 
 using namespace donut::math;
 using namespace donut::engine;
 
-#include <donut/shaders/view_cb.h>
+#include "../../../Assets/Shaders/view_cb.h"
 
 void IView::FillPlanarViewConstants(PlanarViewConstants& constants) const
 {

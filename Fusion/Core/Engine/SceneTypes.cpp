@@ -20,14 +20,14 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/engine/SceneGraph.h>
-#include <donut/engine/ShadowMap.h>
-#include <donut/core/json.h>
+#include "SceneGraph.h"
+#include "ShadowMap.h"
+#include "../Utilities/json.h"
 #include <json/value.h>
 
 using namespace donut::math;
-#include <donut/shaders/light_cb.h>
-#include <donut/shaders/bindless.h>
+#include "../../../Assets/Shaders/light_cb.h"
+#include "../../../Assets/Shaders/bindless.h"
 
 using namespace donut::engine;
 

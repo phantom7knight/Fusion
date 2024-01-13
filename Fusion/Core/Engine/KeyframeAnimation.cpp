@@ -34,12 +34,10 @@ jurisdictions which recognize such a disclaimer. In such jurisdictions,
 this software is released into the Public Domain.
 */
 
-// todo_rt: fix the json lib include and the whole folder
-
 #include "KeyframeAnimation.h"
 #include "../Utilities/Logger/Log.h"
 #include "../Utilities/json.h"
-//#include <json/value.h> // todo_rt: fix this
+#include <json/value.h>
 #include <cassert>
 
 using namespace donut::math;

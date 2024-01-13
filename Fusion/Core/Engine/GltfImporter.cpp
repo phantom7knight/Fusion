@@ -23,11 +23,11 @@
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
 
-#include <donut/engine/GltfImporter.h>
-#include <donut/engine/TextureCache.h>
-#include <donut/engine/SceneGraph.h>
-#include <donut/core/vfs/VFS.h>
-#include <donut/core/log.h>
+#include "GltfImporter.h"
+#include "TextureCache.h"
+#include "SceneGraph.h"
+#include "../VFS/VFS.h"
+#include "../Utilities/Logger/Log.h"
 
 #include "nvrhi/common/misc.h"
 
