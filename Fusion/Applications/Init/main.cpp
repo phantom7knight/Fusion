@@ -26,7 +26,7 @@ int main(int __argc, const char** __argv)
 		return 1;
 	}
 
-	/*{
+	{
 		InitApp example(deviceManager);
 		if (example.Init())
 		{
@@ -34,7 +34,7 @@ int main(int __argc, const char** __argv)
 			deviceManager->RunMessageLoop();
 			deviceManager->RemoveRenderPass(&example);
 		}
-	}*/
+	}
 
 	deviceManager->Shutdown();
 
