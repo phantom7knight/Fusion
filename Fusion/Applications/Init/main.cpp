@@ -4,6 +4,8 @@
 #include "Init.h"
 
 #include "../../Core/App/ApplicationBase.h"
+#include "../../Core/App/DeviceManager.h"
+#include "../../Core/Utilities/Logger/log.h"
 
 #ifdef WIN32
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)

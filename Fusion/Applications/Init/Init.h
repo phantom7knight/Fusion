@@ -4,7 +4,7 @@
 
 //using namespace donut;
 
-class InitApp : protected donut::app::IRenderPass
+class InitApp : public donut::app::IRenderPass
 {
 private:
 	nvrhi::ShaderHandle mVertexShader;
