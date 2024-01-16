@@ -18,10 +18,11 @@ dxgi
 ) #External1 imgui
 
 # Set preprocessor directives
-target_compile_definitions(Init PRIVATE 
+target_compile_definitions(Init PRIVATE
+_WINDOWS
+_CRT_SECURE_NO_WARNINGS
 USE_DX12=1
-# USE_VK=1
-# VK_USE_PLATFORM_WIN32_KHR
+USE_VK=1
 )
 
 # Now set the FOLDER property for the fetched target

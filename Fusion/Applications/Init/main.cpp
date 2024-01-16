@@ -7,14 +7,10 @@
 #include "../../Core/App/DeviceManager.h"
 #include "../../Core/Utilities/Logger/log.h"
 
-#ifdef WIN32
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-#else
 int main(int __argc, const char** __argv)
-#endif
 {
-	nvrhi::GraphicsAPI api = donut::app::GetGraphicsAPIFromCommandLine(__argc, __argv);
-	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(api);
+	//nvrhi::GraphicsAPI api = donut::app::GetGraphicsAPIFromCommandLine(__argc, __argv);
+	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(nvrhi::GraphicsAPI::D3D12);
 
 	donut::app::DeviceCreationParameters deviceParams;
 #ifdef _DEBUG

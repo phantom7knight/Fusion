@@ -208,5 +208,6 @@ target_compile_definitions(Core PRIVATE
 USE_DX12=1
 USE_VK=1
 VK_USE_PLATFORM_WIN32_KHR
-_CRT_SECURE_NO_WARNINGS)
+_CRT_SECURE_NO_WARNINGS
+_WINDOWS)
 set_target_properties(Core PROPERTIES FOLDER "Internal")
