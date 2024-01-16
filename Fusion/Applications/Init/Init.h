@@ -2,7 +2,7 @@
 
 #include "../../Core/App/ApplicationBase.h"
 
-class InitApp : protected donut::app::IRenderPass
+class InitApp /*: protected donut::app::IRenderPass*/
 {
 
 public:

@@ -1,3 +1,5 @@
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+
 set(SRC_FILES
     "App/Camera/Camera.h"
     "App/Camera/Camera.cpp"
@@ -61,6 +63,7 @@ set(SRC_FILES
 	"Engine/ShadowMap.h"
 	"Engine/View.h"
 	"Engine/View.cpp"
+	"Engine/stb_impl.c"
 	
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
@@ -132,7 +135,8 @@ source_group("Engine" FILES
 	"Engine/TextureCache.cpp"
 	"Engine/ShadowMap.h"
 	"Engine/View.h"
-	"Engine/View.cpp")
+	"Engine/View.cpp"
+	"Engine/stb_impl.c")
 source_group("ShaderMake" FILES
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
@@ -180,11 +184,8 @@ source_group("App\\Imgui" FILES
  "App/Imgui/imgui_renderer.cpp")
 
 add_library(Core STATIC ${SRC_FILES})
-#target_link_libraries(Core PUBLIC External d3d12.lib d3dcompiler.lib dxcompiler.lib)
 
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
-endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
 
 # Enable hot reload in Visual studio 2022.
 if (MSVC AND WIN32 AND NOT MSVC_VERSION VERSION_LESS 141)
@@ -201,8 +202,11 @@ target_precompile_headers(
     "CorePCH.hpp"
 )
 
-target_link_libraries(Core PUBLIC External)
-target_compile_definitions(Core PRIVATE USE_DX12=1 USE_VK=1 VK_USE_PLATFORM_WIN32_KHR _CRT_SECURE_NO_WARNINGS)
-
-# Now set the FOLDER property for the fetched target
+# Link libraries, compile definitions, and set the FOLDER property
+target_link_libraries(Core PUBLIC External) #nvrhi
+target_compile_definitions(Core PRIVATE 
+USE_DX12=1
+USE_VK=1
+VK_USE_PLATFORM_WIN32_KHR
+_CRT_SECURE_NO_WARNINGS)
 set_target_properties(Core PROPERTIES FOLDER "Internal")

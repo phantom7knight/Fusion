@@ -1,5 +1,6 @@
-# Using CMake's fetch content to pull and setup third party libraries.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 
+# Using CMake's fetch content to pull and setup third party libraries.
 include(FetchContent)
 
 # Declare the external project
@@ -20,7 +21,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   stb
   GIT_REPOSITORY https://github.com/nothings/stb
-  GIT_TAG 8b5f1f37b5b75829fc72d38e7b5d4bcbf8a26d55
+  GIT_TAG beebb24b945efdea3b9bba23affb8eb3ba8982e7
   GIT_PROGRESS TRUE
 )
 
@@ -55,6 +56,7 @@ FetchContent_Declare(
     GIT_TAG        3531d8c422114bcbc8b8564bb3eb602cb3a5ac37
 )
 
+# Set up imgui
 FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui
@@ -62,19 +64,71 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
-FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui) # D3D12MemoryAllocator stb)
+FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui) # D3D12MemoryAllocator
+
+# set necessary path
+set(DEPENDENCY_PATH ${CMAKE_BINARY_DIR}/_deps)
+set(VULKAN_HEADERS_PATH ${DEPENDENCY_PATH}/nvrhi-src/thirdparty/Vulkan-Headers/include)
+set(STB_HEADERS_PATH ${DEPENDENCY_PATH}/stb-src)
+set(CGLTF_HEADERS_PATH ${DEPENDENCY_PATH}/cgltf-src)
+
+#libimgui setup
+set(imgui_srcs
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.h
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+	${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_dx12.h
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_dx12.cpp
+    ${imgui_SOURCE_DIR}/imgui.h
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_internal.h
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+)
+
+add_library(libimgui STATIC ${imgui_srcs})
+
+target_include_directories(libimgui PUBLIC 
+${imgui_SOURCE_DIR} 
+${imgui_SOURCE_DIR}/backends
+${glfw_SOURCE_DIR}/include
+${VULKAN_HEADERS_PATH}
+)
+
+#libcgltf setup
+set(stb_srcs
+    ${STB_HEADERS_PATH}/stb_c_lexer.h
+    ${STB_HEADERS_PATH}/stb_ds.h
+    ${STB_HEADERS_PATH}/stb_image.h
+    ${STB_HEADERS_PATH}/stb_image_resize2.h
+    ${STB_HEADERS_PATH}/stb_image_write.h
+    ${STB_HEADERS_PATH}/stb_include.h
+    ${STB_HEADERS_PATH}/stb_truetype.h
+    ${STB_HEADERS_PATH}/stb_voxel_render.h
+    ${STB_HEADERS_PATH}/stb_divide.h
+    ${STB_HEADERS_PATH}/stb_vorbis.c
+)
+
+add_library(libstb STATIC ${stb_srcs})
 
 add_library(External INTERFACE)
 target_link_libraries(External INTERFACE
 nvrhi
+nvrhi_d3d12
+nvrhi_vk
 Vulkan::Headers
 glfw
-jsoncpp
-cgltf
-stb
-imgui)#D3D12MemoryAllocator libimgui SDL2::SDL2main
+jsoncpp_static
+libstb
+libimgui
+)
+
 target_include_directories(External INTERFACE
 ${nvrhi_SOURCE_DIR}/include
+# ${nvrhi_dx12_SOURCE_DIR}/include
+# ${nvrhi_vulkan_SOURCE_DIR}/include
 ${jsoncpp_SOURCE_DIR}/include
 ${cgltf_SOURCE_DIR}
 ${stb_SOURCE_DIR}
@@ -86,14 +140,12 @@ ${imgui_SOURCE_DIR} )
 # ${sdl2_SOURCE_DIR}/include 
 
 # Now set the FOLDER property for the fetched target
-# set_target_properties(cgltf PROPERTIES FOLDER "External")
-set_target_properties(glfw PROPERTIES FOLDER "External")
 set_target_properties(update_mappings PROPERTIES FOLDER "External")
 set_target_properties(jsoncpp_static PROPERTIES FOLDER "External")
 set_target_properties(jsoncpp_object PROPERTIES FOLDER "External")
-# set_target_properties(jsoncpp_static PROPERTIES FOLDER "External")
-# set_target_properties(jsoncpp_static PROPERTIES FOLDER "External")
-# set_target_properties(libimgui PROPERTIES FOLDER "External")
+set_target_properties(libimgui PROPERTIES FOLDER "External")
+set_target_properties(libstb PROPERTIES FOLDER "External")
+set_target_properties(glfw PROPERTIES FOLDER "External")
 # set_target_properties(SDL2 PROPERTIES FOLDER "External")
 # set_target_properties(SDL2main PROPERTIES FOLDER "External")
 # set_target_properties(SDL2-static PROPERTIES FOLDER "External")
