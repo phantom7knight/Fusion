@@ -25,7 +25,6 @@
 #include "../Utilities/Logger/log.h"
 #include "../ShaderMake/ShaderBlob.h"
 
-using namespace std;
 using namespace donut::vfs;
 using namespace donut::engine;
 
@@ -48,17 +47,23 @@ std::shared_ptr<IBlob> ShaderFactory::GetBytecode(const char* fileName, const ch
     if (!entryName)
         entryName = "main";
 
-    string adjustedName = fileName;
+    std::string adjustedName = fileName;
     {
         size_t pos = adjustedName.find(".hlsl");
-        if (pos != string::npos)
+        if (pos != std::string::npos)
             adjustedName.erase(pos, 5);
 
         if (entryName && strcmp(entryName, "main"))
-            adjustedName += "_" + string(entryName);
+            adjustedName += "_" + std::string(entryName);
     }
 
-    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + ".dxil");
+    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + 
+#if USE_DX12
+        ".dxil"
+#else USE_VK
+        ".spirv"
+#endif
+        );
 
     std::shared_ptr<IBlob>& data = m_BytecodeCache[shaderFilePath.generic_string()];
 
@@ -77,21 +82,21 @@ std::shared_ptr<IBlob> ShaderFactory::GetBytecode(const char* fileName, const ch
 }
 
 
-nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char* entryName, const vector<ShaderMacro>* pDefines, nvrhi::ShaderType shaderType)
+nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, nvrhi::ShaderType shaderType)
 {
     nvrhi::ShaderDesc desc = nvrhi::ShaderDesc(shaderType);
     desc.debugName = fileName;
     return CreateShader(fileName, entryName, pDefines, desc);
 }
 
-nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char* entryName, const vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc)
+nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc)
 {
     std::shared_ptr<IBlob> byteCode = GetBytecode(fileName, entryName);
 
     if(!byteCode)
         return nullptr;
 
-    vector<ShaderMake::ShaderConstant> constants;
+    std::vector<ShaderMake::ShaderConstant> constants;
     if (pDefines)
     {
         for (const ShaderMacro& define : *pDefines)
@@ -121,7 +126,7 @@ nvrhi::ShaderLibraryHandle ShaderFactory::CreateShaderLibrary(const char* fileNa
     if (!byteCode)
         return nullptr;
 
-    vector<ShaderMake::ShaderConstant> constants;
+    std::vector<ShaderMake::ShaderConstant> constants;
     if (pDefines)
     {
         for (const ShaderMacro& define : *pDefines)
