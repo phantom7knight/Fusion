@@ -8,8 +8,9 @@
 #include "../../Core/Utilities/Logger/log.h"
 #include "../../Core/ShaderMake/ShaderMake.hpp"
 
-int main(int __argc, const char* __argv[])
+namespace locHelperFunc
 {
+	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
 		// Look at the github page for example
 		// https://github.com/NVIDIAGameWorks/ShaderMake.git
@@ -42,39 +43,45 @@ int main(int __argc, const char* __argv[])
 		std::string outConfigPath = "--config=" + appShaderConfigPath.string();
 		std::string outputPath = "--out=" + donut::app::GetDirectoryWithExecutable().string() + "/../../../Assets/Shaders/Applications/Init/Generated/";
 
+
+		std::string platformArg = "--platform=";
+		std::string compilerArg = "--compiler=";
+		std::string additionalArgs = "";
+
+		if (aAPI == nvrhi::GraphicsAPI::D3D12)
+		{
+			platformArg += "DXIL";
+			compilerArg += "C:/Program Files (x86)/Windows Kits/10/bin/10.0.20348.0/x64/dxc.exe";
+			additionalArgs += "--outputExt=.bin";
+		}
+		else
+		{
+			platformArg += "SPIRV";
+			compilerArg += "C:/VulkanSDK/1.3.216.0/Bin/dxc.exe";
+			additionalArgs += " --tRegShift=0, --sRegShift=128, --bRegShift=256, --uRegShift=384";
+		}
+
 		const char* arguments[] = {
-#if USE_DX12
 			"ShaderMake.exe", // this doesn't matter
-			"--platform=DXIL",
+			platformArg.c_str(),
 			outConfigPath.c_str(),
 			outputPath.c_str(),
-			"--compiler=C:/Program Files (x86)/Windows Kits/10/bin/10.0.20348.0/x64/dxc.exe",
+			compilerArg.c_str(),
 			"--binary",
 			"--binaryBlob",
-			"--outputExt=.bin"
-#else if USE_VK
-			"ShaderMake.exe", // this doesn't matter
-			"--platform=SPIRV",
-			outConfigPath.c_str(),
-			outputPath.c_str(),
-			"--compiler=C:/VulkanSDK/1.3.216.0/Bin/dxc.exe",
-			"--binary",
-			"--binaryBlob",
-			"--outputExt=.bin",
-			"--tRegShift 0 ",
-			"--sRegShift 128", 
-			"--bRegShift 256", 
-			"--uRegShift 384"
-#endif
+			additionalArgs.c_str()
 		};
 
 		uint8_t arrSize = sizeof(arguments) / sizeof(arguments[0]);
 
 		// Shader Code Generation
-		ShaderCodeGeneration(arrSize, arguments);
+		return !ShaderCodeGeneration(arrSize, arguments);
 	}
+}
 
-	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(nvrhi::GraphicsAPI::D3D12);//api
+int main(int __argc, const char* __argv[])
+{
+	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(nvrhi::GraphicsAPI::VULKAN);
 
 	donut::app::DeviceCreationParameters deviceParams;
 #ifdef _DEBUG
@@ -86,6 +93,14 @@ int main(int __argc, const char* __argv[])
 	{
 		donut::log::fatal("Cannot initialize a graphics device with the requested parameters");
 		return 1;
+	}
+
+	{
+		// Shader Generation Setup
+		if (!locHelperFunc::ShaderSetup(deviceManager->GetGraphicsAPI()))
+		{
+			donut::log::fatal("Shader creation setup failed!!!");
+		}
 	}
 
 	{

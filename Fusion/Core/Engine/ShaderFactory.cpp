@@ -57,7 +57,9 @@ std::shared_ptr<IBlob> ShaderFactory::GetBytecode(const char* fileName, const ch
             adjustedName += "_" + std::string(entryName);
     }
 
-    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + ".bin");
+    std::string ext = m_Device->getGraphicsAPI() == nvrhi::GraphicsAPI::D3D12 ? ".bin" : ".spirv";
+
+    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + ext);
 
     std::shared_ptr<IBlob>& data = m_BytecodeCache[shaderFilePath.generic_string()];
 
@@ -74,7 +76,6 @@ std::shared_ptr<IBlob> ShaderFactory::GetBytecode(const char* fileName, const ch
 
     return data;
 }
-
 
 nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, nvrhi::ShaderType shaderType)
 {
