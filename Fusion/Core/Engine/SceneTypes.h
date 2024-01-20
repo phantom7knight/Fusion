@@ -24,7 +24,7 @@
 
 #include "../Utilities/Math/math.h"
 #include "DescriptorTableManager.h"
-#include "../../../Assets/Shaders/light_types.h"
+#include "../../../Assets/Shaders/Includes/light_types.h"
 #include <nvrhi/nvrhi.h>
 #include <memory>
 

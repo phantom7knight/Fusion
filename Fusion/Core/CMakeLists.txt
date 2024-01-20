@@ -69,8 +69,8 @@ set(SRC_FILES
 	"ShaderMake/argparse.c"
 	"ShaderMake/ShaderBlob.h"
 	"ShaderMake/ShaderBlob.cpp"
-	"ShaderMake/ShaderMake.cpp"
-    
+	"ShaderMake/ShaderMake.hpp"
+
     "Utilities/Logger/Log.h"
     "Utilities/Logger/Log.cpp"
 	
@@ -79,7 +79,10 @@ set(SRC_FILES
     "Utilities/Timer.h"
 	
     "Utilities/string_utils.h"
-	"Utilities/string_utils.cpp"	
+	"Utilities/string_utils.cpp"
+
+	# "Utilities/Shaders/ShaderCompiler.h"
+	# "Utilities/Shaders/ShaderCompiler.cpp"
 	
 	"Utilities/Math/affine.h"
 	"Utilities/Math/basics.h"
@@ -142,7 +145,7 @@ source_group("ShaderMake" FILES
 	"ShaderMake/argparse.c"
 	"ShaderMake/ShaderBlob.h"
 	"ShaderMake/ShaderBlob.cpp"
-	"ShaderMake/ShaderMake.cpp")
+	"ShaderMake/ShaderMake.hpp")
 source_group("VFS" FILES
 	"VFS/Compression.h"
 	"VFS/Compression.cpp"
@@ -163,6 +166,9 @@ source_group("Utilities" FILES
 source_group("Utilities\\Logger" FILES
 	"Utilities/Logger/Log.h"
 	"Utilities/Logger/Log.cpp")
+# source_group("Utilities\\Shaders" FILES
+	# "Utilities/Shaders/ShaderCompiler.h"
+	# "Utilities/Shaders/ShaderCompiler.cpp")
 source_group("Utilities\\Math" FILES
 	"Utilities/Math/affine.h"
 	"Utilities/Math/basics.h"

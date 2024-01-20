@@ -50,9 +50,9 @@ this software is released into the Public Domain.
 #endif
 
 using namespace donut::math;
-#include "../../../Assets/Shaders/material_cb.h"
-#include "../../../Assets/Shaders/skinning_cb.h"
-#include "../../../Assets/Shaders/bindless.h"
+#include "../../../Assets/Shaders/Includes/material_cb.h"
+#include "../../../Assets/Shaders/Includes/skinning_cb.h"
+#include "../../../Assets/Shaders/Includes/bindless.h"
 
 using namespace donut::vfs;
 using namespace donut::engine;

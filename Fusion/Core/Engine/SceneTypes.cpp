@@ -26,8 +26,8 @@
 #include <json/value.h>
 
 using namespace donut::math;
-#include "../../../Assets/Shaders/light_cb.h"
-#include "../../../Assets/Shaders/bindless.h"
+#include "../../../Assets/Shaders/Includes/light_cb.h"
+#include "../../../Assets/Shaders/Includes/bindless.h"
 
 using namespace donut::engine;
 

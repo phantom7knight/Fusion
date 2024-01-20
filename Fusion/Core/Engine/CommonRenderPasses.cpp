@@ -25,7 +25,7 @@
 #include "BindingCache.h"
 
 using namespace donut::math;
-#include "../../../Assets/Shaders/blit_cb.h"
+#include "../../../Assets/Shaders/Includes/blit_cb.h"
 
 using namespace donut::engine;
 

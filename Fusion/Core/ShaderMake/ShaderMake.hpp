@@ -1772,7 +1772,7 @@ void SignalHandler(int32_t sig)
     Printf(RED "Aborting...\n");
 }
 
-int32_t main(int32_t argc, const char** argv)
+int32_t ShaderCodeGeneration(int32_t argc, const char** argv)
 {
     // Init timer
     Timer_Init();
@@ -1811,7 +1811,8 @@ int32_t main(int32_t argc, const char** argv)
 
     { // Gather shader permutations
         fs::file_time_type configTime = fs::last_write_time(g_Options.configFile);
-        configTime = max(configTime, fs::last_write_time(self));
+        // todo_rt: testing
+        //configTime = max(configTime, fs::last_write_time(self));
 
         ifstream configStream(g_Options.configFile);
 
