@@ -40,13 +40,7 @@ int main(int __argc, const char* __argv[])
 		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/shaders.cfg";
 		std::filesystem::path appShaderIncludesConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Includes";
 		std::string outConfigPath = "--config=" + appShaderConfigPath.string();
-		std::string outputPath = "--out=" + donut::app::GetDirectoryWithExecutable().string() + "/../../../Assets/Shaders/Applications/Init/"
-#if USE_DX12
-			+ "dxil"
-#elif USE_VK
-			+ "spirv"
-#endif
-			;
+		std::string outputPath = "--out=" + donut::app::GetDirectoryWithExecutable().string() + "/../../../Assets/Shaders/Applications/Init/Generated/";
 
 		const char* arguments[] = {
 #if USE_DX12
@@ -57,7 +51,7 @@ int main(int __argc, const char* __argv[])
 			"--compiler=C:/Program Files (x86)/Windows Kits/10/bin/10.0.20348.0/x64/dxc.exe",
 			"--binary",
 			"--binaryBlob",
-			"--useAPI"
+			"--outputExt=.bin"
 #else if USE_VK
 			"ShaderMake.exe", // this doesn't matter
 			"--platform=SPIRV",
@@ -66,7 +60,7 @@ int main(int __argc, const char* __argv[])
 			"--compiler=C:/VulkanSDK/1.3.216.0/Bin/dxc.exe",
 			"--binary",
 			"--binaryBlob",
-			"--useAPI",
+			"--outputExt=.bin",
 			"--tRegShift 0 ",
 			"--sRegShift 128", 
 			"--bRegShift 256", 
@@ -74,13 +68,12 @@ int main(int __argc, const char* __argv[])
 #endif
 		};
 
-		// Shader Code Generation
-		ShaderCodeGeneration(7, arguments);
+		uint8_t arrSize = sizeof(arguments) / sizeof(arguments[0]);
 
+		// Shader Code Generation
+		ShaderCodeGeneration(arrSize, arguments);
 	}
 
-
-	//nvrhi::GraphicsAPI api = donut::app::GetGraphicsAPIFromCommandLine(__argc, __argv);
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(nvrhi::GraphicsAPI::D3D12);//api
 
 	donut::app::DeviceCreationParameters deviceParams;

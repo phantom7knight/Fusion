@@ -30,6 +30,6 @@
 *.exe
 *.out
 *.app
-*.dxil
+Generated
 Build
 GLTFModels

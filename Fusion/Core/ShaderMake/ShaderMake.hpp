@@ -676,9 +676,9 @@ bool Options::Parse(int32_t argc, const char** argv)
     }
 
     if (outputExt)
-        g_OutputExt = outputExt;
-    else
-        g_OutputExt = g_PlatformExts[platform];
+		g_OutputExt = outputExt;
+	else
+		g_OutputExt = g_PlatformExts[platform];
 
     // Absolute path is needed for source files to get "clickable" messages
 #ifdef _WIN32
@@ -1811,7 +1811,7 @@ int32_t ShaderCodeGeneration(int32_t argc, const char** argv)
 
     { // Gather shader permutations
         fs::file_time_type configTime = fs::last_write_time(g_Options.configFile);
-        // todo_rt: testing
+        // todo_rt: we don't care abt "Shadermake.exe" right now
         //configTime = max(configTime, fs::last_write_time(self));
 
         ifstream configStream(g_Options.configFile);

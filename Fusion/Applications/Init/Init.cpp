@@ -6,7 +6,7 @@
 
 bool InitApp::Init()
 {
-	std::filesystem::path appShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init" / donut::app::GetShaderTypeName(GetDevice()->getGraphicsAPI());
+	std::filesystem::path appShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/Generated"; // donut::app::GetShaderTypeName(GetDevice()->getGraphicsAPI())
 
 	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
 	donut::engine::ShaderFactory shaderFactory(GetDevice(), nativeFS, appShaderPath);
