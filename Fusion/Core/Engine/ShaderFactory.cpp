@@ -58,7 +58,7 @@ std::shared_ptr<IBlob> ShaderFactory::GetBytecode(const char* fileName, const ch
             adjustedName += "_" + string(entryName);
     }
 
-    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + ".bin");
+    std::filesystem::path shaderFilePath = m_basePath / (adjustedName + ".dxil");
 
     std::shared_ptr<IBlob>& data = m_BytecodeCache[shaderFilePath.generic_string()];
 
