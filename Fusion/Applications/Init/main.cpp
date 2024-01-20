@@ -12,8 +12,8 @@ namespace locHelperFunc
 {
 	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
-		// Look at the github page for example
-		// https://github.com/NVIDIAGameWorks/ShaderMake.git
+		// Look at the github page for example: https://github.com/NVIDIAGameWorks/ShaderMake.git
+
 		// DX12
 		//"C:\Users\Rohit Tolety\Downloads\tech temp\donut_examples\bin\ShaderMake.exe" 
 		// --config "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/examples/basic_triangle/shaders.cfg" 
