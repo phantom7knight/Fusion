@@ -9,11 +9,11 @@
 
 bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory)
 {
-	mTriangle.mVertexShader = aShaderFactory->CreateShader("Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
-	mTriangle.mPixelShader = aShaderFactory->CreateShader("Triangle.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
+	mTriangle.mVertexShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
+	mTriangle.mPixelShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
 	
-	mCube.mVertexShader = aShaderFactory->CreateShader("Cube.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
-	mCube.mPixelShader = aShaderFactory->CreateShader("Cube.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
+	mCube.mVertexShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
+	mCube.mPixelShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
 
 	if (!mTriangle.mVertexShader || !mTriangle.mPixelShader ||
 		!mCube.mVertexShader || !mCube.mPixelShader)
@@ -32,17 +32,12 @@ bool InitApp::Init()
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
-	rootFS->mount("/shaders/app", commonShaderPath);
+	rootFS->mount("/shaders/Common", commonShaderPath);
 
-	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders/Init");
+	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 
 	if (!InitAppShaderSetup(shaderFactory))
 		return false;
-
-	// todo_rt; testing
-	
-	//std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
-	//rootFS->mount("/shaders/donut", baseShaderPath);
 
 	mCommandList = GetDevice()->createCommandList();
 
@@ -68,8 +63,8 @@ bool InitApp::Init()
 
 	mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
 
-	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), shaderFactory);
-	donut::engine::TextureCache textureCache(GetDevice(), nativeFS, nullptr);*/
+	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), shaderFactory);*/
+	//donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
 
 
 	return true;

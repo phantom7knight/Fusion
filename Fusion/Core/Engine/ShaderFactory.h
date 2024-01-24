@@ -38,6 +38,9 @@ namespace donut::vfs
 
 namespace donut::engine
 {
+    // Shader Compile Helpers
+    bool ShadersCompile(std::filesystem::path aShaderConfigPath, std::filesystem::path aShaderIncludesPath, const nvrhi::GraphicsAPI aAPI = nvrhi::GraphicsAPI::D3D12);
+
     struct ShaderMacro
     {
         std::string name;

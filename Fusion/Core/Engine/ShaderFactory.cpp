@@ -24,9 +24,79 @@
 #include "../VFS/VFS.h"
 #include "../Utilities/Logger/log.h"
 #include "../ShaderMake/ShaderBlob.h"
+#include "../ShaderMake/ShaderMake.hpp"
 
 using namespace donut::vfs;
 using namespace donut::engine;
+
+bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::filesystem::path aShaderIncludesPath, const nvrhi::GraphicsAPI aAPI)
+{
+	// Look at the github page for example: https://github.com/NVIDIAGameWorks/ShaderMake.git
+
+	// DX12
+	//"C:\Users\Rohit Tolety\Downloads\tech temp\donut_examples\bin\ShaderMake.exe" 
+	// --config "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/examples/basic_triangle/shaders.cfg" 
+	// --out "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/bin/shaders/basic_triangle/dxil" 
+	// --platform DXIL
+	// --binaryBlob - I "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/donut/include" 
+	// --compiler "C:/Program Files (x86)/Windows Kits/10/bin/10.0.19041.0/x64/dxc.exe" 
+	// --outputExt.bin 
+	// --shaderModel 6_5 --useAPI
+
+	// Vulkan
+	//"C:\Users\Rohit Tolety\Downloads\tech temp\donut_examples\bin\ShaderMake.exe" 
+	// --config "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/examples/basic_triangle/shaders.cfg" 
+	// --out "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/bin/shaders/basic_triangle/spirv" 
+	// --platform SPIRV 
+	// --binaryBlob - I "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/donut/include" - D SPIRV 
+	// --compiler C:/VulkanSDK/1.3.216.0/Bin/dxc.exe 
+	// --tRegShift 0 
+	// --sRegShift 128 
+	// --bRegShift 256 
+	// --uRegShift 384 
+	// --vulkanVersion 1.2 
+	// --outputExt.bin --useAPI
+
+	std::filesystem::path appShaderConfigPath = aBaseShaderPath / "shaders.cfg";
+	std::string configPath = "--config=" + appShaderConfigPath.string();
+	std::string outputPath = "--out=" + aBaseShaderPath.string() + "/Generated/";
+
+	std::string platformArg = "--platform=";
+	std::string compilerArg = "--compiler=";
+    std::string includeArg = "--include=" + aShaderIncludesPath.string();
+	std::string additionalArgs = "";
+
+	if (aAPI == nvrhi::GraphicsAPI::D3D12)
+	{
+		platformArg += "DXIL";
+		compilerArg += "C:/Program Files (x86)/Windows Kits/10/bin/10.0.20348.0/x64/dxc.exe";
+		additionalArgs += "--outputExt=.bin";
+	}
+	else
+	{
+		platformArg += "SPIRV";
+		compilerArg += "C:/VulkanSDK/1.3.216.0/Bin/dxc.exe";
+		additionalArgs += " --tRegShift=0, --sRegShift=128, --bRegShift=256, --uRegShift=384";
+	}
+
+	const char* arguments[] = {
+		"ShaderMake.exe", // this doesn't matter
+		platformArg.c_str(),
+        configPath.c_str(),
+		outputPath.c_str(),
+		compilerArg.c_str(),
+        includeArg.c_str(),
+		"--binary",
+		"--binaryBlob",
+		additionalArgs.c_str()
+	};
+
+	uint8_t arrSize = sizeof(arguments) / sizeof(arguments[0]);
+
+	// Shader Code Generation
+	return !ShaderCodeGeneration(arrSize, arguments);
+}
+
 
 ShaderFactory::ShaderFactory(nvrhi::DeviceHandle rendererInterface,
 	std::shared_ptr<IFileSystem> fs,

@@ -20,7 +20,7 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#include <donut/shaders/blit_cb.h>
+#include <blit_cb.h>
 
 #if TEXTURE_ARRAY
 Texture2DArray tex : register(t0);
