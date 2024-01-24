@@ -88,12 +88,16 @@ set(SRC_FILES
 	"Utilities/Math/basics.h"
 	"Utilities/Math/box.h"
 	"Utilities/Math/color.h"
+	"Utilities/Math/color.cpp"
 	"Utilities/Math/frustum.h"
+	"Utilities/Math/frustum.cpp"
 	"Utilities/Math/matrix.h"
+	"Utilities/Math/matrix.cpp"
 	"Utilities/Math/math.h"
 	"Utilities/Math/quat.h"
 	"Utilities/Math/sphere.h"
 	"Utilities/Math/vector.h"
+	"Utilities/Math/vector.cpp"
 	)
 
 # Create source groups for better organization in IDEs
@@ -174,13 +178,17 @@ source_group("Utilities\\Math" FILES
 	"Utilities/Math/basics.h"
 	"Utilities/Math/box.h" 
 	"Utilities/Math/color.h"
+	"Utilities/Math/color.cpp"
 	"Utilities/Math/frustum.h"
+	"Utilities/Math/frustum.cpp"
 	"Utilities/Math/affine.h"
 	"Utilities/Math/matrix.h"
+	"Utilities/Math/matrix.cpp"
 	"Utilities/Math/math.h"
 	"Utilities/Math/quat.h"
 	"Utilities/Math/sphere.h"
-	"Utilities/Math/vector.h")
+	"Utilities/Math/vector.h"
+	"Utilities/Math/vector.cpp")
 source_group("App\\Imgui" FILES
  "App/Imgui/imgui_console.h"
  "App/Imgui/imgui_console.cpp"

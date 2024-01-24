@@ -97,7 +97,7 @@ private:
 		nvrhi::TextureHandle mTexture;
 		nvrhi::InputLayoutHandle mInputLayout;
 		nvrhi::BindingLayoutHandle mBindingLayout;
-		nvrhi::BindingSetHandle m_BindingSets[locInitHelpers::cNumViews];
+		nvrhi::BindingSetHandle mBindingSets[locInitHelpers::cNumViews];
 		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
 		float mRotation = 0.f;
 	}mCube;
