@@ -26,13 +26,15 @@ bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> a
 
 bool InitApp::Init()
 {
-	const std::filesystem::path baseShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/";
-	std::filesystem::path appShaderPath = baseShaderPath / "Applications/Init/Generated";
-	std::filesystem::path commonShaderPath = baseShaderPath / "Common";
+	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
+	std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Init/Generated";
+	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
 	rootFS->mount("/shaders/Common", commonShaderPath);
+	rootFS->mount("/assets/Textures", assetTexturesPath);
 
 	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 
@@ -91,8 +93,7 @@ bool InitApp::Init()
 	mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
 	mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
 
-	std::filesystem::path textureFileName = donut::app::GetDirectoryWithExecutable().parent_path() / "Assets/Textures/window.png";
-	std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile(textureFileName, true, nullptr, mCommandList);
+	std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
 	mCube.mTexture = texture->texture;
 
 	mCommandList->close();
@@ -150,103 +151,110 @@ void InitApp::Animate(float fElapsedTimeSeconds)
 
 void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 {
-	// Init
-	/*if (!mTriangle.mGraphicsPipeline)
+	if (mAppMode == 0) // Init
 	{
-		nvrhi::GraphicsPipelineDesc psoDesc;
-		psoDesc.VS = mTriangle.mVertexShader;
-		psoDesc.PS = mTriangle.mPixelShader;
-		psoDesc.primType = nvrhi::PrimitiveType::TriangleList;
-		psoDesc.renderState.depthStencilState.depthTestEnable = false;
+		if (!mTriangle.mGraphicsPipeline)
+		{
+			nvrhi::GraphicsPipelineDesc psoDesc;
+			psoDesc.VS = mTriangle.mVertexShader;
+			psoDesc.PS = mTriangle.mPixelShader;
+			psoDesc.primType = nvrhi::PrimitiveType::TriangleList;
+			psoDesc.renderState.depthStencilState.depthTestEnable = false;
 
-		mTriangle.mGraphicsPipeline = GetDevice()->createGraphicsPipeline(psoDesc, framebuffer);
+			mTriangle.mGraphicsPipeline = GetDevice()->createGraphicsPipeline(psoDesc, framebuffer);
+		}
+
+		mCommandList->open();
+
+		nvrhi::utils::ClearColorAttachment(mCommandList, framebuffer, 0, nvrhi::Color(0.f));
+
+		nvrhi::GraphicsState state;
+		state.pipeline = mTriangle.mGraphicsPipeline;
+		state.framebuffer = framebuffer;
+		state.viewport.addViewportAndScissorRect(framebuffer->getFramebufferInfo().getViewport());
+
+		mCommandList->setGraphicsState(state);
+
+		nvrhi::DrawArguments args;
+		args.vertexCount = 3;
+		mCommandList->draw(args);
+
+		mCommandList->close();
+		GetDevice()->executeCommandList(mCommandList);
 	}
-
-	mCommandList->open();
-
-	nvrhi::utils::ClearColorAttachment(mCommandList, framebuffer, 0, nvrhi::Color(0.f));
-
-	nvrhi::GraphicsState state;
-	state.pipeline = mTriangle.mGraphicsPipeline;
-	state.framebuffer = framebuffer;
-	state.viewport.addViewportAndScissorRect(framebuffer->getFramebufferInfo().getViewport());
-
-	mCommandList->setGraphicsState(state);
-
-	nvrhi::DrawArguments args;
-	args.vertexCount = 3;
-	mCommandList->draw(args);
-
-	mCommandList->close();
-	GetDevice()->executeCommandList(mCommandList);*/
-
-	// Cube
-	const nvrhi::FramebufferInfoEx& fbinfo = framebuffer->getFramebufferInfo();
-
-	if (!mCube.mGraphicsPipeline)
+	else if (mAppMode == 1) // Cube
 	{
-		nvrhi::GraphicsPipelineDesc psoDesc;
-		psoDesc.VS = mCube.mVertexShader;
-		psoDesc.PS = mCube.mPixelShader;
-		psoDesc.inputLayout = mCube.mInputLayout;
-		psoDesc.bindingLayouts = { mCube.mBindingLayout };
-		psoDesc.primType = nvrhi::PrimitiveType::TriangleList;
-		psoDesc.renderState.depthStencilState.depthTestEnable = false;
+		const nvrhi::FramebufferInfoEx& fbinfo = framebuffer->getFramebufferInfo();
 
-		mCube.mGraphicsPipeline = GetDevice()->createGraphicsPipeline(psoDesc, framebuffer);
+		if (!mCube.mGraphicsPipeline)
+		{
+			nvrhi::GraphicsPipelineDesc psoDesc;
+			psoDesc.VS = mCube.mVertexShader;
+			psoDesc.PS = mCube.mPixelShader;
+			psoDesc.inputLayout = mCube.mInputLayout;
+			psoDesc.bindingLayouts = { mCube.mBindingLayout };
+			psoDesc.primType = nvrhi::PrimitiveType::TriangleList;
+			psoDesc.renderState.depthStencilState.depthTestEnable = false;
+
+			mCube.mGraphicsPipeline = GetDevice()->createGraphicsPipeline(psoDesc, framebuffer);
+		}
+
+		mCommandList->open();
+
+		nvrhi::utils::ClearColorAttachment(mCommandList, framebuffer, 0, nvrhi::Color(0.f));
+
+		// Fill out the constant buffer slices for multiple views of the model.
+		locInitHelpers::ConstantBufferEntry modelConstants[locInitHelpers::cNumViews];
+		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
+		{
+			donut::math::affine3 viewMatrix = donut::math::rotation(normalize(locInitHelpers::gRotationAxes[viewIndex]), mCube.mRotation)
+				* donut::math::yawPitchRoll(0.f, donut::math::radians(-30.f), 0.f)
+				* donut::math::translation(donut::math::float3(0, 0, 2));
+			//donut::math::float4x4 projMatrix = donut::math::perspProjD3DStyle(donut::math::radians(60.f),
+			donut::math::float4x4 projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
+				float(fbinfo.width) / float(fbinfo.height),
+				0.1f,
+				10.f);
+			donut::math::float4x4 viewProjMatrix = donut::math::affineToHomogeneous(viewMatrix) * projMatrix;			
+			modelConstants[viewIndex].viewProjMatrix = viewProjMatrix;
+		}
+
+		// Upload all constant buffer slices at once.
+		mCommandList->writeBuffer(mCube.mConstantBuffer, modelConstants, sizeof(modelConstants));
+
+		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
+		{
+			nvrhi::GraphicsState state;
+			// Pick the right binding set for this view.
+			state.bindings = { mCube.mBindingSets[viewIndex] };
+			state.indexBuffer = { mCube.mIndexBuffer, nvrhi::Format::R32_UINT, 0 };
+			// Bind the vertex buffers in reverse order to test the NVRHI implementation of binding slots
+			state.vertexBuffers = {
+				{ mCube.mVertexBuffer, 1, offsetof(locInitHelpers::Vertex, uv) },
+				{ mCube.mVertexBuffer, 0, offsetof(locInitHelpers::Vertex, position) }
+			};
+			state.pipeline = mCube.mGraphicsPipeline;
+			state.framebuffer = framebuffer;
+
+			// Construct the viewport so that all viewports form a grid.
+			const float width = float(fbinfo.width) * 0.5f;
+			const float height = float(fbinfo.height) * 0.5f;
+			const float left = width * float(viewIndex % 2);
+			const float top = height * float(viewIndex / 2);
+
+			const nvrhi::Viewport viewport = nvrhi::Viewport(left, left + width, top, top + height, 0.f, 1.f);
+			state.viewport.addViewportAndScissorRect(viewport);
+
+			// Update the pipeline, bindings, and other state.
+			mCommandList->setGraphicsState(state);
+
+			// Draw the model.
+			nvrhi::DrawArguments args;
+			args.vertexCount = dim(locInitHelpers::gIndices);
+			mCommandList->drawIndexed(args);
+		}
+
+		mCommandList->close();
+		GetDevice()->executeCommandList(mCommandList);
 	}
-
-	mCommandList->open();
-
-	nvrhi::utils::ClearColorAttachment(mCommandList, framebuffer, 0, nvrhi::Color(0.f));
-
-	// Fill out the constant buffer slices for multiple views of the model.
-	locInitHelpers::ConstantBufferEntry modelConstants[locInitHelpers::cNumViews];
-	for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
-	{
-		donut::math::affine3 viewMatrix = donut::math::rotation(normalize(locInitHelpers::gRotationAxes[viewIndex]), mCube.mRotation)
-			* donut::math::yawPitchRoll(0.f, donut::math::radians(-30.f), 0.f)
-			* donut::math::translation(donut::math::float3(0, 0, 2));
-		donut::math::float4x4 projMatrix = donut::math::perspProjD3DStyle(donut::math::radians(60.f), float(fbinfo.width) / float(fbinfo.height), 0.1f, 10.f);
-		donut::math::float4x4 viewProjMatrix = donut::math::affineToHomogeneous(viewMatrix) * projMatrix;
-		modelConstants[viewIndex].viewProjMatrix = viewProjMatrix;
-	}
-
-	//// Upload all constant buffer slices at once.
-	//mCommandList->writeBuffer(mCube.mConstantBuffer, modelConstants, sizeof(modelConstants));
-
-	//for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
-	//{
-	//	nvrhi::GraphicsState state;
-	//	// Pick the right binding set for this view.
-	//	state.bindings = { mCube.mBindingSets[viewIndex] };
-	//	state.indexBuffer = { mCube.mIndexBuffer, nvrhi::Format::R32_UINT, 0 };
-	//	// Bind the vertex buffers in reverse order to test the NVRHI implementation of binding slots
-	//	state.vertexBuffers = {
-	//		{ mCube.mVertexBuffer, 1, offsetof(locInitHelpers::Vertex, uv) },
-	//		{ mCube.mVertexBuffer, 0, offsetof(locInitHelpers::Vertex, position) }
-	//	};
-	//	state.pipeline = mCube.mGraphicsPipeline;
-	//	state.framebuffer = framebuffer;
-
-	//	// Construct the viewport so that all viewports form a grid.
-	//	const float width = float(fbinfo.width) * 0.5f;
-	//	const float height = float(fbinfo.height) * 0.5f;
-	//	const float left = width * float(viewIndex % 2);
-	//	const float top = height * float(viewIndex / 2);
-
-	//	const nvrhi::Viewport viewport = nvrhi::Viewport(left, left + width, top, top + height, 0.f, 1.f);
-	//	state.viewport.addViewportAndScissorRect(viewport);
-
-	//	// Update the pipeline, bindings, and other state.
-	//	mCommandList->setGraphicsState(state);
-
-	//	// Draw the model.
-	//	nvrhi::DrawArguments args;
-	//	args.vertexCount = dim(locInitHelpers::gIndices);
-	//	mCommandList->drawIndexed(args);
-	//}
-
-	//mCommandList->close();
-	//GetDevice()->executeCommandList(mCommandList);
 }

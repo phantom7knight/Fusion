@@ -110,6 +110,18 @@ namespace donut::math
 					0, 0, -2.0f * zNear * zFar * zScale, 0);
 	}
 
+	float4x4 perspProjVKStyle(float verticalFOV, float aspect, float zNear, float zFar)
+	{
+		float f = 1.0f / std::tan(verticalFOV * 0.5f);
+		float rangeInv = 1.0f / (zNear - zFar); // float rangeInv = zFar / (zFar - zNear);
+
+		return float4x4(
+			f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, f, 0.0f, 0.0f,
+			0.0f, 0.0f, (zNear + zFar) * rangeInv, -1.0f,
+			0.0f, 0.0f, 2.0f * zNear * zFar * rangeInv, 0.0f);
+	}
+
 	float4x4 perspProjD3DStyleReverse(float verticalFOV, float aspect, float zNear)
 	{
 		float yScale = 1.0f / tanf(0.5f * verticalFOV);
@@ -121,5 +133,4 @@ namespace donut::math
 					0, 0, 0, 1,
 					0, 0, zNear, 0);
 	}
-
 }

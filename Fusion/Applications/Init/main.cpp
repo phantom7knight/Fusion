@@ -28,7 +28,9 @@ namespace locHelperFunc
 
 int main(int __argc, const char* __argv[])
 {
-	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(nvrhi::GraphicsAPI::D3D12);
+	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::VULKAN;
+
+	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 
 	donut::app::DeviceCreationParameters deviceParams;
 #ifdef _DEBUG

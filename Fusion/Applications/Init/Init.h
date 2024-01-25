@@ -104,6 +104,8 @@ private:
 
 	nvrhi::CommandListHandle mCommandList;
 
+	const uint8_t mAppMode = 1;  // 0 - Triangle, 1 - Cube
+
 public:
 	using IRenderPass::IRenderPass;
 
