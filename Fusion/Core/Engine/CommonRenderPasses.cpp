@@ -42,14 +42,16 @@ CommonRenderPasses::CommonRenderPasses(nvrhi::IDevice* device, std::shared_ptr<S
     }
 
     m_RectVS = shaderFactory->CreateShader("Common/rect_vs", "main", nullptr, nvrhi::ShaderType::Vertex);
-
-    std::vector<ShaderMacro> blitMacros = { ShaderMacro("TEXTURE_ARRAY", "0") };
-    m_BlitPS = shaderFactory->CreateShader("Common/blit_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
-    m_SharpenPS = shaderFactory->CreateShader("Common/sharpen_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
-    blitMacros[0].definition = "1"; // TEXTURE_ARRAY
-    m_BlitArrayPS = shaderFactory->CreateShader("Common/blit_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
-    m_SharpenArrayPS = shaderFactory->CreateShader("Common/sharpen_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
     
+    {
+        std::vector<ShaderMacro> blitMacros = { ShaderMacro("TEXTURE_ARRAY", "0") };
+        m_BlitPS = shaderFactory->CreateShader("Common/blit_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
+        m_SharpenPS = shaderFactory->CreateShader("Common/sharpen_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
+        blitMacros[0].definition = "1"; // TEXTURE_ARRAY
+        m_BlitArrayPS = shaderFactory->CreateShader("Common/blit_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
+        m_SharpenArrayPS = shaderFactory->CreateShader("Common/sharpen_ps", "main", &blitMacros, nvrhi::ShaderType::Pixel);
+    }
+
     auto samplerDesc = nvrhi::SamplerDesc()
         .setAllFilters(false)
         .setAllAddressModes(nvrhi::SamplerAddressMode::Clamp);

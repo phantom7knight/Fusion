@@ -49,4 +49,5 @@ void main_ps(
 )
 {
     o_color = t_Texture.Sample(s_Sampler, i_uv);
+	//o_color = float4(1.0f, 0.22f, 0.0f, 1.0f);
 }

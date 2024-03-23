@@ -210,8 +210,11 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			donut::math::affine3 viewMatrix = donut::math::rotation(normalize(locInitHelpers::gRotationAxes[viewIndex]), mCube.mRotation)
 				* donut::math::yawPitchRoll(0.f, donut::math::radians(-30.f), 0.f)
 				* donut::math::translation(donut::math::float3(0, 0, 2));
-			//donut::math::float4x4 projMatrix = donut::math::perspProjD3DStyle(donut::math::radians(60.f),
-			donut::math::float4x4 projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
+
+			donut::math::float4x4 projMatrix;
+			
+			projMatrix= donut::math::perspProjD3DStyle(donut::math::radians(60.f),
+			//projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
 				float(fbinfo.width) / float(fbinfo.height),
 				0.1f,
 				10.f);
