@@ -13,7 +13,7 @@ option(NVRHI_WITH_RTXMU "Build nvrhi with RTXMU" OFF)
 FetchContent_Declare(
     nvrhi
     GIT_REPOSITORY https://github.com/NVIDIAGameWorks/nvrhi.git
-    GIT_TAG 89424010f5c3aef48a912fb9220e47a36c03a87c
+    GIT_TAG 970bf530c6b1ad5ec24da8dea468947c297b28e3
     GIT_PROGRESS TRUE
 )
 

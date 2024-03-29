@@ -112,7 +112,8 @@ bool InitApp::Init()
 		nvrhi::BindingSetDesc bindingSetDesc;
 		bindingSetDesc.bindings = {
 			// Note: using viewIndex to construct a buffer range.
-			nvrhi::BindingSetItem::ConstantBuffer(0, mCube.mConstantBuffer, 
+			nvrhi::BindingSetItem::ConstantBuffer(0,
+			mCube.mConstantBuffer,
 			nvrhi::BufferRange(sizeof(locInitHelpers::ConstantBufferEntry) * viewIndex,
 			sizeof(locInitHelpers::ConstantBufferEntry))),
 			// Texutre and sampler are the same for all model views.
@@ -212,9 +213,9 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 				* donut::math::translation(donut::math::float3(0, 0, 2));
 
 			donut::math::float4x4 projMatrix;
-			
+
 			projMatrix= donut::math::perspProjD3DStyle(donut::math::radians(60.f),
-			//projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
+				//projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
 				float(fbinfo.width) / float(fbinfo.height),
 				0.1f,
 				10.f);
