@@ -34,7 +34,8 @@ struct VS_OUTPUT
     float2 uv : TEXCOORD0;
 };
 
-VS_OUTPUT main_vs(float3 i_pos : POSITION, float2 i_uv : UV)
+VS_OUTPUT main_vs(float3 i_pos : POSITION
+				 ,float2 i_uv : UV)
 {
     VS_OUTPUT output;
     output.position = mul(float4(i_pos, 1), g_Transform);

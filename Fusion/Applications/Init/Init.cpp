@@ -183,7 +183,7 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
 	}
-	else if (mAppMode == 1) // Cube
+	else if (mAppMode == 1) // Cube (TODO_RT: DOESN'T WORK ON VK)
 	{
 		const nvrhi::FramebufferInfoEx& fbinfo = framebuffer->getFramebufferInfo();
 
