@@ -36,8 +36,8 @@ this software is released into the Public Domain.
 
 #include "json.h"
 #include "../VFS/VFS.h"
-#include "log.h"
-//#include <json/reader.h> // todo_rt: fix this
+#include "Logger/log.h"
+#include <json/reader.h>
 
 using namespace donut::math;
 using namespace donut::vfs;

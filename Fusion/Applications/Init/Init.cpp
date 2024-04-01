@@ -30,15 +30,16 @@ bool InitApp::Init()
 	std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Init/Generated";
 	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
+	std::filesystem::path sceneFileName = baseAssetsPath / "GLTFModels/2.0/Duck/glTF/Duck.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
 	rootFS->mount("/shaders/Common", commonShaderPath);
 	rootFS->mount("/assets/Textures", assetTexturesPath);
 
-	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
+	mShaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 
-	if (!InitAppShaderSetup(shaderFactory))
+	if (!InitAppShaderSetup(mShaderFactory))
 		return false;
 
 	mCommandList = GetDevice()->createCommandList();
@@ -65,8 +66,11 @@ bool InitApp::Init()
 
 	mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
 
-	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), shaderFactory);
+	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), mShaderFactory);
 	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
+
+	SetAsynchronousLoadingEnabled(false);
+	BeginLoadingScene(rootFS, sceneFileName);
 
 	mCommandList = GetDevice()->createCommandList();
 	mCommandList->open();
@@ -137,6 +141,19 @@ bool InitApp::Init()
 	return true;
 }
 
+bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName)
+{
+	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, fs, m_TextureCache, nullptr, nullptr);
+
+	if (scene->Load(sceneFileName))
+	{
+		mScene = std::unique_ptr<donut::engine::Scene>(scene);
+		return true;
+	}
+
+	return false;
+}
+
 void InitApp::BackBufferResizing()
 {
 	mTriangle.mGraphicsPipeline = nullptr;
@@ -148,7 +165,6 @@ void InitApp::Animate(float fElapsedTimeSeconds)
 	mCube.mRotation += fElapsedTimeSeconds * 1.1f;
 	GetDeviceManager()->SetInformativeWindowTitle("Hello World!!");
 }
-
 
 void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 {
@@ -260,5 +276,9 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
+	}
+	else if (mAppMode == 2)
+	{
+
 	}
 }

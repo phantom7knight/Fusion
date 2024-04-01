@@ -1,8 +1,11 @@
 #pragma once
 
 #include "../../Core/App/ApplicationBase.h"
+
 #include "../../Core/Utilities/Math/math.h"
+
 #include "../../Core/Engine/ShaderFactory.h"
+#include "../../Core/Engine/Scene.h"
 
 namespace locInitHelpers
 {
@@ -74,7 +77,7 @@ namespace locInitHelpers
 	static_assert(sizeof(ConstantBufferEntry) == nvrhi::c_ConstantBufferOffsetSizeAlignment, "sizeof(ConstantBufferEntry) must be 256 bytes");
 }
 
-class InitApp : public donut::app::IRenderPass
+class InitApp : public donut::app::ApplicationBase
 {
 private:
 
@@ -104,14 +107,17 @@ private:
 
 	nvrhi::CommandListHandle mCommandList;
 
-	constexpr static uint8_t mAppMode = 0;  // 0 - Triangle, 1 - Cube
+	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
+	std::unique_ptr<donut::engine::Scene> mScene;
+
+	constexpr static uint8_t mAppMode = 0;  // 0 - Triangle, 1 - Cube, 2 - Model
 
 public:
-	using IRenderPass::IRenderPass;
+	using ApplicationBase::ApplicationBase;
 
 	bool Init();
 	void BackBufferResizing() override;
 	void Animate(float fElapsedTimeSeconds) override;
 	void Render(nvrhi::IFramebuffer* framebuffer) override;
-
+	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
 };
