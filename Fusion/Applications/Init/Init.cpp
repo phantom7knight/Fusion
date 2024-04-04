@@ -7,6 +7,9 @@
 #include "../../Core/Engine/TextureCache.h"
 #include "../../Core/App/DeviceManager.h"
 
+using namespace donut::math;
+#include "../../../Assets/Shaders/Includes/lighting_cb.h"
+
 namespace Init_private
 {
 }
@@ -18,13 +21,9 @@ bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> a
 	
 	mCube.mVertexShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
 	mCube.mPixelShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
-	
-	mModel.mVertexShader = aShaderFactory->CreateShader("Init/Model.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
-	mModel.mPixelShader = aShaderFactory->CreateShader("Init/Model.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
 
 	if (!mTriangle.mVertexShader || !mTriangle.mPixelShader ||
-		!mCube.mVertexShader || !mCube.mPixelShader ||
-		!mModel.mVertexShader || !mModel.mPixelShader)
+		!mCube.mVertexShader || !mCube.mPixelShader)
 	{
 		return false;
 	}
@@ -37,15 +36,23 @@ bool InitApp::Init()
 	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
 	std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Init/Generated";
 	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
-	std::filesystem::path sceneFileName = baseAssetsPath / "GLTFModels/2.0/Duck/glTF/Duck.gltf";
+	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+	std::filesystem::path modelFileName = "/assets/GLTFModels/2.0/Duck/glTF/Duck.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
 	rootFS->mount("/shaders/Common", commonShaderPath);
 	rootFS->mount("/assets/Textures", assetTexturesPath);
+	rootFS->mount("/assets/GLTFModels", gltfAssetPath);
+	rootFS->mount("/shaders/RenderPasses", renderPassesShaderPath);
 
 	mShaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
+	m_CommonPasses = std::make_shared<donut::engine::CommonRenderPasses>(GetDevice(), mShaderFactory);
+
+	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
+	m_TextureCache = std::make_shared<donut::engine::TextureCache>(GetDevice(), nativeFS, nullptr);
 
 	if (!InitAppShaderSetup(mShaderFactory))
 		return false;
@@ -78,8 +85,9 @@ bool InitApp::Init()
 	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
 
 	SetAsynchronousLoadingEnabled(false);
-	BeginLoadingScene(rootFS, sceneFileName);
+	BeginLoadingScene(rootFS, modelFileName);
 
+	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mScene->FinishedLoading(GetFrameIndex());
 
 	// camera setup
@@ -159,6 +167,7 @@ bool InitApp::Init()
 
 bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName)
 {
+	assert(m_TextureCache);
 	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, fs, m_TextureCache, nullptr, nullptr);
 
 	if (scene->Load(sceneFileName))
@@ -174,12 +183,32 @@ void InitApp::BackBufferResizing()
 {
 	mTriangle.mGraphicsPipeline = nullptr;
 	mCube.mGraphicsPipeline = nullptr;
+	mForwardPass = nullptr;
 }
 
 void InitApp::Animate(float fElapsedTimeSeconds)
 {
 	mCube.mRotation += fElapsedTimeSeconds * 1.1f;
+	mCamera.Animate(fElapsedTimeSeconds);
 	GetDeviceManager()->SetInformativeWindowTitle("Hello World!!");
+}
+
+bool InitApp::KeyboardUpdate(int key, int scancode, int action, int mods)
+{
+	mCamera.KeyboardUpdate(key, scancode, action, mods);
+	return true;
+}
+
+bool InitApp::MousePosUpdate(double xpos, double ypos)
+{
+	mCamera.MousePosUpdate(xpos, ypos);
+	return true;
+}
+
+bool InitApp::MouseButtonUpdate(int button, int action, int mods)
+{
+	mCamera.MouseButtonUpdate(button, action, mods);
+	return true;
 }
 
 void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
@@ -293,8 +322,69 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
 	}
-	else if (mAppMode == 2)
+	else if (mAppMode == 2) // Model
 	{
+		const auto& fbinfo = framebuffer->getFramebufferInfo();
 
+		if (!mForwardPass)
+		{
+			mForwardPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
+
+			donut::render::ForwardShadingPass::CreateParameters forwardParams;
+			mForwardPass->Init(*mShaderFactory, forwardParams);
+		}
+
+		{
+			// create the attachements for the framebuffer
+			nvrhi::TextureDesc textureDesc;
+			textureDesc.format = nvrhi::Format::SRGBA8_UNORM;
+			textureDesc.isRenderTarget = true;
+			textureDesc.initialState = nvrhi::ResourceStates::RenderTarget;
+			textureDesc.keepInitialState = true;
+			textureDesc.clearValue = nvrhi::Color(0.f);
+			textureDesc.useClearValue = true;
+			textureDesc.debugName = "ColorBuffer";
+			textureDesc.width = fbinfo.width;
+			textureDesc.height = fbinfo.height;
+			textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
+			mModel.mColorBuffer = GetDevice()->createTexture(textureDesc);
+
+			textureDesc.format = nvrhi::Format::D24S8;
+			textureDesc.debugName = "DepthBuffer";
+			textureDesc.initialState = nvrhi::ResourceStates::DepthWrite;
+			mModel.mDepthBuffer = GetDevice()->createTexture(textureDesc);
+
+			nvrhi::FramebufferDesc framebufferDesc;
+			framebufferDesc.addColorAttachment(mModel.mColorBuffer, nvrhi::AllSubresources);
+			framebufferDesc.setDepthAttachment(mModel.mDepthBuffer);
+			mModel.mFramebuffer = GetDevice()->createFramebuffer(framebufferDesc);
+		}
+
+		nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
+		mView.SetViewport(windowViewport);
+		mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
+		mView.UpdateCache();
+
+		mCommandList->open();
+
+		LightingConstants constants = {};
+		constants.ambientColor = float4(0.2f);
+
+		donut::render::ForwardShadingPass::Context forwardContext;
+		mForwardPass->PrepareLights(forwardContext, mCommandList, mScene->GetSceneGraph()->GetLights(), constants.ambientColor, constants.ambientColor, {});
+
+		mOpaqueDrawStrategy->PrepareForView(mScene->GetSceneGraph()->GetRootNode(), mView);
+		donut::render::RenderView(
+			mCommandList,
+			&mView,
+			&mView,
+			mModel.mFramebuffer,
+			*mOpaqueDrawStrategy,
+			*mForwardPass,
+			forwardContext,
+			false);
+
+		mCommandList->close();
+		GetDevice()->executeCommandList(mCommandList);
 	}
 }

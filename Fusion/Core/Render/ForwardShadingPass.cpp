@@ -35,7 +35,6 @@
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/forward_cb.h"
 
-
 using namespace donut::engine;
 using namespace donut::render;
 
@@ -45,6 +44,7 @@ ForwardShadingPass::ForwardShadingPass(
     : m_Device(device)
     , m_CommonPasses(std::move(commonPasses))
 {
+    assert(m_CommonPasses);
 }
 
 void ForwardShadingPass::Init(ShaderFactory& shaderFactory, const CreateParameters& params)
@@ -85,7 +85,7 @@ void ForwardShadingPass::ResetBindingCache()
 
 nvrhi::ShaderHandle ForwardShadingPass::CreateVertexShader(ShaderFactory& shaderFactory, const CreateParameters& params)
 {
-    return shaderFactory.CreateShader("RenderPasses/forward_vs.hlsl", "main", nullptr, nvrhi::ShaderType::Vertex);
+    return shaderFactory.CreateShader("/shaders/RenderPasses/forward_vs.hlsl", "main", nullptr, nvrhi::ShaderType::Vertex);
 }
 
 nvrhi::ShaderHandle ForwardShadingPass::CreateGeometryShader(ShaderFactory& shaderFactory, const CreateParameters& params)
@@ -100,7 +100,7 @@ nvrhi::ShaderHandle ForwardShadingPass::CreateGeometryShader(ShaderFactory& shad
 
         desc.pCoordinateSwizzling = CubemapView::GetCubemapCoordinateSwizzle();
 
-        return shaderFactory.CreateShader("RenderPasses/cubemap_gs.hlsl", "main", nullptr, desc);
+        return shaderFactory.CreateShader("/shaders/RenderPasses/cubemap_gs.hlsl", "main", nullptr, desc);
     }
 
     return nullptr;
@@ -111,7 +111,7 @@ nvrhi::ShaderHandle ForwardShadingPass::CreatePixelShader(ShaderFactory& shaderF
     std::vector<ShaderMacro> Macros;
     Macros.push_back(ShaderMacro("TRANSMISSIVE_MATERIAL", transmissiveMaterial ? "1" : "0"));
 
-    return shaderFactory.CreateShader("RenderPasses/forward_ps.hlsl", "main", &Macros, nvrhi::ShaderType::Pixel);
+    return shaderFactory.CreateShader("/shaders/RenderPasses/forward_ps.hlsl", "main", &Macros, nvrhi::ShaderType::Pixel);
 }
 
 nvrhi::InputLayoutHandle ForwardShadingPass::CreateInputLayout(nvrhi::IShader* vertexShader, const CreateParameters& params)

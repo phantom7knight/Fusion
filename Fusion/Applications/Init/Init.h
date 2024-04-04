@@ -8,6 +8,9 @@
 #include "../../Core/Engine/Scene.h"
 #include "../../Core/App/Camera/Camera.h"
 
+#include "../../Core/Render/DrawStrategy.h"
+#include "../../Core/Render/ForwardShadingPass.h"
+
 namespace locInitHelpers
 {
 	struct Vertex
@@ -108,26 +111,21 @@ private:
 
 	struct Model
 	{
-		nvrhi::ShaderHandle mVertexShader;
-		nvrhi::ShaderHandle mPixelShader;
-		nvrhi::BufferHandle mConstantBuffer;
-		nvrhi::BufferHandle mVertexBuffer;
-		nvrhi::BufferHandle mIndexBuffer;
-		nvrhi::TextureHandle mTexture;
-		nvrhi::InputLayoutHandle mInputLayout;
-		nvrhi::BindingLayoutHandle mBindingLayout;
-		nvrhi::BindingSetHandle mBindingSet;
-		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
-		float mRotation = 0.f;
+		nvrhi::TextureHandle mDepthBuffer;
+		nvrhi::TextureHandle mColorBuffer;
+		nvrhi::FramebufferHandle mFramebuffer;
+		float mRotation = 0.f; // todo_rt: do we need this?
 	}mModel;
 
 	nvrhi::CommandListHandle mCommandList;
-
+	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
-	donut::app::FirstPersonCamera mCamera;
+	std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
+	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
+	donut::engine::PlanarView mView;
 
-	constexpr static uint8_t mAppMode = 0;  // 0 - Triangle, 1 - Cube, 2 - Model
+	constexpr static uint8_t mAppMode = 2;  // 0 - Triangle, 1 - Cube, 2 - Model
 
 public:
 	using ApplicationBase::ApplicationBase;
@@ -137,4 +135,7 @@ public:
 	void Animate(float fElapsedTimeSeconds) override;
 	void Render(nvrhi::IFramebuffer* framebuffer) override;
 	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
+	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
+	bool MousePosUpdate(double xpos, double ypos) override;
+	bool MouseButtonUpdate(int button, int action, int mods) override;
 };
