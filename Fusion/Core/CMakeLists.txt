@@ -74,6 +74,8 @@ set(SRC_FILES
 	"Render/DrawStrategy.cpp"
 	"Render/GeometryPasses.h"
 	"Render/GeometryPasses.cpp"
+	"Render/ForwardShadingPass.h"
+	"Render/ForwardShadingPass.cpp"
 
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
@@ -164,7 +166,9 @@ source_group("Render" FILES
 	"Render/DrawStrategy.h"
 	"Render/DrawStrategy.cpp"
 	"Render/GeometryPasses.h"
-	"Render/GeometryPasses.cpp")
+	"Render/GeometryPasses.cpp"
+	"Render/ForwardShadingPass.h"
+	"Render/ForwardShadingPass.cpp")
 source_group("ShaderMake" FILES
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"

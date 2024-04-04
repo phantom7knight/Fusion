@@ -22,10 +22,10 @@
 
 #pragma pack_matrix(row_major)
 
-#include <donut/shaders/bindless.h>
-#include <donut/shaders/vulkan.hlsli>
-#include <donut/shaders/packing.hlsli>
-#include <donut/shaders/skinning_cb.h>
+#include "../Includes/bindless.h"
+#include "../Includes/vulkan.hlsli"
+#include "../Includes/packing.hlsli"
+#include "../Includes/skinning_cb.h"
 
 ByteAddressBuffer t_VertexBuffer : register(t0);
 ByteAddressBuffer t_JointMatrices : register(t1);

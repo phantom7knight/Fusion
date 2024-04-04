@@ -16,9 +16,11 @@ namespace locHelperFunc
 		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/";
 		std::filesystem::path commonShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Common/";
 		std::filesystem::path includeShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Includes/";
+		std::filesystem::path renderPassesShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/RenderPasses/";
 
 		if (!donut::engine::ShadersCompile(appShaderConfigPath, includeShaderPath, aAPI) ||
-			!donut::engine::ShadersCompile(commonShaderConfigPath, includeShaderPath, aAPI))
+			!donut::engine::ShadersCompile(commonShaderConfigPath, includeShaderPath, aAPI) ||
+			!donut::engine::ShadersCompile(renderPassesShaderPath, includeShaderPath, aAPI))
 			return false;
 
 		return true;
@@ -28,7 +30,7 @@ namespace locHelperFunc
 
 int main(int __argc, const char* __argv[])
 {
-	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::VULKAN;
+	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::D3D12;
 
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 
