@@ -7,6 +7,10 @@
 #include "../../Core/Engine/TextureCache.h"
 #include "../../Core/App/DeviceManager.h"
 
+namespace Init_private
+{
+}
+
 bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory)
 {
 	mTriangle.mVertexShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
@@ -14,9 +18,13 @@ bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> a
 	
 	mCube.mVertexShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
 	mCube.mPixelShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
+	
+	mModel.mVertexShader = aShaderFactory->CreateShader("Init/Model.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
+	mModel.mPixelShader = aShaderFactory->CreateShader("Init/Model.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
 
 	if (!mTriangle.mVertexShader || !mTriangle.mPixelShader ||
-		!mCube.mVertexShader || !mCube.mPixelShader)
+		!mCube.mVertexShader || !mCube.mPixelShader ||
+		!mModel.mVertexShader || !mModel.mPixelShader)
 	{
 		return false;
 	}
@@ -72,9 +80,16 @@ bool InitApp::Init()
 	SetAsynchronousLoadingEnabled(false);
 	BeginLoadingScene(rootFS, sceneFileName);
 
+	mScene->FinishedLoading(GetFrameIndex());
+
+	// camera setup
+	mCamera.LookAt(donut::math::float3(0.f, 1.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
+	mCamera.SetMoveSpeed(3.f);
+
 	mCommandList = GetDevice()->createCommandList();
 	mCommandList->open();
 
+	// Cube Buffers
 	nvrhi::BufferDesc vertexBufferDesc;
 	vertexBufferDesc.byteSize = sizeof(locInitHelpers::gVertices);
 	vertexBufferDesc.isVertexBuffer = true;
@@ -97,6 +112,7 @@ bool InitApp::Init()
 	mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
 	mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
 
+	// Textures
 	std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
 	mCube.mTexture = texture->texture;
 

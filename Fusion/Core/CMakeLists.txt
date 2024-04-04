@@ -44,6 +44,8 @@ set(SRC_FILES
 	"Engine/DDSFile.cpp"
 	"Engine/DescriptorTableManager.h"
 	"Engine/DescriptorTableManager.cpp"
+	"Engine/FramebufferFactory.h"
+	"Engine/FramebufferFactory.cpp"
 	"Engine/GltfImporter.h"
 	"Engine/GltfImporter.cpp"
 	"Engine/KeyframeAnimation.h"
@@ -67,7 +69,12 @@ set(SRC_FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c"
-	
+
+	"Render/DrawStrategy.h"
+	"Render/DrawStrategy.cpp"
+	"Render/GeometryPasses.h"
+	"Render/GeometryPasses.cpp"
+
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
 	"ShaderMake/ShaderBlob.h"
@@ -130,6 +137,8 @@ source_group("Engine" FILES
 	"Engine/DDSFile.cpp"
 	"Engine/DescriptorTableManager.h"
 	"Engine/DescriptorTableManager.cpp"
+	"Engine/FramebufferFactory.h"
+	"Engine/FramebufferFactory.cpp"
 	"Engine/GltfImporter.h"
 	"Engine/GltfImporter.cpp"
 	"Engine/KeyframeAnimation.h"
@@ -151,6 +160,11 @@ source_group("Engine" FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c")
+source_group("Render" FILES
+	"Render/DrawStrategy.h"
+	"Render/DrawStrategy.cpp"
+	"Render/GeometryPasses.h"
+	"Render/GeometryPasses.cpp")
 source_group("ShaderMake" FILES
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"

@@ -6,6 +6,7 @@
 
 #include "../../Core/Engine/ShaderFactory.h"
 #include "../../Core/Engine/Scene.h"
+#include "../../Core/App/Camera/Camera.h"
 
 namespace locInitHelpers
 {
@@ -105,10 +106,26 @@ private:
 		float mRotation = 0.f;
 	}mCube;
 
+	struct Model
+	{
+		nvrhi::ShaderHandle mVertexShader;
+		nvrhi::ShaderHandle mPixelShader;
+		nvrhi::BufferHandle mConstantBuffer;
+		nvrhi::BufferHandle mVertexBuffer;
+		nvrhi::BufferHandle mIndexBuffer;
+		nvrhi::TextureHandle mTexture;
+		nvrhi::InputLayoutHandle mInputLayout;
+		nvrhi::BindingLayoutHandle mBindingLayout;
+		nvrhi::BindingSetHandle mBindingSet;
+		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
+		float mRotation = 0.f;
+	}mModel;
+
 	nvrhi::CommandListHandle mCommandList;
 
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
+	donut::app::FirstPersonCamera mCamera;
 
 	constexpr static uint8_t mAppMode = 0;  // 0 - Triangle, 1 - Cube, 2 - Model
 
