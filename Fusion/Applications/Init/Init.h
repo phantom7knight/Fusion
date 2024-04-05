@@ -1,12 +1,14 @@
 #pragma once
 
 #include "../../Core/App/ApplicationBase.h"
+#include "../../Core/App/Camera/Camera.h"
 
 #include "../../Core/Utilities/Math/math.h"
 
 #include "../../Core/Engine/ShaderFactory.h"
 #include "../../Core/Engine/Scene.h"
-#include "../../Core/App/Camera/Camera.h"
+#include "../../Core/Engine/BindingCache.h"
+
 
 #include "../../Core/Render/DrawStrategy.h"
 #include "../../Core/Render/ForwardShadingPass.h"
@@ -124,6 +126,7 @@ private:
 	std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 	donut::engine::PlanarView mView;
+	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 
 	constexpr static uint8_t mAppMode = 2;  // 0 - Triangle, 1 - Cube, 2 - Model
 

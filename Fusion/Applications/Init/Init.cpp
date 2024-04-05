@@ -10,10 +10,6 @@
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
-namespace Init_private
-{
-}
-
 bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory)
 {
 	mTriangle.mVertexShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
@@ -50,6 +46,7 @@ bool InitApp::Init()
 
 	mShaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 	m_CommonPasses = std::make_shared<donut::engine::CommonRenderPasses>(GetDevice(), mShaderFactory);
+	mBindingCache = std::make_unique<donut::engine::BindingCache>(GetDevice());
 
 	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
 	m_TextureCache = std::make_shared<donut::engine::TextureCache>(GetDevice(), nativeFS, nullptr);
@@ -91,7 +88,7 @@ bool InitApp::Init()
 	mScene->FinishedLoading(GetFrameIndex());
 
 	// camera setup
-	mCamera.LookAt(donut::math::float3(0.f, 1.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
+	mCamera.LookAt(donut::math::float3(-20.f, -10.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
 	mCamera.SetMoveSpeed(3.f);
 
 	mCommandList = GetDevice()->createCommandList();
@@ -184,6 +181,10 @@ void InitApp::BackBufferResizing()
 	mTriangle.mGraphicsPipeline = nullptr;
 	mCube.mGraphicsPipeline = nullptr;
 	mForwardPass = nullptr;
+	mModel.mDepthBuffer = nullptr;
+	mModel.mColorBuffer = nullptr;
+	mModel.mFramebuffer = nullptr;
+	mBindingCache->Clear();
 }
 
 void InitApp::Animate(float fElapsedTimeSeconds)
@@ -383,6 +384,8 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			*mForwardPass,
 			forwardContext,
 			false);
+
+		m_CommonPasses->BlitTexture(mCommandList, framebuffer, mModel.mColorBuffer, mBindingCache.get());
 
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
