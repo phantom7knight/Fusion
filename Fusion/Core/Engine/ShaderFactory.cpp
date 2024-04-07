@@ -48,13 +48,15 @@ bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::f
 	// --config "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/examples/basic_triangle/shaders.cfg" 
 	// --out "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/bin/shaders/basic_triangle/spirv" 
 	// --platform SPIRV 
-	// --binaryBlob - I "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/donut/include" - D SPIRV 
+	// --binaryBlob 
+    // - I "C:/Users/Rohit Tolety/Downloads/tech temp/donut_examples/donut/include" 
+    // - D SPIRV 
 	// --compiler C:/VulkanSDK/1.3.216.0/Bin/dxc.exe 
 	// --tRegShift 0 
 	// --sRegShift 128 
 	// --bRegShift 256 
 	// --uRegShift 384 
-	// --vulkanVersion 1.2 
+	// --vulkanVersion 1.3
 	// --outputExt.bin --useAPI
 
 	std::filesystem::path appShaderConfigPath = aBaseShaderPath / "shaders.cfg";
@@ -76,7 +78,7 @@ bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::f
 	{
 		platformArg += "SPIRV";
 		compilerArg += "C:/VulkanSDK/1.3.216.0/Bin/dxc.exe";
-		additionalArgs += " --tRegShift=0, --sRegShift=128, --bRegShift=256, --uRegShift=384";
+		additionalArgs += " --outputExt=.bin --tRegShift=0, --sRegShift=128, --bRegShift=256, --uRegShift=384 --vulkanVersion=1.3 --useAPI";
 	}
 
 	const char* arguments[] = {
@@ -88,7 +90,7 @@ bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::f
         includeArg.c_str(),
 		"--binary",
 		"--binaryBlob",
-		additionalArgs.c_str()
+        additionalArgs.c_str(),
 	};
 
 	uint8_t arrSize = sizeof(arguments) / sizeof(arguments[0]);
