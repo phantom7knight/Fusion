@@ -157,7 +157,7 @@ bool InitApp::Init()
 		SetAsynchronousLoadingEnabled(false);
 		BeginLoadingScene(rootFS, modelFileName);
 
-		mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 		mScene->FinishedLoading(GetFrameIndex());
 
 		// camera setup
@@ -185,16 +185,16 @@ void InitApp::BackBufferResizing()
 {
 	mTriangle.mGraphicsPipeline = nullptr;
 	mCube.mGraphicsPipeline = nullptr;
-	mForwardPass = nullptr;
-	mModel.mDepthBuffer = nullptr;
-	mModel.mColorBuffer = nullptr;
-	mModel.mFramebuffer = nullptr;
+	mModel.mForwardPass = nullptr;
+	mModel.mRenderTargets = nullptr;
 	mBindingCache->Clear();
 }
 
 void InitApp::Animate(float fElapsedTimeSeconds)
 {
-	mCube.mRotation += fElapsedTimeSeconds * 1.1f;
+	if (mAppMode == 1) // Cube
+		mCube.mRotation += fElapsedTimeSeconds * 1.1f;
+
 	mCamera.Animate(fElapsedTimeSeconds);
 	GetDeviceManager()->SetInformativeWindowTitle("Hello World!!");
 }
@@ -338,44 +338,23 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 	{
 		const auto& fbinfo = framebuffer->getFramebufferInfo();
 
-		if (!mForwardPass)
+		if (!mModel.mRenderTargets)
 		{
-			mForwardPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
-
-			donut::render::ForwardShadingPass::CreateParameters forwardParams;
-			mForwardPass->Init(*mShaderFactory, forwardParams);
+			mModel.mRenderTargets = std::make_unique<RenderTargets>(GetDevice(), int2(fbinfo.width, fbinfo.height));
 		}
 
+		if (!mModel.mForwardPass)
 		{
-			// create the attachements for the framebuffer
-			nvrhi::TextureDesc textureDesc;
-			textureDesc.format = nvrhi::Format::SRGBA8_UNORM;
-			textureDesc.isRenderTarget = true;
-			textureDesc.initialState = nvrhi::ResourceStates::RenderTarget;
-			textureDesc.keepInitialState = true;
-			textureDesc.clearValue = nvrhi::Color(0.f);
-			textureDesc.useClearValue = true;
-			textureDesc.debugName = "ColorBuffer";
-			textureDesc.width = fbinfo.width;
-			textureDesc.height = fbinfo.height;
-			textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
-			mModel.mColorBuffer = GetDevice()->createTexture(textureDesc);
+			mModel.mForwardPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
 
-			textureDesc.format = nvrhi::Format::D24S8;
-			textureDesc.debugName = "DepthBuffer";
-			textureDesc.initialState = nvrhi::ResourceStates::DepthWrite;
-			mModel.mDepthBuffer = GetDevice()->createTexture(textureDesc);
-
-			nvrhi::FramebufferDesc framebufferDesc;
-			framebufferDesc.addColorAttachment(mModel.mColorBuffer, nvrhi::AllSubresources);
-			framebufferDesc.setDepthAttachment(mModel.mDepthBuffer);
-			mModel.mFramebuffer = GetDevice()->createFramebuffer(framebufferDesc);
+			donut::render::ForwardShadingPass::CreateParameters forwardParams;
+			mModel.mForwardPass->Init(*mShaderFactory, forwardParams);
 		}
 
 		nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
-		mView.SetViewport(windowViewport);
-		mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
-		mView.UpdateCache();
+		mModel.mView.SetViewport(windowViewport);
+		mModel.mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
+		mModel.mView.UpdateCache();
 
 		mCommandList->open();
 
@@ -383,20 +362,20 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		constants.ambientColor = float4(0.2f);
 
 		donut::render::ForwardShadingPass::Context forwardContext;
-		mForwardPass->PrepareLights(forwardContext, mCommandList, mScene->GetSceneGraph()->GetLights(), constants.ambientColor, constants.ambientColor, {});
+		mModel.mForwardPass->PrepareLights(forwardContext, mCommandList, mScene->GetSceneGraph()->GetLights(), constants.ambientColor, constants.ambientColor, {});
 
-		mOpaqueDrawStrategy->PrepareForView(mScene->GetSceneGraph()->GetRootNode(), mView);
-		donut::render::RenderView(
-			mCommandList,
-			&mView,
-			&mView,
-			mModel.mFramebuffer,
-			*mOpaqueDrawStrategy,
-			*mForwardPass,
-			forwardContext,
-			false);
+		donut::render::RenderCompositeView(mCommandList, 
+			&mModel.mView, 
+			&mModel.mView, 
+			*mModel.mRenderTargets->mFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(), 
+			*mModel.mOpaqueDrawStrategy, 
+			*mModel.mForwardPass, 
+			forwardContext);
 
-		m_CommonPasses->BlitTexture(mCommandList, framebuffer, mModel.mColorBuffer, mBindingCache.get());
+		m_CommonPasses->BlitTexture(mCommandList, framebuffer, mModel.mRenderTargets->mColor, mBindingCache.get());
+
+		mModel.mRenderTargets->Clear(mCommandList);
 
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
