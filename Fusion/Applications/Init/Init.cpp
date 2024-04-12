@@ -51,114 +51,119 @@ bool InitApp::Init()
 	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
 	m_TextureCache = std::make_shared<donut::engine::TextureCache>(GetDevice(), nativeFS, nullptr);
 
+	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), mShaderFactory);
+	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
+
 	if (!InitAppShaderSetup(mShaderFactory))
 		return false;
 
 	mCommandList = GetDevice()->createCommandList();
 
-	mCube.mConstantBuffer = GetDevice()->createBuffer(nvrhi::utils::CreateStaticConstantBufferDesc
-	(sizeof(locInitHelpers::ConstantBufferEntry) * locInitHelpers::cNumViews, "Cube ConstantBuffer")
-		.setInitialState(nvrhi::ResourceStates::ConstantBuffer)
-		.setKeepInitialState(true));
-
-	nvrhi::VertexAttributeDesc attributes[] = {
-			nvrhi::VertexAttributeDesc()
-				.setName("POSITION")
-				.setFormat(nvrhi::Format::RGB32_FLOAT)
-				.setOffset(0)
-				.setBufferIndex(0)
-				.setElementStride(sizeof(locInitHelpers::Vertex)),
-			nvrhi::VertexAttributeDesc()
-				.setName("UV")
-				.setFormat(nvrhi::Format::RG32_FLOAT)
-				.setOffset(0)
-				.setBufferIndex(1)
-				.setElementStride(sizeof(locInitHelpers::Vertex)),
-	};
-
-	mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
-
-	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), mShaderFactory);
-	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
-
-	SetAsynchronousLoadingEnabled(false);
-	BeginLoadingScene(rootFS, modelFileName);
-
-	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
-	mScene->FinishedLoading(GetFrameIndex());
-
-	// camera setup
-	mCamera.LookAt(donut::math::float3(-20.f, -10.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
-	mCamera.SetMoveSpeed(3.f);
-
-	mCommandList = GetDevice()->createCommandList();
-	mCommandList->open();
-
-	// Cube Buffers
-	nvrhi::BufferDesc vertexBufferDesc;
-	vertexBufferDesc.byteSize = sizeof(locInitHelpers::gVertices);
-	vertexBufferDesc.isVertexBuffer = true;
-	vertexBufferDesc.debugName = "Cube VertexBuffer";
-	vertexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
-	mCube.mVertexBuffer = GetDevice()->createBuffer(vertexBufferDesc);
-
-	mCommandList->beginTrackingBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::CopyDest);
-	mCommandList->writeBuffer(mCube.mVertexBuffer, locInitHelpers::gVertices, sizeof(locInitHelpers::gVertices));
-	mCommandList->setPermanentBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::VertexBuffer);
-
-	nvrhi::BufferDesc indexBufferDesc;
-	indexBufferDesc.byteSize = sizeof(locInitHelpers::gIndices);
-	indexBufferDesc.isIndexBuffer = true;
-	indexBufferDesc.debugName = "Cube IndexBuffer";
-	indexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
-	mCube.mIndexBuffer = GetDevice()->createBuffer(indexBufferDesc);
-
-	mCommandList->beginTrackingBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::CopyDest);
-	mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
-	mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
-
-	// Textures
-	std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
-	mCube.mTexture = texture->texture;
-
-	mCommandList->close();
-	GetDevice()->executeCommandList(mCommandList);
-
-	if (!texture->texture)
+	if (mAppMode == 1) // Cube
 	{
-		donut::log::error("Couldn't load the texture");
-		return false;
-	}
+		mCube.mConstantBuffer = GetDevice()->createBuffer(nvrhi::utils::CreateStaticConstantBufferDesc
+		(sizeof(locInitHelpers::ConstantBufferEntry) * locInitHelpers::cNumViews, "Cube ConstantBuffer")
+			.setInitialState(nvrhi::ResourceStates::ConstantBuffer)
+			.setKeepInitialState(true));
 
-	// Create a single binding layout and multiple binding sets, one set per view.
-	// The different binding sets use different slices of the same constant buffer.
-	for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
-	{
-		nvrhi::BindingSetDesc bindingSetDesc;
-		bindingSetDesc.bindings = {
-			// Note: using viewIndex to construct a buffer range.
-			nvrhi::BindingSetItem::ConstantBuffer(0,
-			mCube.mConstantBuffer,
-			nvrhi::BufferRange(sizeof(locInitHelpers::ConstantBufferEntry) * viewIndex,
-			sizeof(locInitHelpers::ConstantBufferEntry))),
-			// Texutre and sampler are the same for all model views.
-			nvrhi::BindingSetItem::Texture_SRV(0, mCube.mTexture),
-			nvrhi::BindingSetItem::Sampler(0, cmnRenderPasses.m_AnisotropicWrapSampler)
+		nvrhi::VertexAttributeDesc attributes[] = {
+				nvrhi::VertexAttributeDesc()
+					.setName("POSITION")
+					.setFormat(nvrhi::Format::RGB32_FLOAT)
+					.setOffset(0)
+					.setBufferIndex(0)
+					.setElementStride(sizeof(locInitHelpers::Vertex)),
+				nvrhi::VertexAttributeDesc()
+					.setName("UV")
+					.setFormat(nvrhi::Format::RG32_FLOAT)
+					.setOffset(0)
+					.setBufferIndex(1)
+					.setElementStride(sizeof(locInitHelpers::Vertex)),
 		};
 
-		// Create the binding layout (if it's empty -- so, on the first iteration) and the binding set.
-		if (!nvrhi::utils::CreateBindingSetAndLayout(GetDevice(),
-			nvrhi::ShaderType::All,
-			0,
-			bindingSetDesc,
-			mCube.mBindingLayout,
-			mCube.mBindingSets[viewIndex]))
+		mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
+
+
+		mCommandList = GetDevice()->createCommandList();
+		mCommandList->open();
+
+		// Cube Buffers
+		nvrhi::BufferDesc vertexBufferDesc;
+		vertexBufferDesc.byteSize = sizeof(locInitHelpers::gVertices);
+		vertexBufferDesc.isVertexBuffer = true;
+		vertexBufferDesc.debugName = "Cube VertexBuffer";
+		vertexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
+		mCube.mVertexBuffer = GetDevice()->createBuffer(vertexBufferDesc);
+
+		mCommandList->beginTrackingBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::CopyDest);
+		mCommandList->writeBuffer(mCube.mVertexBuffer, locInitHelpers::gVertices, sizeof(locInitHelpers::gVertices));
+		mCommandList->setPermanentBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::VertexBuffer);
+
+		nvrhi::BufferDesc indexBufferDesc;
+		indexBufferDesc.byteSize = sizeof(locInitHelpers::gIndices);
+		indexBufferDesc.isIndexBuffer = true;
+		indexBufferDesc.debugName = "Cube IndexBuffer";
+		indexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
+		mCube.mIndexBuffer = GetDevice()->createBuffer(indexBufferDesc);
+
+		mCommandList->beginTrackingBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::CopyDest);
+		mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
+		mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
+
+		// Textures
+		std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
+		mCube.mTexture = texture->texture;
+
+		mCommandList->close();
+		GetDevice()->executeCommandList(mCommandList);
+
+		if (!texture->texture)
 		{
-			donut::log::error("Couldn't create the binding set or layout");
+			donut::log::error("Couldn't load the texture");
 			return false;
 		}
-	}
 
+		// Create a single binding layout and multiple binding sets, one set per view.
+		// The different binding sets use different slices of the same constant buffer.
+		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
+		{
+			nvrhi::BindingSetDesc bindingSetDesc;
+			bindingSetDesc.bindings = {
+				// Note: using viewIndex to construct a buffer range.
+				nvrhi::BindingSetItem::ConstantBuffer(0,
+				mCube.mConstantBuffer,
+				nvrhi::BufferRange(sizeof(locInitHelpers::ConstantBufferEntry) * viewIndex,
+				sizeof(locInitHelpers::ConstantBufferEntry))),
+				// Texutre and sampler are the same for all model views.
+				nvrhi::BindingSetItem::Texture_SRV(0, mCube.mTexture),
+				nvrhi::BindingSetItem::Sampler(0, cmnRenderPasses.m_AnisotropicWrapSampler)
+			};
+
+			// Create the binding layout (if it's empty -- so, on the first iteration) and the binding set.
+			if (!nvrhi::utils::CreateBindingSetAndLayout(GetDevice(),
+				nvrhi::ShaderType::All,
+				0,
+				bindingSetDesc,
+				mCube.mBindingLayout,
+				mCube.mBindingSets[viewIndex]))
+			{
+				donut::log::error("Couldn't create the binding set or layout");
+				return false;
+			}
+		}
+	}
+	if (mAppMode == 2)
+	{
+		SetAsynchronousLoadingEnabled(false);
+		BeginLoadingScene(rootFS, modelFileName);
+
+		mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+		mScene->FinishedLoading(GetFrameIndex());
+
+		// camera setup
+		mCamera.LookAt(donut::math::float3(-20.f, -10.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
+		mCamera.SetMoveSpeed(3.f);
+	}
 	return true;
 }
 
@@ -251,6 +256,12 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 
 		if (!mCube.mGraphicsPipeline)
 		{
+			// sanity checks
+			assert(mCube.mVertexBuffer);
+			assert(mCube.mIndexBuffer);
+			assert(mCube.mInputLayout);
+			assert(mCube.mBindingLayout);
+
 			nvrhi::GraphicsPipelineDesc psoDesc;
 			psoDesc.VS = mCube.mVertexShader;
 			psoDesc.PS = mCube.mPixelShader;
