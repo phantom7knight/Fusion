@@ -35,8 +35,8 @@ bool InitApp::Init()
 	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	std::filesystem::path modelFileName = "/assets/GLTFModels/2.0/Duck/glTF/Duck.gltf";
-	//std::filesystem::path modelFileName = "/assets/GLTFModels/2.0/Sponza/glTF/Sponza.gltf";
+	std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
@@ -156,7 +156,7 @@ bool InitApp::Init()
 	if (mAppMode == 2)
 	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(rootFS, modelFileName);
+		BeginLoadingScene(nativeFS, modelFileName);
 
 		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 
@@ -381,7 +381,7 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mModel.mRenderTargets->Clear(mCommandList);
 
 		LightingConstants constants = {};
-		constants.ambientColor = float4(1.0f);
+		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 		mModel.mView.FillPlanarViewConstants(constants.view);
 
 		donut::render::ForwardShadingPass::Context forwardContext;
