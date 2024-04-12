@@ -36,6 +36,7 @@ bool InitApp::Init()
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
 	std::filesystem::path modelFileName = "/assets/GLTFModels/2.0/Duck/glTF/Duck.gltf";
+	//std::filesystem::path modelFileName = "/assets/GLTFModels/2.0/Sponza/glTF/Sponza.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
@@ -158,10 +159,19 @@ bool InitApp::Init()
 		BeginLoadingScene(rootFS, modelFileName);
 
 		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+
+
+		mModel.m_SunLight = std::make_shared<donut::engine::DirectionalLight>();
+		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mModel.m_SunLight);
+		mModel.m_SunLight->SetDirection(double3(0.1, -1.0, 0.15));
+		mModel.m_SunLight->SetName("Sun");
+		mModel.m_SunLight->angularSize = 0.53f;
+		mModel.m_SunLight->irradiance = 2.f;
+
 		mScene->FinishedLoading(GetFrameIndex());
 
 		// camera setup
-		mCamera.LookAt(donut::math::float3(-20.f, -10.8f, 0.f), donut::math::float3(1.f, 1.8f, 0.f));
+		mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
 		mCamera.SetMoveSpeed(3.f);
 	}
 	return true;
@@ -301,6 +311,9 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 
 		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
 		{
+#ifdef _DEBUG
+			mCommandList->beginMarker("Render Cube");
+#endif
 			nvrhi::GraphicsState state;
 			// Pick the right binding set for this view.
 			state.bindings = { mCube.mBindingSets[viewIndex] };
@@ -329,6 +342,9 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			nvrhi::DrawArguments args;
 			args.vertexCount = dim(locInitHelpers::gIndices);
 			mCommandList->drawIndexed(args);
+#ifdef _DEBUG
+			mCommandList->endMarker();
+#endif
 		}
 
 		mCommandList->close();
@@ -358,8 +374,15 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 
 		mCommandList->open();
 
+#ifdef _DEBUG
+		mCommandList->beginMarker("Render Forward Pass");
+#endif
+
+		mModel.mRenderTargets->Clear(mCommandList);
+
 		LightingConstants constants = {};
-		constants.ambientColor = float4(0.2f);
+		constants.ambientColor = float4(1.0f);
+		mModel.mView.FillPlanarViewConstants(constants.view);
 
 		donut::render::ForwardShadingPass::Context forwardContext;
 		mModel.mForwardPass->PrepareLights(forwardContext, mCommandList, mScene->GetSceneGraph()->GetLights(), constants.ambientColor, constants.ambientColor, {});
@@ -372,10 +395,17 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			*mModel.mOpaqueDrawStrategy, 
 			*mModel.mForwardPass, 
 			forwardContext);
+#ifdef _DEBUG
+		mCommandList->endMarker();
+#endif
 
+#ifdef _DEBUG
+		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
+#endif
 		m_CommonPasses->BlitTexture(mCommandList, framebuffer, mModel.mRenderTargets->mColor, mBindingCache.get());
-
-		mModel.mRenderTargets->Clear(mCommandList);
+#ifdef _DEBUG
+		mCommandList->endMarker();
+#endif
 
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);

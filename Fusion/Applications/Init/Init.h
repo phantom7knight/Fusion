@@ -105,14 +105,14 @@ public:
 		textureDesc.keepInitialState = true;
 		textureDesc.clearValue = nvrhi::Color(0.f);
 		textureDesc.useClearValue = true;
-		textureDesc.debugName = "FBO: FS-ColorBuffer";
+		textureDesc.debugName = "Fwd Pass: ColorBuffer";
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
 		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		mColor = device->createTexture(textureDesc);
 
 		textureDesc.format = nvrhi::Format::D24S8;
-		textureDesc.debugName = "FBO: FS-DepthBuffer";
+		textureDesc.debugName = "Fwd Pass: DepthBuffer";
 		textureDesc.initialState = nvrhi::ResourceStates::DepthWrite;
 		mDepth = device->createTexture(textureDesc);
 
@@ -174,6 +174,7 @@ private:
 		std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
 		std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 		std::unique_ptr<RenderTargets> mRenderTargets;
+		std::shared_ptr<donut::engine::DirectionalLight>  m_SunLight;
 		donut::engine::PlanarView mView;
 	}mModel;
 
