@@ -31,8 +31,36 @@ UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr
 
 void UIRenderer::buildUI(void)
 {
-	ImGui::Begin("Settings", 0, ImGuiWindowFlags_AlwaysAutoResize);
-	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());
+	ImGui::Begin("App", 0, ImGuiWindowFlags_AlwaysAutoResize);
+
+	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());	
+
+	ImGui::SeparatorText("App Options:");
+
+	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
+
+	uint8_t& idx = mInitApp->mUIOptions.mAppMode;
+	auto& arr = mInitApp->mUIOptions.mAppModeOptions;
+	if (ImGui::BeginCombo("Mode", arr[idx]))
+	{
+		const size_t size = arr.size();
+		for (int n = 0; n < size; n++)
+		{
+			const bool is_selected = (idx == n);
+			if (ImGui::Selectable(arr[n], is_selected))
+				idx = n;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	// TODO_RT: This can be further expanded to loading model from bunch of model options
+	//if (idx == 2) {} // Model
+
 	ImGui::End();
 }
 
@@ -63,6 +91,8 @@ bool InitApp::Init()
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
 	std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
@@ -86,8 +116,7 @@ bool InitApp::Init()
 
 	mCommandList = GetDevice()->createCommandList();
 
-	if (mAppMode == 1) // Cube
-	{
+#pragma region Cube
 		mCube.mConstantBuffer = GetDevice()->createBuffer(nvrhi::utils::CreateStaticConstantBufferDesc
 		(sizeof(locInitHelpers::ConstantBufferEntry) * locInitHelpers::cNumViews, "Cube ConstantBuffer")
 			.setInitialState(nvrhi::ResourceStates::ConstantBuffer)
@@ -178,14 +207,13 @@ bool InitApp::Init()
 				return false;
 			}
 		}
-	}
-	if (mAppMode == 2)
-	{
+#pragma endregion
+	
+#pragma region Model
 		SetAsynchronousLoadingEnabled(false);
 		BeginLoadingScene(nativeFS, modelFileName);
 
 		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
-
 
 		mModel.m_SunLight = std::make_shared<donut::engine::DirectionalLight>();
 		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mModel.m_SunLight);
@@ -199,7 +227,11 @@ bool InitApp::Init()
 		// camera setup
 		mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
 		mCamera.SetMoveSpeed(3.f);
-	}
+#pragma endregion
+
+	// UI Setup
+	mUIOptions.mAppMode = 2;
+
 	return true;
 }
 
@@ -228,7 +260,7 @@ void InitApp::BackBufferResizing()
 
 void InitApp::Animate(float fElapsedTimeSeconds)
 {
-	if (mAppMode == 1) // Cube
+	if (mUIOptions.mAppMode == 1) // Cube
 		mCube.mRotation += fElapsedTimeSeconds * 1.1f;
 
 	mCamera.Animate(fElapsedTimeSeconds);
@@ -255,7 +287,9 @@ bool InitApp::MouseButtonUpdate(int button, int action, int mods)
 
 void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 {
-	if (mAppMode == 0) // Init
+	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
+
+	if (mUIOptions.mAppMode == 0) // Init
 	{
 		if (!mTriangle.mGraphicsPipeline)
 		{
@@ -286,7 +320,7 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
 	}
-	else if (mAppMode == 1) // Cube
+	else if (mUIOptions.mAppMode == 1) // Cube
 	{
 		const nvrhi::FramebufferInfoEx& fbinfo = framebuffer->getFramebufferInfo();
 
@@ -337,6 +371,7 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 
 		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
 		{
+
 #ifdef _DEBUG
 			mCommandList->beginMarker("Render Cube");
 #endif
@@ -376,7 +411,7 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mCommandList->close();
 		GetDevice()->executeCommandList(mCommandList);
 	}
-	else if (mAppMode == 2) // Model
+	else if (mUIOptions.mAppMode == 2) // Model
 	{
 		const auto& fbinfo = framebuffer->getFramebufferInfo();
 
@@ -411,7 +446,12 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		mModel.mView.FillPlanarViewConstants(constants.view);
 
 		donut::render::ForwardShadingPass::Context forwardContext;
-		mModel.mForwardPass->PrepareLights(forwardContext, mCommandList, mScene->GetSceneGraph()->GetLights(), constants.ambientColor, constants.ambientColor, {});
+		mModel.mForwardPass->PrepareLights(forwardContext,
+			mCommandList,
+			mScene->GetSceneGraph()->GetLights(),
+			constants.ambientColor,
+			constants.ambientColor,
+			{});
 
 		donut::render::RenderCompositeView(mCommandList, 
 			&mModel.mView, 

@@ -83,7 +83,7 @@ void ForwardShadingPass::ResetBindingCache()
     m_LightBindingSets.clear();
 }
 
-nvrhi::ShaderHandle ForwardShadingPass::CreateVertexShader(ShaderFactory& shaderFactory, const CreateParameters& params)
+nvrhi::ShaderHandle ForwardShadingPass::CreateVertexShader(ShaderFactory& shaderFactory, const CreateParameters& /*params*/)
 {
     return shaderFactory.CreateShader("/shaders/RenderPasses/forward_vs.hlsl", "main", nullptr, nvrhi::ShaderType::Vertex);
 }
