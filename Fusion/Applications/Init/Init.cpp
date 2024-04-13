@@ -10,6 +10,32 @@
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
+UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp)
+	: ImGui_Renderer(deviceManager)
+	, mInitApp(aApp)
+{
+	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
+	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+
+	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
+	rootFS->mount("/shaders/Common", commonShaderPath);
+
+	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
+	if (mInitApp)
+		Init(shaderFactory);
+
+	assert(mInitApp);
+
+	ImGui::GetIO().IniFilename = nullptr;
+}
+
+void UIRenderer::buildUI(void)
+{
+	ImGui::Begin("Settings", 0, ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());
+	ImGui::End();
+}
+
 bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory)
 {
 	mTriangle.mVertexShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);

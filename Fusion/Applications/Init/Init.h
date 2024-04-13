@@ -9,6 +9,7 @@
 #include "../../Core/Engine/Scene.h"
 #include "../../Core/Engine/BindingCache.h"
 #include "../../Core/Engine/FramebufferFactory.h"
+#include "../../Core/App/Imgui/imgui_renderer.h"
 
 
 #include "../../Core/Render/DrawStrategy.h"
@@ -84,6 +85,25 @@ namespace locInitHelpers
 	static_assert(sizeof(ConstantBufferEntry) == nvrhi::c_ConstantBufferOffsetSizeAlignment, "sizeof(ConstantBufferEntry) must be 256 bytes");
 }
 
+class InitApp;
+
+struct UIOptions
+{
+	bool mVsync = false;
+	uint8_t mAppMode = 0;
+};
+
+class UIRenderer : public donut::app::ImGui_Renderer
+{
+public:
+	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp);
+
+protected:
+	virtual void buildUI(void) override;
+
+private:
+	std::shared_ptr<InitApp> mInitApp;
+};
 
 class RenderTargets
 {

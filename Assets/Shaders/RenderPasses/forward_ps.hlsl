@@ -171,6 +171,7 @@ void main(
         specularTerm += lightProbeSpecular * (surfaceMaterial.specularF0 * environmentBrdf.x + environmentBrdf.y) * surfaceMaterial.occlusion;
     }
 
+    // Lighting Calculations
     {
         float3 ambientColor = lerp(g_ForwardLight.ambientColorBottom.rgb, g_ForwardLight.ambientColorTop.rgb, surfaceMaterial.shadingNormal.y * 0.5 + 0.5);
 

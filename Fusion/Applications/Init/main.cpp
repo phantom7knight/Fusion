@@ -5,6 +5,8 @@
 
 #include "../../Core/App/ApplicationBase.h"
 #include "../../Core/App/DeviceManager.h"
+#include "../../Core/App/Imgui/imgui_renderer.h"
+
 #include "../../Core/Utilities/Logger/log.h"
 #include "../../Core/Engine/ShaderFactory.h"
 
@@ -55,12 +57,18 @@ int main(int __argc, const char* __argv[])
 	}
 
 	{
-		InitApp example(deviceManager);
-		if (example.Init())
+		std::shared_ptr<InitApp> example = std::make_shared<InitApp>(deviceManager);
+		std::shared_ptr<UIRenderer> uiRenderer = std::make_shared<UIRenderer>(deviceManager, example);
+
+		if (example->Init())
 		{
-			deviceManager->AddRenderPassToBack(&example);
+			deviceManager->AddRenderPassToBack(example.get());
+			deviceManager->AddRenderPassToBack(uiRenderer.get());
+
 			deviceManager->RunMessageLoop();
-			deviceManager->RemoveRenderPass(&example);
+			
+			deviceManager->RemoveRenderPass(example.get());
+			deviceManager->RemoveRenderPass(uiRenderer.get());
 		}
 	}
 
