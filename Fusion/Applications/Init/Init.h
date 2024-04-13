@@ -1,8 +1,19 @@
 #pragma once
 
 #include "../../Core/App/ApplicationBase.h"
+#include "../../Core/App/Camera/Camera.h"
+
 #include "../../Core/Utilities/Math/math.h"
+
 #include "../../Core/Engine/ShaderFactory.h"
+#include "../../Core/Engine/Scene.h"
+#include "../../Core/Engine/BindingCache.h"
+#include "../../Core/Engine/FramebufferFactory.h"
+#include "../../Core/App/Imgui/imgui_renderer.h"
+
+
+#include "../../Core/Render/DrawStrategy.h"
+#include "../../Core/Render/ForwardShadingPass.h"
 
 namespace locInitHelpers
 {
@@ -74,7 +85,83 @@ namespace locInitHelpers
 	static_assert(sizeof(ConstantBufferEntry) == nvrhi::c_ConstantBufferOffsetSizeAlignment, "sizeof(ConstantBufferEntry) must be 256 bytes");
 }
 
-class InitApp : public donut::app::IRenderPass
+class InitApp;
+
+struct UIOptions
+{
+	bool mVsync = false;
+	uint8_t mAppMode = 0;
+};
+
+class UIRenderer : public donut::app::ImGui_Renderer
+{
+public:
+	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp);
+
+protected:
+	virtual void buildUI(void) override;
+
+private:
+	std::shared_ptr<InitApp> mInitApp;
+};
+
+class RenderTargets
+{
+public:
+	nvrhi::TextureHandle mDepth;
+	nvrhi::TextureHandle mColor;
+
+	dm::int2 mSize;
+
+	std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
+
+	RenderTargets(nvrhi::IDevice* device, const dm::int2 aSize)
+		:mSize(aSize)
+	{
+		nvrhi::TextureDesc textureDesc;
+		textureDesc.format = nvrhi::Format::SRGBA8_UNORM;
+		textureDesc.isRenderTarget = true;
+		textureDesc.initialState = nvrhi::ResourceStates::RenderTarget;
+		textureDesc.keepInitialState = true;
+		textureDesc.clearValue = nvrhi::Color(0.f);
+		textureDesc.useClearValue = true;
+		textureDesc.debugName = "Fwd Pass: ColorBuffer";
+		textureDesc.width = aSize.x;
+		textureDesc.height = aSize.y;
+		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
+		mColor = device->createTexture(textureDesc);
+
+		textureDesc.format = nvrhi::Format::D24S8;
+		textureDesc.debugName = "Fwd Pass: DepthBuffer";
+		textureDesc.initialState = nvrhi::ResourceStates::DepthWrite;
+		mDepth = device->createTexture(textureDesc);
+
+		mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
+		mFramebuffer->RenderTargets = { mColor };
+		mFramebuffer->DepthTarget = mDepth;
+	}
+
+	bool IsUpdateRequired(dm::int2 size)
+	{
+		if (dm::any(mSize != size))
+			return true;
+
+		return false;
+	}
+
+	void Clear(nvrhi::ICommandList* commandList)
+	{
+		commandList->clearDepthStencilTexture(mDepth, nvrhi::AllSubresources, true, 0.f, true, 0);
+		commandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
+	}
+
+	const dm::int2& GetSize()
+	{
+		return mSize;
+	}
+};
+
+class InitApp : public donut::app::ApplicationBase
 {
 private:
 
@@ -102,16 +189,32 @@ private:
 		float mRotation = 0.f;
 	}mCube;
 
-	nvrhi::CommandListHandle mCommandList;
+	struct Model
+	{
+		std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
+		std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
+		std::unique_ptr<RenderTargets> mRenderTargets;
+		std::shared_ptr<donut::engine::DirectionalLight>  m_SunLight;
+		donut::engine::PlanarView mView;
+	}mModel;
 
-	constexpr static uint8_t mAppMode = 0;  // 0 - Triangle, 1 - Cube
+	nvrhi::CommandListHandle mCommandList;
+	donut::app::FirstPersonCamera mCamera;
+	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
+	std::unique_ptr<donut::engine::Scene> mScene;
+	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
+
+	constexpr static uint8_t mAppMode = 2;  // 0 - Triangle, 1 - Cube, 2 - Model
 
 public:
-	using IRenderPass::IRenderPass;
+	using ApplicationBase::ApplicationBase;
 
 	bool Init();
 	void BackBufferResizing() override;
 	void Animate(float fElapsedTimeSeconds) override;
 	void Render(nvrhi::IFramebuffer* framebuffer) override;
-
+	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
+	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
+	bool MousePosUpdate(double xpos, double ypos) override;
+	bool MouseButtonUpdate(int button, int action, int mods) override;
 };

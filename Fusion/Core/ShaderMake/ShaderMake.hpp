@@ -91,10 +91,10 @@ struct Options
     const char* sourceDir = "";
     const char* compiler = nullptr;
     const char* outputExt = nullptr;
-    uint32_t sRegShift = 100; // must be first (or change "DxcCompile" code)
-    uint32_t tRegShift = 200;
-    uint32_t bRegShift = 300;
-    uint32_t uRegShift = 400;
+	uint32_t sRegShift = 100; // must be first (or change "DxcCompile" code)
+	uint32_t tRegShift = 200;
+	uint32_t bRegShift = 300;
+	uint32_t uRegShift = 400;
     uint32_t optimizationLevel = 3;
     Platform platform = DXBC;
     bool serial = false;

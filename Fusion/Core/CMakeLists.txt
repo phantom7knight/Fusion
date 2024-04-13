@@ -1,4 +1,4 @@
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 
 set(SRC_FILES
     "App/Camera/Camera.h"
@@ -44,10 +44,15 @@ set(SRC_FILES
 	"Engine/DDSFile.cpp"
 	"Engine/DescriptorTableManager.h"
 	"Engine/DescriptorTableManager.cpp"
+	"Engine/FramebufferFactory.h"
+	"Engine/FramebufferFactory.cpp"
 	"Engine/GltfImporter.h"
 	"Engine/GltfImporter.cpp"
 	"Engine/KeyframeAnimation.h"
 	"Engine/KeyframeAnimation.cpp"
+	"Engine/Material.cpp"
+	"Engine/MaterialBindingCache.h"
+	"Engine/MaterialBindingCache.cpp"
 	"Engine/TextureCache.h"
 	"Engine/TextureCache.cpp"
 	"Engine/Scene.h"
@@ -64,7 +69,14 @@ set(SRC_FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c"
-	
+
+	"Render/DrawStrategy.h"
+	"Render/DrawStrategy.cpp"
+	"Render/GeometryPasses.h"
+	"Render/GeometryPasses.cpp"
+	"Render/ForwardShadingPass.h"
+	"Render/ForwardShadingPass.cpp"
+
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
 	"ShaderMake/ShaderBlob.h"
@@ -75,6 +87,9 @@ set(SRC_FILES
     "Utilities/Logger/Log.cpp"
 	
 	"Utilities/Utilities.hpp"
+	
+	"Utilities/json.h"
+	"Utilities/json.cpp"
 	
     "Utilities/Timer.h"
 	
@@ -124,12 +139,15 @@ source_group("Engine" FILES
 	"Engine/DDSFile.cpp"
 	"Engine/DescriptorTableManager.h"
 	"Engine/DescriptorTableManager.cpp"
+	"Engine/FramebufferFactory.h"
+	"Engine/FramebufferFactory.cpp"
 	"Engine/GltfImporter.h"
 	"Engine/GltfImporter.cpp"
 	"Engine/KeyframeAnimation.h"
 	"Engine/KeyframeAnimation.cpp"
-	"Engine/TextureCache.h"
-	"Engine/TextureCache.cpp"
+	"Engine/Material.cpp"
+	"Engine/MaterialBindingCache.h"
+	"Engine/MaterialBindingCache.cpp"
 	"Engine/Scene.h"
 	"Engine/Scene.cpp"
 	"Engine/SceneGraph.h"
@@ -144,6 +162,13 @@ source_group("Engine" FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c")
+source_group("Render" FILES
+	"Render/DrawStrategy.h"
+	"Render/DrawStrategy.cpp"
+	"Render/GeometryPasses.h"
+	"Render/GeometryPasses.cpp"
+	"Render/ForwardShadingPass.h"
+	"Render/ForwardShadingPass.cpp")
 source_group("ShaderMake" FILES
 	"ShaderMake/argparse.h"
 	"ShaderMake/argparse.c"
@@ -163,6 +188,8 @@ source_group("Threading" FILES
 	"Threading/BS_ThreadPool_Light.hpp"
 	"Threading/BS_ThreadPool.hpp")
 source_group("Utilities" FILES
+	"Utilities/json.h"
+	"Utilities/json.cpp"
 	"Utilities/Utilities.hpp"
 	"Utilities/Timer.h"
 	"Utilities/string_utils.h"
@@ -199,7 +226,10 @@ source_group("App\\Imgui" FILES
 
 add_library(Core STATIC ${SRC_FILES})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
+
+target_compile_options(Core PUBLIC /W3 /TP)
+set_property(TARGET Core PROPERTY CXX_STANDARD 20)
 
 # Enable hot reload in Visual studio 2022.
 if (MSVC AND WIN32 AND NOT MSVC_VERSION VERSION_LESS 141)
@@ -223,5 +253,24 @@ USE_DX12=1
 USE_VK=1
 VK_USE_PLATFORM_WIN32_KHR
 _CRT_SECURE_NO_WARNINGS
-_WINDOWS)
+_WINDOWS
+DONUT_WITH_TASKFLOW)
 set_target_properties(Core PROPERTIES FOLDER "Internal")
+
+
+message(STATUS "==================================")
+message(STATUS "PROJECT_NAME: Fusion: Core")
+message(STATUS "==================================")
+message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
+message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER})
+message(STATUS "CMAKE_CXX_COMPILER_ID: " ${CMAKE_CXX_COMPILER_ID})
+message(STATUS "CMAKE_CXX_COMPILER_VERSION: " ${CMAKE_CXX_COMPILER_VERSION})
+message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
+message(STATUS "CMAKE_CXX_STANDARD: " ${CMAKE_CXX_STANDARD})
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})
+message(STATUS "CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR})
+message(STATUS "CMAKE_CURRENT_LIST_DIR: " ${CMAKE_CURRENT_LIST_DIR})
+message(STATUS "CMAKE_EXE_LINKER_FLAGS: " ${CMAKE_EXE_LINKER_FLAGS})
+message(STATUS "CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX})
+message(STATUS "CMAKE_INSTALL_FULL_INCLUDEDIR: " ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+message(STATUS "CMAKE_INSTALL_FULL_LIBDIR: " ${CMAKE_INSTALL_FULL_LIBDIR})

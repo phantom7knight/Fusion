@@ -113,7 +113,7 @@ bool ImGui_NVRHI::init(nvrhi::DeviceHandle renderer, std::shared_ptr<ShaderFacto
 
     m_commandList->open();
     
-    vertexShader = shaderFactory->CreateShader("donut/imgui_vertex", "main", nullptr, nvrhi::ShaderType::Vertex);
+    vertexShader = shaderFactory->CreateShader("Common/imgui_vertex", "main", nullptr, nvrhi::ShaderType::Vertex);
     if (vertexShader == nullptr)
     {
         printf("error creating NVRHI vertex shader object\n");
@@ -121,7 +121,7 @@ bool ImGui_NVRHI::init(nvrhi::DeviceHandle renderer, std::shared_ptr<ShaderFacto
         return false;
     }
 
-    pixelShader = shaderFactory->CreateShader("donut/imgui_pixel", "main", nullptr, nvrhi::ShaderType::Pixel);
+    pixelShader = shaderFactory->CreateShader("Common/imgui_pixel", "main", nullptr, nvrhi::ShaderType::Pixel);
     if (pixelShader == nullptr)
     {
         printf("error creating NVRHI pixel shader object\n");

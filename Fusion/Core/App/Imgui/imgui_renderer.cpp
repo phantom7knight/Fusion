@@ -55,6 +55,9 @@ ImGui_Renderer::ImGui_Renderer(DeviceManager *devManager)
     : IRenderPass(devManager)
 {
     ImGui::CreateContext();
+
+    // ImGui style
+    ImGui::StyleColorsLight();
 }
 
 ImGui_Renderer::~ImGui_Renderer()

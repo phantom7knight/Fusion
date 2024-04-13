@@ -94,8 +94,7 @@ Scene::Scene(
     m_EnableBindlessResources = !!m_DescriptorTable;
     m_RayTracingSupported = m_Device->queryFeatureSupport(nvrhi::Feature::RayTracingAccelStruct);
 
-    // todo_rt: fix this
-    m_SkinningShader = shaderFactory.CreateShader("donut/skinning_cs", "main", nullptr, nvrhi::ShaderType::Compute);
+    m_SkinningShader = shaderFactory.CreateShader("Common/skinning_cs", "main", nullptr, nvrhi::ShaderType::Compute);
 
     {
         nvrhi::BindingLayoutDesc layoutDesc;

@@ -452,6 +452,11 @@ void DeviceManager::RunMessageLoop()
 
     while(!glfwWindowShouldClose(m_Window))
     {
+        //If Esc button is pressed we close
+		if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		{
+			glfwSetWindowShouldClose(m_Window, true);
+		}
 
         if (m_callbacks.beforeFrame) m_callbacks.beforeFrame(*this);
 

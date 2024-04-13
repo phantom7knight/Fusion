@@ -25,6 +25,16 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
+# Set up TaskFlow
+option(TF_BUILD_TESTS "" OFF)
+option(TF_BUILD_EXAMPLES "" OFF)
+FetchContent_Declare(
+  taskflow
+  GIT_REPOSITORY https://github.com/taskflow/taskflow
+  GIT_TAG 10dfa7920d1a786099a92614c4183f6339975728
+  GIT_PROGRESS TRUE
+)
+
 # Set up GLFW
 option(GLFW_BUILD_DOCS "" OFF)
 option(GLFW_BUILD_WIN32 "" OFF)
@@ -64,13 +74,14 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
-FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui) # D3D12MemoryAllocator
+FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui taskflow) # D3D12MemoryAllocator
 
 # set necessary path
 set(DEPENDENCY_PATH ${CMAKE_BINARY_DIR}/_deps)
 set(VULKAN_HEADERS_PATH ${DEPENDENCY_PATH}/nvrhi-src/thirdparty/Vulkan-Headers/include)
 set(STB_HEADERS_PATH ${DEPENDENCY_PATH}/stb-src)
 set(CGLTF_HEADERS_PATH ${DEPENDENCY_PATH}/cgltf-src)
+set(TASKFLOW_HEADERS_PATH ${DEPENDENCY_PATH}/taskflow-src)
 
 #libimgui setup
 set(imgui_srcs
@@ -97,7 +108,7 @@ ${glfw_SOURCE_DIR}/include
 ${VULKAN_HEADERS_PATH}
 )
 
-#libcgltf setup
+#stb setup
 set(stb_srcs
     ${STB_HEADERS_PATH}/stb_c_lexer.h
     ${STB_HEADERS_PATH}/stb_ds.h
@@ -123,6 +134,7 @@ glfw
 jsoncpp_static
 libstb
 libimgui
+# taskflow
 )
 
 target_include_directories(External INTERFACE
@@ -132,7 +144,8 @@ ${nvrhi_SOURCE_DIR}/include
 ${jsoncpp_SOURCE_DIR}/include
 ${cgltf_SOURCE_DIR}
 ${stb_SOURCE_DIR}
-${imgui_SOURCE_DIR} )
+${imgui_SOURCE_DIR}
+${TASKFLOW_HEADERS_PATH} )
 # ${nvrhi_vulkan_target}
 # ${nvrhi_SOURCE_DIR}/thirdparty/Vulkan-Headers/include/vulkan)
 # ${D3D12MemoryAllocator_SOURCE_DIR}/include
