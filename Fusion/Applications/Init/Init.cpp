@@ -39,27 +39,8 @@ void UIRenderer::buildUI(void)
 
 	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
 
-	uint8_t& idx = mInitApp->mUIOptions.mAppMode;
 	auto& arr = mInitApp->mUIOptions.mAppModeOptions;
-	if (ImGui::BeginCombo("Mode", arr[idx]))
-	{
-		const size_t size = arr.size();
-		for (int n = 0; n < size; n++)
-		{
-			const bool is_selected = (idx == n);
-			if (ImGui::Selectable(arr[n], is_selected))
-				idx = n;
-
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-
-		ImGui::EndCombo();
-	}
-
-	// TODO_RT: This can be further expanded to loading model from bunch of model options
-	//if (idx == 2) {} // Model
+	ImGui::Combo("combo", &mInitApp->mUIOptions.mAppMode, arr.data(), arr.size());
 
 	ImGui::End();
 }
@@ -228,9 +209,6 @@ bool InitApp::Init()
 		mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
 		mCamera.SetMoveSpeed(3.f);
 #pragma endregion
-
-	// UI Setup
-	mUIOptions.mAppMode = 2;
 
 	return true;
 }

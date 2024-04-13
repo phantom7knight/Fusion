@@ -90,7 +90,7 @@ class InitApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	uint8_t mAppMode = 0;
+	int mAppMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
 };
 
