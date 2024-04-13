@@ -91,6 +91,7 @@ struct UIOptions
 {
 	bool mVsync = false;
 	uint8_t mAppMode = 0;
+	std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -163,6 +164,20 @@ public:
 
 class InitApp : public donut::app::ApplicationBase
 {
+public:
+	using ApplicationBase::ApplicationBase;
+
+	bool Init();
+	void BackBufferResizing() override;
+	void Animate(float fElapsedTimeSeconds) override;
+	void Render(nvrhi::IFramebuffer* framebuffer) override;
+	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
+	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
+	bool MousePosUpdate(double xpos, double ypos) override;
+	bool MouseButtonUpdate(int button, int action, int mods) override;
+
+	UIOptions mUIOptions;
+
 private:
 
 	bool InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory);
@@ -203,18 +218,4 @@ private:
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
-
-	constexpr static uint8_t mAppMode = 2;  // 0 - Triangle, 1 - Cube, 2 - Model
-
-public:
-	using ApplicationBase::ApplicationBase;
-
-	bool Init();
-	void BackBufferResizing() override;
-	void Animate(float fElapsedTimeSeconds) override;
-	void Render(nvrhi::IFramebuffer* framebuffer) override;
-	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
-	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
-	bool MousePosUpdate(double xpos, double ypos) override;
-	bool MouseButtonUpdate(int button, int action, int mods) override;
 };
