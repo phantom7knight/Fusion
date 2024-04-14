@@ -72,6 +72,12 @@ set(SRC_FILES
 
 	"Render/DrawStrategy.h"
 	"Render/DrawStrategy.cpp"
+	"Render/DeferredLightingPass.h"
+	"Render/DeferredLightingPass.cpp"
+	"Render/GBuffer.h"
+	"Render/GBuffer.cpp"
+	"Render/GBufferFillPass.h"
+	"Render/GBufferFillPass.cpp"
 	"Render/GeometryPasses.h"
 	"Render/GeometryPasses.cpp"
 	"Render/ForwardShadingPass.h"
@@ -165,6 +171,12 @@ source_group("Engine" FILES
 source_group("Render" FILES
 	"Render/DrawStrategy.h"
 	"Render/DrawStrategy.cpp"
+	"Render/DeferredLightingPass.h"
+	"Render/DeferredLightingPass.cpp"
+	"Render/GBuffer.h"
+	"Render/GBuffer.cpp"
+	"Render/GBufferFillPass.h"
+	"Render/GBufferFillPass.cpp"
 	"Render/GeometryPasses.h"
 	"Render/GeometryPasses.cpp"
 	"Render/ForwardShadingPass.h"
@@ -226,10 +238,13 @@ source_group("App\\Imgui" FILES
 
 add_library(Core STATIC ${SRC_FILES})
 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
+if (MSVC)
+    set (COMPILE_OPTIONS /W3 /TP)
+	set_property(TARGET Core PROPERTY CXX_STANDARD 20)
+endif ()
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
 
-target_compile_options(Core PUBLIC /W3 /TP)
-set_property(TARGET Core PROPERTY CXX_STANDARD 20)
+#target_compile_options(Core PUBLIC /W3 /TP)
 
 # Enable hot reload in Visual studio 2022.
 if (MSVC AND WIN32 AND NOT MSVC_VERSION VERSION_LESS 141)
