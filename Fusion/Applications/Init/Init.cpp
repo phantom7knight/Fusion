@@ -40,7 +40,7 @@ void UIRenderer::buildUI(void)
 	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
 
 	auto& arr = mInitApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("combo", &mInitApp->mUIOptions.mAppMode, arr.data(), arr.size());
+	ImGui::Combo("Examples", &mInitApp->mUIOptions.mAppMode, arr.data(), arr.size());
 
 	ImGui::End();
 }

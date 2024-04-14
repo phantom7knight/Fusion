@@ -90,8 +90,8 @@ class DeferredApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	int mAppMode = 0;
-	std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
+	int mRTMode = 0;
+	std::vector<const char*> mAppModeOptions = { "Color", "Normal"};
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -181,28 +181,6 @@ public:
 private:
 
 	bool InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory);
-
-	struct Triangle
-	{
-		nvrhi::ShaderHandle mVertexShader;
-		nvrhi::ShaderHandle mPixelShader;
-		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
-	}mTriangle;
-
-	struct Cube
-	{
-		nvrhi::ShaderHandle mVertexShader;
-		nvrhi::ShaderHandle mPixelShader;
-		nvrhi::BufferHandle mConstantBuffer;
-		nvrhi::BufferHandle mVertexBuffer;
-		nvrhi::BufferHandle mIndexBuffer;
-		nvrhi::TextureHandle mTexture;
-		nvrhi::InputLayoutHandle mInputLayout;
-		nvrhi::BindingLayoutHandle mBindingLayout;
-		nvrhi::BindingSetHandle mBindingSets[locInitHelpers::cNumViews];
-		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
-		float mRotation = 0.f;
-	}mCube;
 
 	struct Model
 	{
