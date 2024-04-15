@@ -14,6 +14,7 @@
 
 #include "../../Core/Render/DrawStrategy.h"
 #include "../../Core/Render/ForwardShadingPass.h"
+#include "../../Core/Render/GBuffer.h"
 
 namespace locInitHelpers
 {
@@ -90,8 +91,8 @@ class DeferredApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	int mRTMode = 0;
-	std::vector<const char*> mAppModeOptions = { "Color", "Normal"};
+	int mRTsMode = 0;
+	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive"};
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -106,15 +107,13 @@ private:
 	std::shared_ptr<DeferredApp> mInitApp;
 };
 
-class RenderTargets
+class RenderTargets : public donut::render::GBufferRenderTargets
 {
 public:
-	nvrhi::TextureHandle mDepth;
 	nvrhi::TextureHandle mColor;
 
-	dm::int2 mSize;
-
-	std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
+	// todo_rt; check if we need this
+	//std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
 
 	RenderTargets(nvrhi::IDevice* device, const dm::int2 aSize)
 		:mSize(aSize)
@@ -126,20 +125,15 @@ public:
 		textureDesc.keepInitialState = true;
 		textureDesc.clearValue = nvrhi::Color(0.f);
 		textureDesc.useClearValue = true;
-		textureDesc.debugName = "Fwd Pass: ColorBuffer";
+		textureDesc.debugName = "Final: ColorBuffer";
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
 		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		mColor = device->createTexture(textureDesc);
 
-		textureDesc.format = nvrhi::Format::D24S8;
-		textureDesc.debugName = "Fwd Pass: DepthBuffer";
-		textureDesc.initialState = nvrhi::ResourceStates::DepthWrite;
-		mDepth = device->createTexture(textureDesc);
-
-		mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
-		mFramebuffer->RenderTargets = { mColor };
-		mFramebuffer->DepthTarget = mDepth;
+		// todo_rt; check this
+		/*mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
+		mFramebuffer->RenderTargets = { mColor };*/
 	}
 
 	bool IsUpdateRequired(dm::int2 size)
@@ -150,16 +144,19 @@ public:
 		return false;
 	}
 
-	void Clear(nvrhi::ICommandList* commandList)
+	void Clear(nvrhi::ICommandList* aCommandList)
 	{
-		commandList->clearDepthStencilTexture(mDepth, nvrhi::AllSubresources, true, 0.f, true, 0);
-		commandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
+		Clear(aCommandList); // todo_rt; test this
+		aCommandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
 
 	const dm::int2& GetSize()
 	{
 		return mSize;
 	}
+
+private:
+	dm::int2 mSize;
 };
 
 class DeferredApp : public donut::app::ApplicationBase

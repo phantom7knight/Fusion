@@ -40,7 +40,7 @@ void UIRenderer::buildUI(void)
 	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
 
 	auto& arr = mInitApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("RT Targets", &mInitApp->mUIOptions.mRTMode, arr.data(), arr.size());
+	ImGui::Combo("RT Targets", &mInitApp->mUIOptions.mRTsMode, arr.data(), arr.size());
 
 	ImGui::End();
 }
@@ -198,14 +198,14 @@ void DeferredApp::Render(nvrhi::IFramebuffer* framebuffer)
 			constants.ambientColor,
 			{});
 
-		donut::render::RenderCompositeView(mCommandList, 
-			&mModel.mView, 
-			&mModel.mView, 
-			*mModel.mRenderTargets->mFramebuffer,
-			mScene->GetSceneGraph()->GetRootNode(), 
-			*mModel.mOpaqueDrawStrategy, 
-			*mModel.mForwardPass, 
-			forwardContext);
+		//donut::render::RenderCompositeView(mCommandList, 
+		//	&mModel.mView, 
+		//	&mModel.mView, 
+		//	//*mModel.mRenderTargets->mFramebuffer, // todo_rt; testing
+		//	mScene->GetSceneGraph()->GetRootNode(), 
+		//	*mModel.mOpaqueDrawStrategy, 
+		//	*mModel.mForwardPass, 
+		//	forwardContext);
 #ifdef _DEBUG
 		mCommandList->endMarker();
 #endif

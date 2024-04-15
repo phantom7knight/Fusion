@@ -20,65 +20,44 @@
 * DEALINGS IN THE SOFTWARE.
 */
 
-#pragma pack_matrix(row_major)
-
 #include "../Includes/scene_material.hlsli"
 #include "../Includes/material_bindings.hlsli"
-#include "../Includes/motion_vectors.hlsli"
 #include "../Includes/forward_vertex.hlsli"
-#include "../Includes/gbuffer_cb.h"
 #include "../Includes/vulkan.hlsli"
 
-cbuffer c_GBuffer : register(b1 VK_DESCRIPTOR_SET(1))
-{
-    GBufferFillConstants c_GBuffer;
+struct Constants {
+    uint instanceOffset;
 };
+
+#ifdef SPIRV
+
+VK_PUSH_CONSTANT ConstantBuffer<Constants> g_Const : register(b2);
+
+#else
+
+cbuffer c_Instance : register(b2)
+{
+    Constants g_Const;
+};
+
+#endif
 
 void main(
     in float4 i_position : SV_Position,
-	in SceneVertex i_vtx,
-#if MOTION_VECTORS
-    in float3 i_prevWorldPos : PREV_WORLD_POS,
-#endif
-    in bool i_isFrontFace : SV_IsFrontFace,
-    out float4 o_channel0 : SV_Target0,
-    out float4 o_channel1 : SV_Target1,
-    out float4 o_channel2 : SV_Target2,
-    out float4 o_channel3 : SV_Target3
-#if MOTION_VECTORS
-    , out float3 o_motion : SV_Target4
-#endif
+    in SceneVertex i_vtx,
+    in uint i_instance : INSTANCE,
+    out uint4 o_output : SV_Target0
 )
 {
+#if ALPHA_TESTED
     MaterialTextureSample textures = SampleMaterialTexturesAuto(i_vtx.texCoord);
 
     MaterialSample surface = EvaluateSceneMaterial(i_vtx.normal, i_vtx.tangent, g_Material, textures);
-
-#if ALPHA_TESTED
-    if (g_Material.domain != MaterialDomain_Opaque)
-        clip(surface.opacity - g_Material.alphaCutoff);
+    
+    clip(surface.opacity - g_Material.alphaCutoff);
 #endif
 
-    if (!i_isFrontFace)
-        surface.shadingNormal = -surface.shadingNormal;
-
-    // DiffuseAlbedo(Opacity) Target
-    o_channel0.xyz = surface.diffuseAlbedo;
-    o_channel0.w = surface.opacity;
-
-    // Specular(Occlusion) Target
-    o_channel1.xyz = surface.specularF0;
-    o_channel1.w = surface.occlusion;
-
-    // Normals(Roughness) Target
-    o_channel2.xyz = surface.shadingNormal;
-    o_channel2.w = surface.roughness;
-
-    // Emissive Target
-    o_channel3.xyz = surface.emissiveColor;
-    o_channel3.w = 0;
-
-#if MOTION_VECTORS
-    o_motion = GetMotionVector(i_position.xyz, i_prevWorldPos, c_GBuffer.view, c_GBuffer.viewPrev);
-#endif
+    o_output.x = uint(g_Material.materialID);
+    o_output.y = g_Const.instanceOffset + i_instance;
+    o_output.zw = 0;
 }
