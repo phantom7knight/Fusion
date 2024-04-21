@@ -780,11 +780,12 @@ void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const
 
     ss << ")";
 
-    double frameTime = GetAverageFrameTimeSeconds();
+    // Adding this info on ImGui instead
+    /*double frameTime = GetAverageFrameTimeSeconds();
     if (frameTime > 0)
     {
         ss << " - " << std::setprecision(4) << (1.0 / frameTime) << " FPS ";
-    }
+    }*/
 
     if (extraInfo)
         ss << extraInfo;

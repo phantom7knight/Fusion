@@ -10,6 +10,14 @@
 #include "../../Core/Utilities/Logger/log.h"
 #include "../../Core/Engine/ShaderFactory.h"
 
+#if _DEBUG
+#ifndef _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC
+#endif
+#include <stdlib.h>  
+#include <crtdbg.h>
+#endif
+
 namespace locHelperFunc
 {
 	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
@@ -32,7 +40,7 @@ namespace locHelperFunc
 
 int main(int __argc, const char* __argv[])
 {
-	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::VULKAN;
+	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::D3D12;
 
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 
@@ -75,6 +83,13 @@ int main(int __argc, const char* __argv[])
 	deviceManager->Shutdown();
 
 	delete deviceManager;
+
+	int* a = new int(5);
+
+
+#if _DEBUG
+	_CrtDumpMemoryLeaks();
+#endif
 
 	return 0;
 }

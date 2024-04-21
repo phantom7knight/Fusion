@@ -104,7 +104,7 @@ protected:
 	virtual void buildUI(void) override;
 
 private:
-	std::shared_ptr<DeferredApp> mInitApp;
+	std::shared_ptr<DeferredApp> mDeferredApp;
 };
 
 class RenderTargets : public donut::render::GBufferRenderTargets
@@ -172,6 +172,8 @@ public:
 	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
+
+	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
 
 	UIOptions mUIOptions;
 

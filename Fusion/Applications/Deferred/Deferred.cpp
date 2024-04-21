@@ -12,7 +12,7 @@ using namespace donut::math;
 
 UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<DeferredApp> aApp)
 	: ImGui_Renderer(deviceManager)
-	, mInitApp(aApp)
+	, mDeferredApp(aApp)
 {
 	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
 	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
@@ -21,10 +21,10 @@ UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr
 	rootFS->mount("/shaders/Common", commonShaderPath);
 
 	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
-	if (mInitApp)
+	if (mDeferredApp)
 		Init(shaderFactory);
 
-	assert(mInitApp);
+	assert(mDeferredApp);
 
 	ImGui::GetIO().IniFilename = nullptr;
 }
@@ -33,14 +33,30 @@ void UIRenderer::buildUI(void)
 {
 	ImGui::Begin("App", 0, ImGuiWindowFlags_AlwaysAutoResize);
 
-	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());	
+	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());
+
+	double frameTime = GetDeviceManager()->GetAverageFrameTimeSeconds();
+	if (frameTime > 0)
+	{
+		std::ostringstream oss;
+		oss << std::fixed << std::setprecision(2) << (1.0 / frameTime);
+		std::string formattedNumber = oss.str();
+
+		const char* result = formattedNumber.c_str();
+
+		ImGui::Text("FPS: %s", result);
+	}
 
 	ImGui::SeparatorText("App Options:");
 
-	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
+	dm::float3 camPos = mDeferredApp->GetCameraPosition();
+	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camPos.x, camPos.y, camPos.z);
 
-	auto& arr = mInitApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("RT Targets", &mInitApp->mUIOptions.mRTsMode, arr.data(), arr.size());
+
+	ImGui::Checkbox("Enable Vsync", &mDeferredApp->mUIOptions.mVsync);
+
+	auto& arr = mDeferredApp->mUIOptions.mAppModeOptions;
+	ImGui::Combo("RT Targets", &mDeferredApp->mUIOptions.mRTsMode, arr.data(), arr.size());
 
 	ImGui::End();
 }
@@ -108,14 +124,14 @@ bool DeferredApp::Init()
 	return true;
 }
 
-bool DeferredApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName)
+bool DeferredApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
 	assert(m_TextureCache);
-	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, fs, m_TextureCache, nullptr, nullptr);
+	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 
 	if (scene->Load(sceneFileName))
 	{
-		mScene = std::unique_ptr<donut::engine::Scene>(scene);
+		mScene = std::unique_ptr<donut::engine::Scene>(std::move(scene));
 		return true;
 	}
 
@@ -124,7 +140,6 @@ bool DeferredApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const s
 
 void DeferredApp::BackBufferResizing()
 {
-	mModel.mForwardPass = nullptr;
 	mModel.mRenderTargets = nullptr;
 	mBindingCache->Clear();
 }

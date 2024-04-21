@@ -33,9 +33,24 @@ void UIRenderer::buildUI(void)
 {
 	ImGui::Begin("App", 0, ImGuiWindowFlags_AlwaysAutoResize);
 
-	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());	
+	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());
+
+	double frameTime = GetDeviceManager()->GetAverageFrameTimeSeconds();
+	if (frameTime > 0)
+	{
+		std::ostringstream oss;
+		oss << std::fixed << std::setprecision(2) << (1.0 / frameTime);
+		std::string formattedNumber = oss.str();
+
+		const char* result = formattedNumber.c_str();
+
+		ImGui::Text("FPS: %s", result);
+	}
 
 	ImGui::SeparatorText("App Options:");
+
+	dm::float3 camPos = mInitApp->GetCameraPosition();
+	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camPos.x, camPos.y, camPos.z);
 
 	ImGui::Checkbox("Enable Vsync", &mInitApp->mUIOptions.mVsync);
 
@@ -70,10 +85,10 @@ bool InitApp::Init()
 	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
@@ -206,21 +221,21 @@ bool InitApp::Init()
 		mScene->FinishedLoading(GetFrameIndex());
 
 		// camera setup
-		mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
+		mCamera.LookAt(donut::math::float3(5.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
 		mCamera.SetMoveSpeed(3.f);
 #pragma endregion
 
 	return true;
 }
 
-bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName)
+bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
 	assert(m_TextureCache);
-	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, fs, m_TextureCache, nullptr, nullptr);
+	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 
 	if (scene->Load(sceneFileName))
 	{
-		mScene = std::unique_ptr<donut::engine::Scene>(scene);
+		mScene = std::unique_ptr<donut::engine::Scene>(std::move(scene));
 		return true;
 	}
 
@@ -231,7 +246,6 @@ void InitApp::BackBufferResizing()
 {
 	mTriangle.mGraphicsPipeline = nullptr;
 	mCube.mGraphicsPipeline = nullptr;
-	mModel.mForwardPass = nullptr;
 	mModel.mRenderTargets = nullptr;
 	mBindingCache->Clear();
 }

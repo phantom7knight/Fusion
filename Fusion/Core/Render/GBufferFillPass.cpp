@@ -57,7 +57,6 @@ GBufferFillPass::GBufferFillPass(nvrhi::IDevice* device, std::shared_ptr<CommonR
     : m_Device(device)
     , m_CommonPasses(std::move(commonPasses))
 {
-
 }
 
 void GBufferFillPass::Init(ShaderFactory& shaderFactory, const CreateParameters& params)
