@@ -50,11 +50,13 @@ int main(int __argc, const char* __argv[])
 	deviceParams.enableNvrhiValidationLayer = true;
 #endif
 
-	if (!deviceManager->CreateWindowDeviceAndSwapChain(deviceParams, "Hello World!!!"))
+	if (!deviceManager->CreateWindowDeviceAndSwapChain(deviceParams))
 	{
 		donut::log::fatal("Cannot initialize a graphics device with the requested parameters");
 		return 1;
 	}
+
+	deviceManager->SetInformativeWindowTitle("Hello World!!");
 
 	{
 		// Shader Generation Setup

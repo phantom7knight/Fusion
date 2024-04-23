@@ -15,18 +15,15 @@ namespace locHelperFunc
 	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
 		// Generate Init Shaders and Common Shaders
-		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/";
 		std::filesystem::path commonShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Common/";
-		std::filesystem::path includeShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Includes/";
 		std::filesystem::path renderPassesShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/RenderPasses/";
+		std::filesystem::path includeShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Includes/";
 
-		if (!donut::engine::ShadersCompile(appShaderConfigPath, includeShaderPath, aAPI) ||
-			!donut::engine::ShadersCompile(commonShaderConfigPath, includeShaderPath, aAPI) ||
+		if (!donut::engine::ShadersCompile(commonShaderConfigPath, includeShaderPath, aAPI) ||
 			!donut::engine::ShadersCompile(renderPassesShaderPath, includeShaderPath, aAPI))
 			return false;
 
 		return true;
-
 	}
 }
 
@@ -42,11 +39,13 @@ int main(int __argc, const char* __argv[])
 	deviceParams.enableNvrhiValidationLayer = true;
 #endif
 
-	if (!deviceManager->CreateWindowDeviceAndSwapChain(deviceParams, "Hello World!!!"))
+	if (!deviceManager->CreateWindowDeviceAndSwapChain(deviceParams))
 	{
 		donut::log::fatal("Cannot initialize a graphics device with the requested parameters");
 		return 1;
 	}
+
+	deviceManager->SetInformativeWindowTitle("Deferred");
 
 	{
 		// Shader Generation Setup

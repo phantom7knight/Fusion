@@ -85,10 +85,10 @@ bool InitApp::Init()
 	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	//std::filesystem::path duckFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	//std::filesystem::path sponzaFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
+	//std::filesystem::path damagedHelmetFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	std::filesystem::path carbonFibreFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Init", appShaderPath);
@@ -207,7 +207,7 @@ bool InitApp::Init()
 	
 #pragma region Model
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, modelFileName);
+		BeginLoadingScene(nativeFS, carbonFibreFileName);
 
 		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 
@@ -256,7 +256,6 @@ void InitApp::Animate(float fElapsedTimeSeconds)
 		mCube.mRotation += fElapsedTimeSeconds * 1.1f;
 
 	mCamera.Animate(fElapsedTimeSeconds);
-	GetDeviceManager()->SetInformativeWindowTitle("Hello World!!");
 }
 
 bool InitApp::KeyboardUpdate(int key, int scancode, int action, int mods)

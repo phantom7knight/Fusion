@@ -13,8 +13,18 @@
 
 
 #include "../../Core/Render/DrawStrategy.h"
-#include "../../Core/Render/ForwardShadingPass.h"
+#include "../../Core/Render/DeferredLightingPass.h"
 #include "../../Core/Render/GBuffer.h"
+#include "../../Core/Render/GBufferFillPass.h"
+
+// TODO_RT
+// 1. Allow multiple lights in the scenes
+// 2. Draw more than 2 models in the scene
+// 3. keep both fwd and def. pass as options
+// 4. Run a hybrid pass with some models in fwd and others in deferred
+//	  ex: render sun&light spheres(required step 2) in fwd and then rest of scene in deferred
+// 5. Make a separate UIOptions class which has default options
+
 
 namespace locInitHelpers
 {
@@ -168,7 +178,7 @@ public:
 	void BackBufferResizing() override;
 	void Animate(float fElapsedTimeSeconds) override;
 	void Render(nvrhi::IFramebuffer* framebuffer) override;
-	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) override;
+	bool LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& aSceneFileName) override;
 	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
@@ -179,20 +189,15 @@ public:
 
 private:
 
-	bool InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> aShaderFactory);
-
-	struct Model
-	{
-		std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
-		std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
-		std::unique_ptr<RenderTargets> mRenderTargets;
-		std::shared_ptr<donut::engine::DirectionalLight>  m_SunLight;
-		donut::engine::PlanarView mView;
-	}mModel;
-
 	nvrhi::CommandListHandle mCommandList;
 	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
+	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
+	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
+	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
+	std::unique_ptr<RenderTargets> mRenderTargets;
+	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
+	donut::engine::PlanarView mView;
 };
