@@ -7,6 +7,8 @@
 #include "../../Core/Engine/TextureCache.h"
 #include "../../Core/App/DeviceManager.h"
 
+#include "../../Core/Render/ForwardShadingPass.h"
+
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
@@ -52,11 +54,10 @@ void UIRenderer::buildUI(void)
 	dm::float3 camPos = mDeferredApp->GetCameraPosition();
 	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camPos.x, camPos.y, camPos.z);
 
-
 	ImGui::Checkbox("Enable Vsync", &mDeferredApp->mUIOptions.mVsync);
 
 	auto& arr = mDeferredApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("RT Targets", &mDeferredApp->mUIOptions.mRTsMode, arr.data(), arr.size());
+	ImGui::Combo("RT Targets", &mDeferredApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
 
 	ImGui::End();
 }
@@ -75,7 +76,7 @@ bool DeferredApp::Init()
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
-	rootFS->mount("/shaders/Init", appShaderPath);
+	rootFS->mount("/shaders/Deferred", appShaderPath);
 	rootFS->mount("/shaders/Common", commonShaderPath);
 	rootFS->mount("/assets/Textures", assetTexturesPath);
 	rootFS->mount("/assets/GLTFModels", gltfAssetPath);
@@ -92,24 +93,26 @@ bool DeferredApp::Init()
 	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
 
 	mCommandList = GetDevice()->createCommandList();
-
-	SetAsynchronousLoadingEnabled(false);
-	BeginLoadingScene(nativeFS, modelFileName);
-
+	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 
-	mSunLight = std::make_shared<donut::engine::DirectionalLight>();
-	mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mSunLight);
-	mSunLight->SetDirection(double3(0.1, -1.0, 0.15));
-	mSunLight->SetName("Sun");
-	mSunLight->angularSize = 0.53f;
-	mSunLight->irradiance = 2.f;
+	{ // scene setup
+		SetAsynchronousLoadingEnabled(false);
+		BeginLoadingScene(nativeFS, modelFileName);
 
-	mScene->FinishedLoading(GetFrameIndex());
+		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
+		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mSunLight);
+		mSunLight->SetDirection(double3(0.1, -1.0, 0.15));
+		mSunLight->SetName("Sun");
+		mSunLight->angularSize = 0.53f;
+		mSunLight->irradiance = 2.f;
+
+		mScene->FinishedLoading(GetFrameIndex());
+	}
 
 	// camera setup
 	mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
-	mCamera.SetMoveSpeed(3.f);
+	mCamera.SetMoveSpeed(4.f);
 
 	return true;
 }
@@ -130,7 +133,7 @@ bool DeferredApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem
 
 void DeferredApp::BackBufferResizing()
 {
-	mRenderTargets = nullptr;
+	mGBufferRenderTargets = nullptr;
 	mBindingCache->Clear();
 }
 
@@ -157,16 +160,21 @@ bool DeferredApp::MouseButtonUpdate(int button, int action, int mods)
 	return true;
 }
 
-void DeferredApp::Render(nvrhi::IFramebuffer* framebuffer)
+void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
 
 	{
-		const auto& fbinfo = framebuffer->getFramebufferInfo();
+		const auto& fbinfo = aFramebuffer->getFramebufferInfo();
 
-		if (!mRenderTargets)
+		if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
 		{
-			mRenderTargets = std::make_unique<RenderTargets>(GetDevice(), int2(fbinfo.width, fbinfo.height));
+			mGBufferRenderTargets = std::make_unique<donut::render::GBufferRenderTargets>();
+			mGBufferRenderTargets->Init(GetDevice()
+				, dm::uint2(fbinfo.width, fbinfo.height)
+				, static_cast<dm::uint>(1)
+				, false
+				, false);
 		}
 
 		if (!mGBufferFillPass)
@@ -189,30 +197,23 @@ void DeferredApp::Render(nvrhi::IFramebuffer* framebuffer)
 #endif
 
 		// todo_rt: check this
-		mRenderTargets->Clear(mCommandList);
+		mGBufferRenderTargets->Clear(mCommandList);
 
 		LightingConstants constants = {};
 		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 		mView.FillPlanarViewConstants(constants.view);
 
-		donut::render::GBufferFillPass::Context gBufferContext;
+		
+		donut::render::ForwardShadingPass::Context ctx = {};
+		donut::render::RenderCompositeView(mCommandList, 
+			&mView, 
+			&mView, 
+			*mGBufferRenderTargets->GBufferFramebuffer, // todo_rt; testing
+			mScene->GetSceneGraph()->GetRootNode(), 
+			*mOpaqueDrawStrategy, 
+			*mGBufferFillPass,
+			ctx);
 
-		//mGBufferFillPass->SetupView(gBufferContext, mCommandList, mView, mView);
-		/*mModel.mGBufferFillPass->PrepareLights(forwardContext,
-			mCommandList,
-			mScene->GetSceneGraph()->GetLights(),
-			constants.ambientColor,
-			constants.ambientColor,
-			{});*/
-
-		//donut::render::RenderCompositeView(mCommandList, 
-		//	&mModel.mView, 
-		//	&mModel.mView, 
-		//	//*mModel.mRenderTargets->mFramebuffer, // todo_rt; testing
-		//	mScene->GetSceneGraph()->GetRootNode(), 
-		//	*mModel.mOpaqueDrawStrategy, 
-		//	*mModel.mForwardPass, 
-		//	forwardContext);
 #ifdef _DEBUG
 		mCommandList->endMarker();
 #endif
@@ -220,7 +221,7 @@ void DeferredApp::Render(nvrhi::IFramebuffer* framebuffer)
 #ifdef _DEBUG
 		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
 #endif
-		m_CommonPasses->BlitTexture(mCommandList, framebuffer, mRenderTargets->mColor, mBindingCache.get());
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mGBufferRenderTargets->GBufferDiffuse, mBindingCache.get());
 #ifdef _DEBUG
 		mCommandList->endMarker();
 #endif

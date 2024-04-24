@@ -53,19 +53,19 @@ void GBufferRenderTargets::Init(
     desc.mipLevels = 1;
 
     desc.format = nvrhi::Format::SRGBA8_UNORM;
-    desc.debugName = "GBufferDiffuse";
+    desc.debugName = "GBuffer: Diffuse";
     GBufferDiffuse = device->createTexture(desc);
 
     desc.format = nvrhi::Format::SRGBA8_UNORM;
-    desc.debugName = "GBufferSpecular";
+    desc.debugName = "GBuffer: Specular";
     GBufferSpecular = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA16_SNORM;
-    desc.debugName = "GBufferNormals";
+    desc.debugName = "GBuffer: Normals";
     GBufferNormals = device->createTexture(desc);
 
     desc.format = nvrhi::Format::RGBA16_FLOAT;
-    desc.debugName = "GBufferEmissive";
+    desc.debugName = "GBuffer: Emissive";
     GBufferEmissive = device->createTexture(desc);
 
     const nvrhi::Format depthFormats[] = {
@@ -83,13 +83,13 @@ void GBufferRenderTargets::Init(
     desc.isTypeless = true;
     desc.initialState = nvrhi::ResourceStates::DepthWrite;
     desc.clearValue = useReverseProjection ? nvrhi::Color(0.f) : nvrhi::Color(1.f);
-    desc.debugName = "GBufferDepth";
+    desc.debugName = "GBuffer: Depth";
     Depth = device->createTexture(desc);
 
     desc.isTypeless = false;
     desc.format = nvrhi::Format::RG16_FLOAT;
     desc.initialState = nvrhi::ResourceStates::RenderTarget;
-    desc.debugName = "GBufferMotionVectors";
+    desc.debugName = "GBuffer: MotionVectors";
     desc.clearValue = nvrhi::Color(0.f);
     if (!enableMotionVectors)
     {

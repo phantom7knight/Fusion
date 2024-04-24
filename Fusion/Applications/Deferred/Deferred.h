@@ -101,7 +101,7 @@ class DeferredApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	int mRTsMode = 0;
+	int mRTsViewMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive"};
 };
 
@@ -117,7 +117,7 @@ private:
 	std::shared_ptr<DeferredApp> mDeferredApp;
 };
 
-class RenderTargets : public donut::render::GBufferRenderTargets
+/*class RenderTargets : public donut::render::GBufferRenderTargets
 {
 public:
 	nvrhi::TextureHandle mColor;
@@ -142,8 +142,9 @@ public:
 		mColor = device->createTexture(textureDesc);
 
 		// todo_rt; check this
-		/*mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
-		mFramebuffer->RenderTargets = { mColor };*/
+		mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
+		mFramebuffer->RenderTargets = { mColor };
+		
 	}
 
 	bool IsUpdateRequired(dm::int2 size)
@@ -165,9 +166,11 @@ public:
 		return mSize;
 	}
 
+	std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
+
 private:
 	dm::int2 mSize;
-};
+};*/
 
 class DeferredApp : public donut::app::ApplicationBase
 {
@@ -197,7 +200,7 @@ private:
 	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
-	std::unique_ptr<RenderTargets> mRenderTargets;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	donut::engine::PlanarView mView;
+	std::unique_ptr<donut::render::GBufferRenderTargets> mGBufferRenderTargets;
 };
