@@ -199,7 +199,8 @@ private:
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
-	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
+	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy; // todo_rt; remove this
+	std::unique_ptr<donut::render::PassthroughDrawStrategy> mPassThroughDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	donut::engine::PlanarView mView;
 	std::unique_ptr<donut::render::GBufferRenderTargets> mGBufferRenderTargets;

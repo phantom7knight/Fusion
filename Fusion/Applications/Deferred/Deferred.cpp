@@ -70,9 +70,9 @@ bool DeferredApp::Init()
 	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
@@ -95,6 +95,7 @@ bool DeferredApp::Init()
 	mCommandList = GetDevice()->createCommandList();
 	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+	mPassThroughDrawStrategy = std::make_unique<donut::render::PassthroughDrawStrategy>();
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
@@ -169,6 +170,7 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 		if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
 		{
+			mGBufferRenderTargets = nullptr;
 			mGBufferRenderTargets = std::make_unique<donut::render::GBufferRenderTargets>();
 			mGBufferRenderTargets->Init(GetDevice()
 				, dm::uint2(fbinfo.width, fbinfo.height)
@@ -196,15 +198,13 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mCommandList->beginMarker("GBuffer Fill Pass");
 #endif
 
-		// todo_rt: check this
-		mGBufferRenderTargets->Clear(mCommandList);
+		//mGBufferRenderTargets->Clear(mCommandList);
 
 		LightingConstants constants = {};
 		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 		mView.FillPlanarViewConstants(constants.view);
 
-		
-		donut::render::ForwardShadingPass::Context ctx = {};
+		donut::render::GBufferFillPass::Context ctx = {};
 		donut::render::RenderCompositeView(mCommandList, 
 			&mView, 
 			&mView, 
@@ -213,6 +213,29 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mOpaqueDrawStrategy, 
 			*mGBufferFillPass,
 			ctx);
+
+		{
+			/*donut::render::DrawItem drawItem;
+			drawItem.instance = mScene.GetMeshInstance().get();
+			drawItem.mesh = drawItem.instance->GetMesh().get();
+			drawItem.geometry = drawItem.mesh->geometries[0].get();
+			drawItem.material = drawItem.geometry->material.get();
+			drawItem.buffers = drawItem.mesh->buffers.get();
+			drawItem.distanceToCamera = 0;
+			drawItem.cullMode = nvrhi::RasterCullMode::Back;
+
+			donut::render::PassthroughDrawStrategy drawStrategy;
+			drawStrategy.SetData(&drawItem, 1);
+
+			donut::render::RenderView(
+				mCommandList,
+				&mView,
+				&mView,
+				mGBufferRenderTargets->GBufferFramebuffer->GetFramebuffer(mView),
+				*mPassThroughDrawStrategy,
+				*mGBufferFillPass,
+				ctx);*/
+		}
 
 #ifdef _DEBUG
 		mCommandList->endMarker();
