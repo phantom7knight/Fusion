@@ -115,6 +115,12 @@ bool DeferredApp::Init()
 	mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
 	mCamera.SetMoveSpeed(4.f);
 
+	if (!mDeferredLightingPass)
+	{
+		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
+		mDeferredLightingPass->Init(mShaderFactory);
+	}
+
 	return true;
 }
 
@@ -165,118 +171,134 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
 
+	const auto& fbinfo = aFramebuffer->getFramebufferInfo();
+
+	if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
 	{
-		const auto& fbinfo = aFramebuffer->getFramebufferInfo();
+		mBindingCache->Clear();
+		mDeferredLightingPass->ResetBindingCache();
+		mGBufferFillPass.reset();
 
-		if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
-		{
-			mGBufferRenderTargets = nullptr;
-			mGBufferRenderTargets = std::make_unique<RenderTargets>(GetDevice(), dm::uint2(fbinfo.width, fbinfo.height));
-			/*mGBufferRenderTargets->Init(GetDevice()
-				, dm::uint2(fbinfo.width, fbinfo.height)
-				, static_cast<dm::uint>(1)
-				, false
-				, false);*/
-		}
-
-		if (!mGBufferFillPass)
-		{
-			mGBufferFillPass = std::make_unique<donut::render::GBufferFillPass>(GetDevice(), m_CommonPasses);
-
-			donut::render::GBufferFillPass::CreateParameters forwardParams;
-			mGBufferFillPass->Init(*mShaderFactory, forwardParams);
-		}
-
-		if (!mDefLightingPass)
-		{
-			mDefLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
-			mDefLightingPass->Init(mShaderFactory);
-		}
-
-		nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
-		mView.SetViewport(windowViewport);
-		mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
-		mView.UpdateCache();
-
-		mCommandList->open();
-
-#ifdef _DEBUG
-		mCommandList->beginMarker("GBuffer Fill Pass");
-#endif
-
-		//mGBufferRenderTargets->Clear(mCommandList);
-
-		LightingConstants constants = {};
-		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-		mView.FillPlanarViewConstants(constants.view);
-
-		donut::render::GBufferFillPass::Context ctx = {};
-		donut::render::RenderCompositeView(mCommandList, 
-			&mView, 
-			&mView, 
-			*mGBufferRenderTargets->GBufferFramebuffer, // todo_rt; testing
-			mScene->GetSceneGraph()->GetRootNode(), 
-			*mOpaqueDrawStrategy, 
-			*mGBufferFillPass,
-			ctx);
-
-		{
-			/*donut::render::DrawItem drawItem;
-			drawItem.instance = mScene.GetMeshInstance().get();
-			drawItem.mesh = drawItem.instance->GetMesh().get();
-			drawItem.geometry = drawItem.mesh->geometries[0].get();
-			drawItem.material = drawItem.geometry->material.get();
-			drawItem.buffers = drawItem.mesh->buffers.get();
-			drawItem.distanceToCamera = 0;
-			drawItem.cullMode = nvrhi::RasterCullMode::Back;
-
-			donut::render::PassthroughDrawStrategy drawStrategy;
-			drawStrategy.SetData(&drawItem, 1);
-
-			donut::render::RenderView(
-				mCommandList,
-				&mView,
-				&mView,
-				mGBufferRenderTargets->GBufferFramebuffer->GetFramebuffer(mView),
-				*mPassThroughDrawStrategy,
-				*mGBufferFillPass,
-				ctx);*/
-		}
-
-#ifdef _DEBUG
-		mCommandList->endMarker();
-#endif
-
-#ifdef _DEBUG
-		mCommandList->beginMarker("Deferred Lighting Pass");
-#endif
-
-		// Setup lights
-		//std::shared_ptr<donut::engine::Light> light = std::make_shared<donut::engine::Light>();
-
-		donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
-		deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
-		deferredLightingInputs.output = mGBufferRenderTargets->mColor;
-		//deferredLightingInputs.lights->push_back(light.get());
-
-		mDefLightingPass->Render(mCommandList,
-			mView,
-			deferredLightingInputs);
-
-
-#ifdef _DEBUG
-		mCommandList->endMarker();
-#endif
-
-#ifdef _DEBUG
-		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
-#endif
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get());
-#ifdef _DEBUG
-		mCommandList->endMarker();
-#endif
-
-		mCommandList->close();
-		GetDevice()->executeCommandList(mCommandList);
+		mGBufferRenderTargets = nullptr;
+		mGBufferRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
+			dm::uint2(fbinfo.width, fbinfo.height),
+			1);
 	}
+
+	if (!mGBufferFillPass)
+	{
+		mGBufferFillPass = std::make_unique<donut::render::GBufferFillPass>(GetDevice(), m_CommonPasses);
+
+		donut::render::GBufferFillPass::CreateParameters params;
+		mGBufferFillPass->Init(*mShaderFactory, params);
+	}
+
+	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
+	mView.SetViewport(windowViewport);
+	mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
+	mView.UpdateCache();
+
+	mCommandList->open();
+
+#ifdef _DEBUG
+	mCommandList->beginMarker("GBuffer Fill Pass");
+#endif
+
+	//mGBufferRenderTargets->Clear(mCommandList);
+
+	/*LightingConstants constants = {};
+	constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	mView.FillPlanarViewConstants(constants.view);
+	mView.UpdateCache();*/
+
+	donut::render::GBufferFillPass::Context ctx = {};
+	donut::render::RenderCompositeView(mCommandList, 
+		&mView, 
+		&mView, 
+		*mGBufferRenderTargets->GBufferFramebuffer,
+		mScene->GetSceneGraph()->GetRootNode(), 
+		*mOpaqueDrawStrategy, 
+		*mGBufferFillPass,
+		ctx);
+
+	{
+		/*donut::render::DrawItem drawItem;
+		drawItem.instance = mScene.GetMeshInstance().get();
+		drawItem.mesh = drawItem.instance->GetMesh().get();
+		drawItem.geometry = drawItem.mesh->geometries[0].get();
+		drawItem.material = drawItem.geometry->material.get();
+		drawItem.buffers = drawItem.mesh->buffers.get();
+		drawItem.distanceToCamera = 0;
+		drawItem.cullMode = nvrhi::RasterCullMode::Back;
+
+		donut::render::PassthroughDrawStrategy drawStrategy;
+		drawStrategy.SetData(&drawItem, 1);
+
+		donut::render::RenderView(
+			mCommandList,
+			&mView,
+			&mView,
+			mGBufferRenderTargets->GBufferFramebuffer->GetFramebuffer(mView),
+			*mPassThroughDrawStrategy,
+			*mGBufferFillPass,
+			ctx);*/
+	}
+
+#ifdef _DEBUG
+	mCommandList->endMarker();
+#endif
+
+#ifdef _DEBUG
+	mCommandList->beginMarker("Deferred Lighting Pass");
+#endif
+
+	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
+	deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
+	deferredLightingInputs.output = mGBufferRenderTargets->mColor;
+	deferredLightingInputs.ambientColorTop = 0.2f;
+	deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+	deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
+
+	mDeferredLightingPass->Render(mCommandList,
+		mView,
+		deferredLightingInputs);
+
+#ifdef _DEBUG
+	mCommandList->endMarker();
+#endif
+
+#ifdef _DEBUG
+	mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
+#endif
+
+	switch (mUIOptions.mRTsViewMode)
+	{
+	case 0:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get());
+		break;
+	case 1:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get());
+		break;
+	case 2:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get());
+		break;
+	case 3:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferNormals, mBindingCache.get());
+		break;
+	case 4:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get());
+		break;
+	case 5:
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get());
+		break;
+	default:
+		break;
+	}
+
+#ifdef _DEBUG
+	mCommandList->endMarker();
+#endif
+
+	mCommandList->close();
+	GetDevice()->executeCommandList(mCommandList);
 }

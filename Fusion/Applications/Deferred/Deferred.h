@@ -102,7 +102,7 @@ struct UIOptions
 {
 	bool mVsync = false;
 	int mRTsViewMode = 0;
-	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive"};
+	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -122,32 +122,31 @@ class RenderTargets : public donut::render::GBufferRenderTargets
 public:
 	nvrhi::TextureHandle mColor;
 
-	RenderTargets(nvrhi::IDevice* aDevice, const dm::uint2 aSize)
+	RenderTargets(nvrhi::IDevice* aDevice, const dm::uint2 aSize, const uint32_t aSampleCount = 1)
 	{
 		nvrhi::TextureDesc textureDesc;
-		textureDesc.format = nvrhi::Format::SRGBA8_UNORM;
-		textureDesc.isUAV = true;
+		textureDesc.format = nvrhi::Format::RGBA16_FLOAT;
+		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		textureDesc.initialState = nvrhi::ResourceStates::UnorderedAccess;
+		textureDesc.isUAV = true;
 		textureDesc.keepInitialState = true;
-		textureDesc.clearValue = nvrhi::Color(0.f);
-		textureDesc.useClearValue = true;
 		textureDesc.debugName = "Lighting Pass: OutputBuffer";
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
-		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
+		textureDesc.sampleCount = aSampleCount;
 		mColor = aDevice->createTexture(textureDesc);
 
 		// Init GBuffer Render Targets
 		Init(aDevice,
 			aSize,
-			1,
+			aSampleCount,
 			false,
 			false);
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
 	{
-		Clear(aCommandList);
+		donut::render::GBufferRenderTargets::Clear(aCommandList);
 		aCommandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
 };
@@ -173,15 +172,15 @@ public:
 private:
 
 	nvrhi::CommandListHandle mCommandList;
+	donut::engine::PlanarView mView;
 	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
-	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
+	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy; // todo_rt; remove this
 	std::unique_ptr<donut::render::PassthroughDrawStrategy> mPassThroughDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
-	donut::engine::PlanarView mView;
-	std::unique_ptr<RenderTargets> mGBufferRenderTargets;
+	std::shared_ptr<RenderTargets> mGBufferRenderTargets;
 };

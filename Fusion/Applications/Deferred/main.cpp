@@ -29,7 +29,7 @@ namespace locHelperFunc
 
 int main(int __argc, const char* __argv[])
 {
-	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::D3D12;
+	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::VULKAN;
 
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 
