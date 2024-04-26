@@ -171,12 +171,12 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
 		{
 			mGBufferRenderTargets = nullptr;
-			mGBufferRenderTargets = std::make_unique<donut::render::GBufferRenderTargets>();
-			mGBufferRenderTargets->Init(GetDevice()
+			mGBufferRenderTargets = std::make_unique<RenderTargets>(GetDevice(), dm::uint2(fbinfo.width, fbinfo.height));
+			/*mGBufferRenderTargets->Init(GetDevice()
 				, dm::uint2(fbinfo.width, fbinfo.height)
 				, static_cast<dm::uint>(1)
 				, false
-				, false);
+				, false);*/
 		}
 
 		if (!mGBufferFillPass)
@@ -185,6 +185,12 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 			donut::render::GBufferFillPass::CreateParameters forwardParams;
 			mGBufferFillPass->Init(*mShaderFactory, forwardParams);
+		}
+
+		if (!mDefLightingPass)
+		{
+			mDefLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
+			mDefLightingPass->Init(mShaderFactory);
 		}
 
 		nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
@@ -242,9 +248,30 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 #endif
 
 #ifdef _DEBUG
+		mCommandList->beginMarker("Deferred Lighting Pass");
+#endif
+
+		// Setup lights
+		//std::shared_ptr<donut::engine::Light> light = std::make_shared<donut::engine::Light>();
+
+		donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
+		deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
+		deferredLightingInputs.output = mGBufferRenderTargets->mColor;
+		//deferredLightingInputs.lights->push_back(light.get());
+
+		mDefLightingPass->Render(mCommandList,
+			mView,
+			deferredLightingInputs);
+
+
+#ifdef _DEBUG
+		mCommandList->endMarker();
+#endif
+
+#ifdef _DEBUG
 		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
 #endif
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mGBufferRenderTargets->GBufferDiffuse, mBindingCache.get());
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get());
 #ifdef _DEBUG
 		mCommandList->endMarker();
 #endif

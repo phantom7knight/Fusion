@@ -117,60 +117,40 @@ private:
 	std::shared_ptr<DeferredApp> mDeferredApp;
 };
 
-/*class RenderTargets : public donut::render::GBufferRenderTargets
+class RenderTargets : public donut::render::GBufferRenderTargets
 {
 public:
 	nvrhi::TextureHandle mColor;
 
-	// todo_rt; check if we need this
-	//std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
-
-	RenderTargets(nvrhi::IDevice* device, const dm::int2 aSize)
-		:mSize(aSize)
+	RenderTargets(nvrhi::IDevice* aDevice, const dm::uint2 aSize)
 	{
 		nvrhi::TextureDesc textureDesc;
 		textureDesc.format = nvrhi::Format::SRGBA8_UNORM;
-		textureDesc.isRenderTarget = true;
-		textureDesc.initialState = nvrhi::ResourceStates::RenderTarget;
+		textureDesc.isUAV = true;
+		textureDesc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 		textureDesc.keepInitialState = true;
 		textureDesc.clearValue = nvrhi::Color(0.f);
 		textureDesc.useClearValue = true;
-		textureDesc.debugName = "Final: ColorBuffer";
+		textureDesc.debugName = "Lighting Pass: OutputBuffer";
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
 		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
-		mColor = device->createTexture(textureDesc);
+		mColor = aDevice->createTexture(textureDesc);
 
-		// todo_rt; check this
-		mFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(device);
-		mFramebuffer->RenderTargets = { mColor };
-		
-	}
-
-	bool IsUpdateRequired(dm::int2 size)
-	{
-		if (dm::any(mSize != size))
-			return true;
-
-		return false;
+		// Init GBuffer Render Targets
+		Init(aDevice,
+			aSize,
+			1,
+			false,
+			false);
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
 	{
-		Clear(aCommandList); // todo_rt; test this
+		Clear(aCommandList);
 		aCommandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
-
-	const dm::int2& GetSize()
-	{
-		return mSize;
-	}
-
-	std::shared_ptr<donut::engine::FramebufferFactory> mFramebuffer;
-
-private:
-	dm::int2 mSize;
-};*/
+};
 
 class DeferredApp : public donut::app::ApplicationBase
 {
@@ -197,11 +177,11 @@ private:
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::unique_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
-	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
+	std::unique_ptr<donut::render::DeferredLightingPass> mDefLightingPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy; // todo_rt; remove this
 	std::unique_ptr<donut::render::PassthroughDrawStrategy> mPassThroughDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	donut::engine::PlanarView mView;
-	std::unique_ptr<donut::render::GBufferRenderTargets> mGBufferRenderTargets;
+	std::unique_ptr<RenderTargets> mGBufferRenderTargets;
 };

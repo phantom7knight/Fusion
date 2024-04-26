@@ -795,6 +795,8 @@ void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const
 
 donut::app::DeviceManager* donut::app::DeviceManager::Create(nvrhi::GraphicsAPI api)
 {
+    assert(api != nvrhi::GraphicsAPI::D3D11); // we do not support DX11
+
     switch (api)
     {
 #if USE_DX12
