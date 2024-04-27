@@ -25,77 +25,6 @@
 //	  ex: render sun&light spheres(required step 2) in fwd and then rest of scene in deferred
 // 5. Make a separate UIOptions class which has default options
 
-
-namespace locInitHelpers
-{
-	struct Vertex
-	{
-		dm::float3 position;
-		dm::float2 uv;
-	};
-
-	static const Vertex gVertices[] = {
-		{ {-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f} }, // front face
-		{ { 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f} },
-		{ {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f} },
-		{ { 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f} },
-
-		{ { 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f} }, // right side face
-		{ { 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f} },
-		{ { 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f} },
-		{ { 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f} },
-
-		{ {-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f} }, // left side face
-		{ {-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f} },
-		{ {-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f} },
-		{ {-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f} },
-
-		{ { 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f} }, // back face
-		{ {-0.5f, -0.5f,  0.5f}, {1.0f, 1.0f} },
-		{ { 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f} },
-		{ {-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f} },
-
-		{ {-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f} }, // top face
-		{ { 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f} },
-		{ { 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f} },
-		{ {-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f} },
-
-		{ { 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f} }, // bottom face
-		{ {-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f} },
-		{ { 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f} },
-		{ {-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f} },
-	};
-
-	static const uint32_t gIndices[] = {
-		 0,  1,  2,   0,  3,  1, // front face
-		 4,  5,  6,   4,  7,  5, // left face
-		 8,  9, 10,   8, 11,  9, // right face
-		12, 13, 14,  12, 15, 13, // back face
-		16, 17, 18,  16, 19, 17, // top face
-		20, 21, 22,  20, 23, 21, // bottom face
-	};
-
-	constexpr uint32_t cNumViews = 4;
-
-	static const dm::float3 gRotationAxes[cNumViews] = {
-		dm::float3(1.f, 0.f, 0.f),
-		dm::float3(0.f, 1.f, 0.f),
-		dm::float3(0.f, 0.f, 1.f),
-		dm::float3(1.f, 1.f, 1.f),
-	};
-
-	// This example uses a single large constant buffer with multiple views to draw multiple versions of the same model.
-	// The alignment and size of partially bound constant buffers must be a multiple of 256 bytes,
-	// so define a struct that represents one constant buffer entry or slice for one draw call.
-	struct ConstantBufferEntry
-	{
-		dm::float4x4 viewProjMatrix;
-		float padding[16 * 3];
-	};
-
-	static_assert(sizeof(ConstantBufferEntry) == nvrhi::c_ConstantBufferOffsetSizeAlignment, "sizeof(ConstantBufferEntry) must be 256 bytes");
-}
-
 class DeferredApp;
 
 struct UIOptions
@@ -120,9 +49,13 @@ private:
 class RenderTargets : public donut::render::GBufferRenderTargets
 {
 public:
-	nvrhi::TextureHandle mColor;
+	nvrhi::TextureHandle mOutputColor;
 
-	RenderTargets(nvrhi::IDevice* aDevice, const dm::uint2 aSize, const uint32_t aSampleCount = 1)
+	RenderTargets(nvrhi::IDevice* aDevice,
+		const dm::uint2 aSize,
+		const uint32_t aSampleCount,
+		bool aEnableMotionVectors,
+		bool aUseReverseProjection)
 	{
 		nvrhi::TextureDesc textureDesc;
 		textureDesc.format = nvrhi::Format::RGBA16_FLOAT;
@@ -134,20 +67,20 @@ public:
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
 		textureDesc.sampleCount = aSampleCount;
-		mColor = aDevice->createTexture(textureDesc);
+		mOutputColor = aDevice->createTexture(textureDesc);
 
 		// Init GBuffer Render Targets
 		Init(aDevice,
 			aSize,
 			aSampleCount,
-			false,
-			false);
+			aEnableMotionVectors,
+			aUseReverseProjection);
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
 	{
 		donut::render::GBufferRenderTargets::Clear(aCommandList);
-		aCommandList->clearTextureFloat(mColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
+		aCommandList->clearTextureFloat(mOutputColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
 };
 

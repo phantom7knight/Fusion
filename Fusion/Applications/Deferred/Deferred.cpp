@@ -182,7 +182,9 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mGBufferRenderTargets = nullptr;
 		mGBufferRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
 			dm::uint2(fbinfo.width, fbinfo.height),
-			1);
+			1,
+			false,
+			true); // TODO_RT: Investigate this value for the projection, should it be false or need to be true?
 	}
 
 	if (!mGBufferFillPass)
@@ -204,12 +206,7 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 	mCommandList->beginMarker("GBuffer Fill Pass");
 #endif
 
-	//mGBufferRenderTargets->Clear(mCommandList);
-
-	/*LightingConstants constants = {};
-	constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	mView.FillPlanarViewConstants(constants.view);
-	mView.UpdateCache();*/
+	mGBufferRenderTargets->Clear(mCommandList);
 
 	donut::render::GBufferFillPass::Context ctx = {};
 	donut::render::RenderCompositeView(mCommandList, 
@@ -254,7 +251,7 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
 	deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
-	deferredLightingInputs.output = mGBufferRenderTargets->mColor;
+	deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
 	deferredLightingInputs.ambientColorTop = 0.2f;
 	deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
 	deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
