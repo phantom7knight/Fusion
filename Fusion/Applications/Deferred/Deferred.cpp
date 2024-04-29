@@ -1,5 +1,7 @@
 #include "Deferred.h"
 
+#include <format>
+
 #include <nvrhi/nvrhi.h>
 #include <nvrhi/utils.h>
 
@@ -59,6 +61,10 @@ void UIRenderer::buildUI(void)
 	auto& arr = mDeferredApp->mUIOptions.mAppModeOptions;
 	ImGui::Combo("RT Targets", &mDeferredApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
 
+	ImGui::SeparatorText("Light Options:");
+
+	ImGui::DragFloat3(": Sun Light Pos", mDeferredApp->mUIOptions.mSunPos, -10.f, 10.f);
+
 	ImGui::End();
 }
 
@@ -72,8 +78,10 @@ bool DeferredApp::Init()
 	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
+	std::filesystem::path modelFileName = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Deferred", appShaderPath);
@@ -108,6 +116,33 @@ bool DeferredApp::Init()
 		mSunLight->angularSize = 0.53f;
 		mSunLight->irradiance = 2.f;
 
+		// todo_rt; testing
+
+		{
+			const int lightCount = 15;
+
+			for (int x = 0; x < 1; ++x)
+			{
+				for (int y = 0; y < 1; ++y)
+				{
+					auto light = std::make_shared<donut::engine::SpotLight>();
+					mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), light);
+					light->SetName(std::format("Light {}", mLights.size() + 1));
+					light->SetPosition(dm::double3(3.50, 2.0f, 3.5f));
+					light->color = dm::colors::green;
+					light->intensity = 3.f;
+					light->radius = 1.f;
+
+					// 10 2 3.5			// 0				//-9.7 2 -3.5
+					// 8, 2. 3.5						//- 7.0 2.0 -3.5
+					// -10 2 3.5						// 10 2 -3.6
+					mLights.push_back(light); // todo_rt: for some debugging purposes??? or maybe use the scene graph's getlights()??
+				}
+			}
+		}
+
+
+
 		mScene->FinishedLoading(GetFrameIndex());
 	}
 
@@ -127,11 +162,12 @@ bool DeferredApp::Init()
 bool DeferredApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
 	assert(m_TextureCache);
-	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 
-	if (scene->Load(sceneFileName))
+	if(!mScene)
+		mScene = std::make_unique<donut::engine::Scene>(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
+	
+	if (mScene->Load(sceneFileName))
 	{
-		mScene = std::unique_ptr<donut::engine::Scene>(std::move(scene));
 		return true;
 	}
 
@@ -171,6 +207,8 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
 
+	//mSunLight->SetPosition(dm::double3(mUIOptions.mSunPos[0], mUIOptions.mSunPos[1], mUIOptions.mSunPos[2]));
+
 	const auto& fbinfo = aFramebuffer->getFramebufferInfo();
 
 	if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
@@ -197,7 +235,9 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
 	mView.SetViewport(windowViewport);
-	mView.SetMatrices(mCamera.GetWorldToViewMatrix(), perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(), 0.1f));
+	mView.SetMatrices(mCamera.GetWorldToViewMatrix(),
+		perspProjD3DStyleReverse(PI_f * 0.25f, windowViewport.width() / windowViewport.height(),
+			0.1f));
 	mView.UpdateCache();
 
 	mCommandList->open();
@@ -217,29 +257,6 @@ void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		*mOpaqueDrawStrategy, 
 		*mGBufferFillPass,
 		ctx);
-
-	{
-		/*donut::render::DrawItem drawItem;
-		drawItem.instance = mScene.GetMeshInstance().get();
-		drawItem.mesh = drawItem.instance->GetMesh().get();
-		drawItem.geometry = drawItem.mesh->geometries[0].get();
-		drawItem.material = drawItem.geometry->material.get();
-		drawItem.buffers = drawItem.mesh->buffers.get();
-		drawItem.distanceToCamera = 0;
-		drawItem.cullMode = nvrhi::RasterCullMode::Back;
-
-		donut::render::PassthroughDrawStrategy drawStrategy;
-		drawStrategy.SetData(&drawItem, 1);
-
-		donut::render::RenderView(
-			mCommandList,
-			&mView,
-			&mView,
-			mGBufferRenderTargets->GBufferFramebuffer->GetFramebuffer(mView),
-			*mPassThroughDrawStrategy,
-			*mGBufferFillPass,
-			ctx);*/
-	}
 
 #ifdef _DEBUG
 	mCommandList->endMarker();

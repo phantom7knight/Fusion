@@ -32,6 +32,7 @@ struct UIOptions
 	bool mVsync = false;
 	int mRTsViewMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
+	float mSunPos[3] = { 0.f, 0.f, 0.f };
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -115,5 +116,6 @@ private:
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy; // todo_rt; remove this
 	std::unique_ptr<donut::render::PassthroughDrawStrategy> mPassThroughDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
+	std::vector<std::shared_ptr<donut::engine::SpotLight>> mLights;
 	std::shared_ptr<RenderTargets> mGBufferRenderTargets;
 };
