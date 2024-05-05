@@ -134,6 +134,8 @@ namespace donut::engine
         void Refresh(nvrhi::ICommandList* commandList, uint32_t frameIndex);
 
         bool Load(const std::filesystem::path& jsonFileName);
+        
+        std::shared_ptr<SceneGraphNode> LoadAtLeaf(const std::filesystem::path& jsonFileName);
 
         virtual bool LoadWithExecutor(const std::filesystem::path& sceneFileName, tf::Executor* executor);
 
@@ -141,8 +143,8 @@ namespace donut::engine
 
         [[nodiscard]] std::shared_ptr<SceneGraph> GetSceneGraph() const { return m_SceneGraph; }
         [[nodiscard]] nvrhi::IDescriptorTable* GetDescriptorTable() const { return m_DescriptorTable ? m_DescriptorTable->GetDescriptorTable() : nullptr; }
-        [[nodiscard]] nvrhi::IBuffer* GetMaterialBuffer() const { return m_MaterialBuffer; }
-        [[nodiscard]] nvrhi::IBuffer* GetGeometryBuffer() const { return m_GeometryBuffer; }
-        [[nodiscard]] nvrhi::IBuffer* GetInstanceBuffer() const { return m_InstanceBuffer; }
+		[[nodiscard]] nvrhi::IBuffer* GetMaterialBuffer() const { return m_MaterialBuffer; }
+		[[nodiscard]] nvrhi::IBuffer* GetGeometryBuffer() const { return m_GeometryBuffer; }
+		[[nodiscard]] nvrhi::IBuffer* GetInstanceBuffer() const { return m_InstanceBuffer; }
     };
 }

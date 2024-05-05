@@ -36,9 +36,9 @@ namespace donut::log
     static std::string g_ErrorMessageCaption = "Error";
 
 #if _WIN32
-    static bool g_OutputToMessageBox = true;
-    static bool g_OutputToDebug = true;
-    static bool g_OutputToConsole = false;
+    static bool g_OutputToMessageBox = false;
+    static bool g_OutputToDebug = false;
+    static bool g_OutputToConsole = true;
 #else
     static bool g_OutputToMessageBox = false;
     static bool g_OutputToDebug = false;

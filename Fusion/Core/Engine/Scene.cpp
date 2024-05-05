@@ -127,16 +127,97 @@ bool Scene::Load(const std::filesystem::path& jsonFileName)
 #endif
 }
 
+// todo_rt; testing
+std::shared_ptr<SceneGraphNode> donut::engine::Scene::LoadAtLeaf(const std::filesystem::path& jsonFileName)
+{
+    std::unique_ptr<tf::Executor> executor = nullptr;
+
+#ifndef DONUT_WITH_TASKFLOW
+	assert(!executor);
+#else
+    executor = std::make_unique<tf::Executor>();
+#endif
+
+	g_LoadingStats.ObjectsLoaded = 0;
+	g_LoadingStats.ObjectsTotal = 0;
+
+	if (!m_SceneGraph)
+		m_SceneGraph = std::make_shared<SceneGraph>();
+
+	if (jsonFileName.extension() == ".gltf" || jsonFileName.extension() == ".glb")
+	{
+		++g_LoadingStats.ObjectsTotal;
+		m_Models.resize(1);
+		LoadModelAsync(0, jsonFileName, executor.get());
+
+#ifdef DONUT_WITH_TASKFLOW
+		if (executor)
+			executor->wait_for_all();
+#endif
+
+		auto modelResult = m_Models[0];
+        const std::shared_ptr<SceneGraphNode>& leafNode = modelResult.rootNode;
+		if (!leafNode)
+			return nullptr;
+
+        if(m_SceneGraph->GetRootNode())
+            m_SceneGraph->Attach(m_SceneGraph->GetRootNode(), leafNode);
+        else
+            m_SceneGraph->SetRootNode(modelResult.rootNode);
+
+        return modelResult.rootNode;
+	}
+	else
+	{
+        std::shared_ptr<SceneGraphNode> node = std::make_shared<SceneGraphNode>();
+		if (!m_SceneGraph->GetRootNode())
+        {
+            node->SetName("SceneRoot");
+            m_SceneGraph->SetRootNode(node);
+        }
+        else
+        {
+            m_SceneGraph->Attach(m_SceneGraph->GetRootNode(), node);
+        }
+
+		std::filesystem::path scenePath = jsonFileName.parent_path();
+
+		Json::Value documentRoot;
+		if (!json::LoadFromFile(*m_fs, jsonFileName, documentRoot))
+			return nullptr;
+
+		if (documentRoot.isObject())
+		{
+			if (!LoadCustomData(documentRoot, executor.get()))
+				return nullptr;
+
+			LoadModels(documentRoot["models"], scenePath, executor.get());
+			LoadSceneGraph(documentRoot["graph"], node);
+			LoadAnimations(documentRoot["animations"]);
+			LoadHelpers(documentRoot["helpers"]);
+		}
+		else
+		{
+			log::error("Unrecognized structure of the scene description file.");
+			return nullptr;
+		}
+
+        return node;
+	}
+	return nullptr;
+}
+
 bool Scene::LoadWithExecutor(const std::filesystem::path& sceneFileName, tf::Executor* executor)
 {
 #ifndef DONUT_WITH_TASKFLOW
     assert(!executor);
 #endif
-    
+
     g_LoadingStats.ObjectsLoaded = 0;
     g_LoadingStats.ObjectsTotal = 0;
     
-    m_SceneGraph = std::make_shared<SceneGraph>();
+    if(!m_SceneGraph)
+        m_SceneGraph = std::make_shared<SceneGraph>();
 
     if (sceneFileName.extension() == ".gltf" || sceneFileName.extension() == ".glb")
     {
@@ -803,7 +884,6 @@ void Scene::Refresh(nvrhi::ICommandList* commandList, uint32_t frameIndex)
     RefreshSceneGraph(frameIndex);
     RefreshBuffers(commandList, frameIndex);
 }
-
 
 nvrhi::BufferHandle CreateMaterialConstantBuffer(nvrhi::IDevice* device, const std::string& debugName, bool isVirtual)
 {

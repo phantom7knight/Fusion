@@ -79,9 +79,9 @@ bool DeferredApp::Init()
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
 	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
-	std::filesystem::path modelFileName = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
+	std::filesystem::path modelFileName1 = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	std::filesystem::path modelFileName2 = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
+	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Deferred", appShaderPath);
@@ -107,7 +107,7 @@ bool DeferredApp::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, modelFileName);
+		BeginLoadingScene(nativeFS, modelFileName2);
 
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
 		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mSunLight);
@@ -116,9 +116,20 @@ bool DeferredApp::Init()
 		mSunLight->angularSize = 0.53f;
 		mSunLight->irradiance = 2.f;
 
+
+
 		// todo_rt; testing
 
 		{
+			// Model Setup
+			if (mScene)
+			{
+				auto res = mScene->LoadAtLeaf(modelFileName1);
+				res->SetName("Testing");
+				res->SetTranslation(double3(1.0, 1.0, 1.0));
+			}
+
+			// Light Setup
 			const int lightCount = 15;
 
 			for (int x = 0; x < 1; ++x)
@@ -133,7 +144,7 @@ bool DeferredApp::Init()
 					light->intensity = 3.f;
 					light->radius = 1.f;
 
-					// 10 2 3.5			// 0				//-9.7 2 -3.5
+					// 10 2 3.5			// 0			//-9.7 2 -3.5
 					// 8, 2. 3.5						//- 7.0 2.0 -3.5
 					// -10 2 3.5						// 10 2 -3.6
 					mLights.push_back(light); // todo_rt: for some debugging purposes??? or maybe use the scene graph's getlights()??
@@ -155,6 +166,8 @@ bool DeferredApp::Init()
 		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
+
+	PrintSceneGraph(mScene->GetSceneGraph()->GetRootNode());
 
 	return true;
 }
