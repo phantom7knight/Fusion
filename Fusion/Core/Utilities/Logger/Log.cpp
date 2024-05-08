@@ -146,6 +146,13 @@ namespace donut::log
         g_OutputToMessageBox = false;
     }
 
+	void RevertConsoleApplicationMode()
+	{
+		g_OutputToConsole = false;
+		g_OutputToDebug = false;
+		g_OutputToMessageBox = true;
+	}
+
     void message(Severity severity, const char* fmt...)
     {
         if (static_cast<int>(g_MinSeverity) > static_cast<int>(severity))

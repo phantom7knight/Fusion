@@ -154,7 +154,6 @@ std::shared_ptr<SceneGraphNode> donut::engine::Scene::LoadAtLeaf(const std::file
 		if (executor)
 			executor->wait_for_all();
 #endif
-
 		auto modelResult = m_Models[0];
         const std::shared_ptr<SceneGraphNode>& leafNode = modelResult.rootNode;
 		if (!leafNode)

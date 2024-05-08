@@ -1205,8 +1205,8 @@ void donut::engine::PrintSceneGraph(const std::shared_ptr<SceneGraphNode>& root)
         auto bbox = walker->GetGlobalBoundingBox();
         if (!bbox.isempty())
         {
-            ss << " [" << bbox.m_mins.x << ", " << bbox.m_mins.y << ", " << bbox.m_mins.z << " .. "
-                      << bbox.m_maxs.x << ", " << bbox.m_maxs.y << ", " << bbox.m_maxs.z << "]";
+            ss << "( bbox : [ min: " << bbox.m_mins.x << ", " << bbox.m_mins.y << ", " << bbox.m_mins.z << " .. max:"
+                      << bbox.m_maxs.x << ", " << bbox.m_maxs.y << ", " << bbox.m_maxs.z << "] )";
         }
 
         if (walker->GetLeaf())

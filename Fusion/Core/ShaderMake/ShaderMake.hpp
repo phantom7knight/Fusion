@@ -341,7 +341,7 @@ void Printf(const char* format, ...)
 
     // Restore default color if colorization is on
     if (g_Options.colorize)
-        printf(WHITE);
+        printf(GREEN);
 
     // IMPORTANT: needed only if being run in CMake environment
     fflush(stdout);
@@ -1953,13 +1953,13 @@ int32_t ShaderCodeGeneration(int32_t argc, const char** argv)
         if (g_FailedTaskCount)
             Printf(YELLOW "WARNING: %u task(s) failed to complete!\n", g_FailedTaskCount.load());
         else
-            Printf(WHITE "%d task(s) completed successfully.\n", g_OriginalTaskCount);
+            Printf(GREEN "INFO: %d task(s) completed successfully.\n", g_OriginalTaskCount);
 
         uint64_t end = Timer_GetTicks();
-        Printf(WHITE "Elapsed time %.2f ms\n", Timer_ConvertTicksToMilliseconds(end - start));
+        Printf(WHITE "INFO: Elapsed time %.2f ms\n", Timer_ConvertTicksToMilliseconds(end - start));
     }
     else
-        Printf(WHITE "All %s shaders are up to date.\n", g_Options.platformName);
+        Printf(GREEN "INFO: All %s shaders are up to date.\n", g_Options.platformName);
 
     return (g_Terminate || g_FailedTaskCount) ? 1 : 0;
 }

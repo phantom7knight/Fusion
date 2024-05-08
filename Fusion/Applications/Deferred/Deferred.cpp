@@ -14,6 +14,23 @@
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
+namespace Deferred_Private
+{
+	using namespace dm::colors;
+	std::vector<float3> colorsArr = { white, red, green, blue, grey };
+
+	const float3 locGetRandomColor()
+	{
+		// Seed the random number generator using std::time
+		std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+		// Generate a random index based on the vector size
+		int randomIndex = std::rand() % colorsArr.size();
+
+		return colorsArr[randomIndex];
+	}
+}
+
 UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<DeferredApp> aApp)
 	: ImGui_Renderer(deviceManager)
 	, mDeferredApp(aApp)
@@ -71,20 +88,21 @@ void UIRenderer::buildUI(void)
 bool DeferredApp::Init()
 {
 	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
-	std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Deferred/Generated";
-	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
-	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
-	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
-	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	std::filesystem::path modelFileName1 = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
-	std::filesystem::path modelFileName2 = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
-	//std::filesystem::path modelFileName = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
+	//const std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Deferred/Generated";
+	const std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
+	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
+	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+	//const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	//const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
+	const std::filesystem::path helmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	//const std::filesystem::path carbonFibreModel = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
+	//const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
+	//const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
-	rootFS->mount("/shaders/Deferred", appShaderPath);
+	//rootFS->mount("/shaders/Deferred", appShaderPath);
 	rootFS->mount("/shaders/Common", commonShaderPath);
 	rootFS->mount("/assets/Textures", assetTexturesPath);
 	rootFS->mount("/assets/GLTFModels", gltfAssetPath);
@@ -107,8 +125,9 @@ bool DeferredApp::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, modelFileName2);
+		BeginLoadingScene(nativeFS, helmetModel);
 
+		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
 		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mSunLight);
 		mSunLight->SetDirection(double3(0.1, -1.0, 0.15));
@@ -116,50 +135,44 @@ bool DeferredApp::Init()
 		mSunLight->angularSize = 0.53f;
 		mSunLight->irradiance = 2.f;
 
-
-
-		// todo_rt; testing
-
+		// Model Setup
+		if (mScene)
 		{
-			// Model Setup
-			if (mScene)
+			for (int i = 0; i < 5; ++i)
 			{
-				auto res = mScene->LoadAtLeaf(modelFileName1);
-				res->SetName("Testing");
-				res->SetTranslation(double3(1.0, 1.0, 1.0));
-			}
-
-			// Light Setup
-			const int lightCount = 15;
-
-			for (int x = 0; x < 1; ++x)
-			{
-				for (int y = 0; y < 1; ++y)
+				for (int j = 0; j < 5; ++j)
 				{
-					auto light = std::make_shared<donut::engine::SpotLight>();
-					mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), light);
-					light->SetName(std::format("Light {}", mLights.size() + 1));
-					light->SetPosition(dm::double3(3.50, 2.0f, 3.5f));
-					light->color = dm::colors::green;
-					light->intensity = 3.f;
-					light->radius = 1.f;
-
-					// 10 2 3.5			// 0			//-9.7 2 -3.5
-					// 8, 2. 3.5						//- 7.0 2.0 -3.5
-					// -10 2 3.5						// 10 2 -3.6
-					mLights.push_back(light); // todo_rt: for some debugging purposes??? or maybe use the scene graph's getlights()??
+					auto modelNode = mScene->LoadAtLeaf(suzanneModel);
+					modelNode->SetName(std::format("Model {}", i + 1));
+					modelNode->SetTranslation(double3(0.0 + i * 4, 2.0, -5.5 + j * 3));
+					modelNode->SetScaling(double3(0.2f));
 				}
 			}
 		}
 
-
+		// Light Setup
+		for (int x = 0; x < 1; ++x)
+		{
+			for (int y = 0; y < 1; ++y)
+			{
+				auto light = std::make_shared<donut::engine::SpotLight>();
+				mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), light);
+				light->SetName(std::format("Light {}", mLights.size() + 1));
+				light->SetPosition(dm::double3(3.50 * 2 * x, 2.0f, 3.5f * y * 2));
+				auto pos = Deferred_Private::locGetRandomColor();
+				light->color = pos;
+				light->intensity = 3.f;
+				light->radius = 1.f;
+				mLights.push_back(light); // todo_rt: for some debugging purposes??? or maybe use the scene graph's getlights()??
+			}
+		}
 
 		mScene->FinishedLoading(GetFrameIndex());
 	}
 
 	// camera setup
 	mCamera.LookAt(donut::math::float3(10.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
-	mCamera.SetMoveSpeed(4.f);
+	mCamera.SetMoveSpeed(10.f);
 
 	if (!mDeferredLightingPass)
 	{
@@ -167,7 +180,9 @@ bool DeferredApp::Init()
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
 
-	PrintSceneGraph(mScene->GetSceneGraph()->GetRootNode());
+#if _DEBUG
+	//PrintSceneGraph(mScene->GetSceneGraph()->GetRootNode());
+#endif
 
 	return true;
 }
