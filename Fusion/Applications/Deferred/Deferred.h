@@ -41,7 +41,7 @@ public:
 	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<DeferredApp> aApp);
 
 protected:
-	virtual void buildUI(void) override;
+	virtual void BuildUI(void) override;
 
 private:
 	std::shared_ptr<DeferredApp> mDeferredApp;
@@ -113,8 +113,7 @@ private:
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
-	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy; // todo_rt; remove this
-	std::unique_ptr<donut::render::PassthroughDrawStrategy> mPassThroughDrawStrategy;
+	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	std::vector<std::shared_ptr<donut::engine::SpotLight>> mLights;
 	std::shared_ptr<RenderTargets> mGBufferRenderTargets;

@@ -43,7 +43,7 @@ UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr
 	ImGui::GetIO().IniFilename = nullptr;
 }
 
-void UIRenderer::buildUI(void)
+void UIRenderer::BuildUI(void)
 {
 	ImGui::Begin("App", 0, ImGuiWindowFlags_AlwaysAutoResize);
 

@@ -100,7 +100,7 @@ public:
 	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp);
 
 protected:
-	virtual void buildUI(void) override;
+	virtual void BuildUI(void) override;
 
 private:
 	std::shared_ptr<InitApp> mInitApp;

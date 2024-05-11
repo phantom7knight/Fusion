@@ -65,7 +65,7 @@ UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr
 	ImGui::GetIO().IniFilename = nullptr;
 }
 
-void UIRenderer::buildUI(void)
+void UIRenderer::BuildUI(void)
 {
 	ImGui::Begin("App", 0, ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -104,7 +104,6 @@ bool DeferredApp::Init()
 {
 	
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
-	//rootFS->mount("/shaders/Deferred", appShaderPath);
 	rootFS->mount("/shaders/Common", Deferred_Private::commonShaderPath);
 	rootFS->mount("/assets/Textures", Deferred_Private::assetTexturesPath);
 	rootFS->mount("/assets/GLTFModels", Deferred_Private::gltfAssetPath);
@@ -123,7 +122,6 @@ bool DeferredApp::Init()
 	mCommandList = GetDevice()->createCommandList();
 	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
-	mPassThroughDrawStrategy = std::make_unique<donut::render::PassthroughDrawStrategy>();
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
