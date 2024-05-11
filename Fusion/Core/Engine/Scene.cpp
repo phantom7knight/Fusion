@@ -147,17 +147,27 @@ std::shared_ptr<SceneGraphNode> donut::engine::Scene::LoadAtLeaf(const std::file
 	if (jsonFileName.extension() == ".gltf" || jsonFileName.extension() == ".glb")
 	{
 		++g_LoadingStats.ObjectsTotal;
-		m_Models.resize(1);
-		LoadModelAsync(0, jsonFileName, executor.get());
+
+        // check if this model already exists in cache
+        auto itr = mModelSceneImportResultMap.find(jsonFileName.string());
+        m_Models.resize(1);
+
+		if (itr != mModelSceneImportResultMap.end())
+            m_Models.push_back(mModelSceneImportResultMap[jsonFileName.string()]);
+        else
+            LoadModelAsync(0, jsonFileName, executor.get());
 
 #ifdef DONUT_WITH_TASKFLOW
 		if (executor)
 			executor->wait_for_all();
 #endif
-		auto modelResult = m_Models[0];
+        SceneImportResult modelResult = m_Models[0];
         const std::shared_ptr<SceneGraphNode>& leafNode = modelResult.rootNode;
 		if (!leafNode)
 			return nullptr;
+
+        // cache the model info
+        mModelSceneImportResultMap[jsonFileName.string()] = modelResult;
 
         if(m_SceneGraph->GetRootNode())
             m_SceneGraph->Attach(m_SceneGraph->GetRootNode(), leafNode);

@@ -19,6 +19,21 @@ namespace Deferred_Private
 	using namespace dm::colors;
 	std::vector<float3> colorsArr = { white, red, green, blue, grey };
 
+	// Model Names
+	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
+	const std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Deferred/Generated";
+	const std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
+	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
+	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
+	const std::filesystem::path helmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	const std::filesystem::path carbonFibreModel = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
+	const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
+	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
+
 	const float3 locGetRandomColor()
 	{
 		// Seed the random number generator using std::time
@@ -87,26 +102,13 @@ void UIRenderer::buildUI(void)
 
 bool DeferredApp::Init()
 {
-	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
-	//const std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Deferred/Generated";
-	const std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
-	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
-	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
-	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	//const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
-	//const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	const std::filesystem::path helmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	//const std::filesystem::path carbonFibreModel = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
-	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
-	//const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
-	//const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
-
+	
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	//rootFS->mount("/shaders/Deferred", appShaderPath);
-	rootFS->mount("/shaders/Common", commonShaderPath);
-	rootFS->mount("/assets/Textures", assetTexturesPath);
-	rootFS->mount("/assets/GLTFModels", gltfAssetPath);
-	rootFS->mount("/shaders/RenderPasses", renderPassesShaderPath);
+	rootFS->mount("/shaders/Common", Deferred_Private::commonShaderPath);
+	rootFS->mount("/assets/Textures", Deferred_Private::assetTexturesPath);
+	rootFS->mount("/assets/GLTFModels", Deferred_Private::gltfAssetPath);
+	rootFS->mount("/shaders/RenderPasses", Deferred_Private::renderPassesShaderPath);
 
 	mShaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 	m_CommonPasses = std::make_shared<donut::engine::CommonRenderPasses>(GetDevice(), mShaderFactory);
@@ -125,7 +127,7 @@ bool DeferredApp::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, helmetModel);
+		BeginLoadingScene(nativeFS, Deferred_Private::sponzaModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -135,17 +137,19 @@ bool DeferredApp::Init()
 		mSunLight->angularSize = 0.53f;
 		mSunLight->irradiance = 2.f;
 
-		// Model Setup
+		// Models Setup
 		if (mScene)
 		{
-			for (int i = 0; i < 5; ++i)
+			int count = 0;
+			for (int i = 0; i < 1; ++i)
 			{
-				for (int j = 0; j < 5; ++j)
+				for (int j = 0; j < 1; ++j)
 				{
-					auto modelNode = mScene->LoadAtLeaf(suzanneModel);
-					modelNode->SetName(std::format("Model {}", i + 1));
+					auto modelNode = mScene->LoadAtLeaf(Deferred_Private::suzanneModel);
+					modelNode->SetName(std::format("Model {}", count + 1));
 					modelNode->SetTranslation(double3(0.0 + i * 4, 2.0, -5.5 + j * 3));
 					modelNode->SetScaling(double3(0.2f));
+					++count;
 				}
 			}
 		}
@@ -158,7 +162,7 @@ bool DeferredApp::Init()
 				auto light = std::make_shared<donut::engine::SpotLight>();
 				mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), light);
 				light->SetName(std::format("Light {}", mLights.size() + 1));
-				light->SetPosition(dm::double3(3.50 * 2 * x, 2.0f, 3.5f * y * 2));
+				light->SetPosition(dm::double3(13.50 * 2 * x, 2.0f, 13.5f * y * 2));
 				auto pos = Deferred_Private::locGetRandomColor();
 				light->color = pos;
 				light->intensity = 3.f;
@@ -166,7 +170,6 @@ bool DeferredApp::Init()
 				mLights.push_back(light); // todo_rt: for some debugging purposes??? or maybe use the scene graph's getlights()??
 			}
 		}
-
 		mScene->FinishedLoading(GetFrameIndex());
 	}
 
@@ -179,10 +182,6 @@ bool DeferredApp::Init()
 		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
-
-#if _DEBUG
-	//PrintSceneGraph(mScene->GetSceneGraph()->GetRootNode());
-#endif
 
 	return true;
 }
@@ -234,8 +233,6 @@ bool DeferredApp::MouseButtonUpdate(int button, int action, int mods)
 void DeferredApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
-
-	//mSunLight->SetPosition(dm::double3(mUIOptions.mSunPos[0], mUIOptions.mSunPos[1], mUIOptions.mSunPos[2]));
 
 	const auto& fbinfo = aFramebuffer->getFramebufferInfo();
 

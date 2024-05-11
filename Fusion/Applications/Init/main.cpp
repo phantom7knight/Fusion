@@ -18,9 +18,9 @@
 #include <crtdbg.h>
 #endif
 
-namespace locHelperFunc
+namespace MainInit_Private
 {
-	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
+	bool locShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
 		// Generate Init Shaders and Common Shaders
 		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/";
@@ -60,7 +60,7 @@ int main(int __argc, const char* __argv[])
 
 	{
 		// Shader Generation Setup
-		if (!locHelperFunc::ShaderSetup(deviceManager->GetGraphicsAPI()))
+		if (!MainInit_Private::locShaderSetup(deviceManager->GetGraphicsAPI()))
 		{
 			donut::log::fatal("Shader creation setup failed!!!");
 		}

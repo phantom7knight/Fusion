@@ -10,9 +10,9 @@
 #include "../../Core/Utilities/Logger/log.h"
 #include "../../Core/Engine/ShaderFactory.h"
 
-namespace locHelperFunc
+namespace MainDeferred_Private
 {
-	bool ShaderSetup(const nvrhi::GraphicsAPI aAPI)
+	bool locShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
 		// Generate Init Shaders and Common Shaders
 		std::filesystem::path commonShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Common/";
@@ -49,7 +49,7 @@ int main(int __argc, const char* __argv[])
 
 	{
 		// Shader Generation Setup
-		if (!locHelperFunc::ShaderSetup(deviceManager->GetGraphicsAPI()))
+		if (!MainDeferred_Private::locShaderSetup(deviceManager->GetGraphicsAPI()))
 		{
 			donut::log::fatal("Shader creation setup failed!!!");
 		}

@@ -28,6 +28,10 @@
 #include <memory>
 #include <mutex>
 #include <filesystem>
+#include <unordered_map>
+
+template<typename TYPE1, typename TYPE2>
+using HASHMAP = std::unordered_map<TYPE1, TYPE2>;
 
 namespace tf
 {
@@ -146,5 +150,7 @@ namespace donut::engine
 		[[nodiscard]] nvrhi::IBuffer* GetMaterialBuffer() const { return m_MaterialBuffer; }
 		[[nodiscard]] nvrhi::IBuffer* GetGeometryBuffer() const { return m_GeometryBuffer; }
 		[[nodiscard]] nvrhi::IBuffer* GetInstanceBuffer() const { return m_InstanceBuffer; }
+
+        HASHMAP<std::string, SceneImportResult> mModelSceneImportResultMap;
     };
 }

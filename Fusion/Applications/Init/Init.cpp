@@ -10,6 +10,20 @@
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
+namespace Init_Private
+{
+	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
+	const std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Init/Generated";
+	const std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
+	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
+	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
+	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+	const std::filesystem::path duckFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
+	const std::filesystem::path sponzaFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
+	const std::filesystem::path damagedHelmetFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	const std::filesystem::path carbonFibreFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
+}
+
 UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp)
 	: ImGui_Renderer(deviceManager)
 	, mInitApp(aApp)
@@ -79,23 +93,12 @@ bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> a
 
 bool InitApp::Init()
 {
-	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
-	std::filesystem::path appShaderPath = baseAssetsPath / "Shaders/Applications/Init/Generated";
-	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
-	std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
-	std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
-	std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
-	//std::filesystem::path duckFileName = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
-	//std::filesystem::path sponzaFileName = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	//std::filesystem::path damagedHelmetFileName = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
-	std::filesystem::path carbonFibreFileName = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
-
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
-	rootFS->mount("/shaders/Init", appShaderPath);
-	rootFS->mount("/shaders/Common", commonShaderPath);
-	rootFS->mount("/assets/Textures", assetTexturesPath);
-	rootFS->mount("/assets/GLTFModels", gltfAssetPath);
-	rootFS->mount("/shaders/RenderPasses", renderPassesShaderPath);
+	rootFS->mount("/shaders/Init", Init_Private::appShaderPath);
+	rootFS->mount("/shaders/Common", Init_Private::commonShaderPath);
+	rootFS->mount("/assets/Textures", Init_Private::assetTexturesPath);
+	rootFS->mount("/assets/GLTFModels", Init_Private::gltfAssetPath);
+	rootFS->mount("/shaders/RenderPasses", Init_Private::renderPassesShaderPath);
 
 	mShaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
 	m_CommonPasses = std::make_shared<donut::engine::CommonRenderPasses>(GetDevice(), mShaderFactory);
@@ -207,7 +210,7 @@ bool InitApp::Init()
 	
 #pragma region Model
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, carbonFibreFileName);
+		BeginLoadingScene(nativeFS, Init_Private::carbonFibreFileName);
 
 		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 
