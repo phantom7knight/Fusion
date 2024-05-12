@@ -32,18 +32,6 @@
 #include "../Utilities/Logger/Log.h"
 #include <utility>
 
-#if DONUT_WITH_STATIC_SHADERS
-#if DONUT_WITH_DX11
-#include "compiled_shaders/passes/deferred_lighting_cs.dxbc.h"
-#endif
-#if DONUT_WITH_DX12
-#include "compiled_shaders/passes/deferred_lighting_cs.dxil.h"
-#endif
-#if DONUT_WITH_VULKAN
-#include "compiled_shaders/passes/deferred_lighting_cs.spirv.h"
-#endif
-#endif
-
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/deferred_lighting_cb.h"
 

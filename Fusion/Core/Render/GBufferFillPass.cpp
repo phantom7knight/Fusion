@@ -32,21 +32,6 @@
 #include <nvrhi/utils.h>
 #include <utility>
 
-#if DONUT_WITH_STATIC_SHADERS
-#if DONUT_WITH_DX12
-#include "compiled_shaders/passes/cubemap_gs.dxil.h"
-#include "compiled_shaders/passes/gbuffer_ps.dxil.h"
-#include "compiled_shaders/passes/gbuffer_vs.dxil.h"
-#include "compiled_shaders/passes/material_id_ps.dxil.h"
-#endif
-#if DONUT_WITH_VULKAN
-#include "compiled_shaders/passes/cubemap_gs.spirv.h"
-#include "compiled_shaders/passes/gbuffer_ps.spirv.h"
-#include "compiled_shaders/passes/gbuffer_vs.spirv.h"
-#include "compiled_shaders/passes/material_id_ps.spirv.h"
-#endif
-#endif
-
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/gbuffer_cb.h"
 

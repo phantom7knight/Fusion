@@ -352,7 +352,6 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			donut::math::float4x4 projMatrix;
 
 			projMatrix= donut::math::perspProjD3DStyle(donut::math::radians(60.f),
-				//projMatrix = donut::math::perspProjVKStyle(donut::math::radians(60.f),
 				float(fbinfo.width) / float(fbinfo.height),
 				0.1f,
 				10.f);

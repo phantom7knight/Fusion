@@ -56,7 +56,7 @@ MaterialTextureSample DefaultMaterialTextures()
 }
 
 // PBR workflow conversions (metal-rough <-> specular-gloss) are ported from the glTF repository:
-// https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness/examples 
+// https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness/examples 
 /*
 The MIT License
 
