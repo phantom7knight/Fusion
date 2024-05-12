@@ -69,8 +69,8 @@ void ForwardShadingPass::Init(ShaderFactory& shaderFactory, const CreateParamete
         .setBorderColor(1.0f);
     m_ShadowSampler = m_Device->createSampler(samplerDesc);
 
-    m_ForwardViewCB = m_Device->createBuffer(nvrhi::utils::CreateVolatileConstantBufferDesc(sizeof(ForwardShadingViewConstants), "ForwardShadingViewConstants", params.numConstantBufferVersions));
-    m_ForwardLightCB = m_Device->createBuffer(nvrhi::utils::CreateVolatileConstantBufferDesc(sizeof(ForwardShadingLightConstants), "ForwardShadingLightConstants", params.numConstantBufferVersions));
+    m_ForwardViewCB = m_Device->createBuffer(nvrhi::utils::CreateVolatileConstantBufferDesc(sizeof(ForwardShadingViewConstants), "FWDShadingViewConstants", params.numConstantBufferVersions));
+    m_ForwardLightCB = m_Device->createBuffer(nvrhi::utils::CreateVolatileConstantBufferDesc(sizeof(ForwardShadingLightConstants), "FWDShadingLightConstants", params.numConstantBufferVersions));
 
     m_ViewBindingLayout = CreateViewBindingLayout();
     m_ViewBindingSet = CreateViewBindingSet();

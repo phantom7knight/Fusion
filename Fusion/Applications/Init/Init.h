@@ -90,7 +90,7 @@ class InitApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	uint8_t mAppMode = 0;
+	int mAppMode = 2;
 	std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
 };
 
@@ -100,7 +100,7 @@ public:
 	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<InitApp> aApp);
 
 protected:
-	virtual void buildUI(void) override;
+	virtual void BuildUI(void) override;
 
 private:
 	std::shared_ptr<InitApp> mInitApp;
@@ -175,6 +175,8 @@ public:
 	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
+
+	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
 
 	UIOptions mUIOptions;
 

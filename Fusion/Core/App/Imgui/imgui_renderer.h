@@ -95,7 +95,7 @@ namespace donut::app
 
     protected:
         // creates the UI in ImGui, updates internal UI state
-        virtual void buildUI(void) = 0;
+        virtual void BuildUI(void) = 0;
 
         void BeginFullScreenWindow();
         void DrawScreenCenteredText(const char* text);

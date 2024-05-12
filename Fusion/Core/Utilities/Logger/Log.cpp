@@ -36,9 +36,9 @@ namespace donut::log
     static std::string g_ErrorMessageCaption = "Error";
 
 #if _WIN32
-    static bool g_OutputToMessageBox = true;
-    static bool g_OutputToDebug = true;
-    static bool g_OutputToConsole = false;
+    static bool g_OutputToMessageBox = false;
+    static bool g_OutputToDebug = false;
+    static bool g_OutputToConsole = true;
 #else
     static bool g_OutputToMessageBox = false;
     static bool g_OutputToDebug = false;
@@ -145,6 +145,13 @@ namespace donut::log
         g_OutputToDebug = true;
         g_OutputToMessageBox = false;
     }
+
+	void RevertConsoleApplicationMode()
+	{
+		g_OutputToConsole = false;
+		g_OutputToDebug = false;
+		g_OutputToMessageBox = true;
+	}
 
     void message(Severity severity, const char* fmt...)
     {

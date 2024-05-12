@@ -236,7 +236,7 @@ bool DeviceManager::CreateHeadlessDevice(const DeviceCreationParameters& params)
     return CreateDevice();
 }
 
-bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params, const char *windowTitle)
+bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params)
 {
 #ifdef _WINDOWS
     if (params.enablePerMonitorDPI)
@@ -286,7 +286,7 @@ bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameter
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);   // Ignored for fullscreen
 
     m_Window = glfwCreateWindow(params.backBufferWidth, params.backBufferHeight,
-                                windowTitle ? windowTitle : "",
+                                ""/*windowTitle*/, // NOTE: We set window name in "SetInformativeWindowTitle()"
                                 params.startFullscreen ? glfwGetPrimaryMonitor() : nullptr,
                                 nullptr);
 
@@ -308,8 +308,7 @@ bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameter
         m_DeviceParams.backBufferHeight = fbHeight;
     }
 
-    if (windowTitle)
-        m_WindowTitle = windowTitle;
+    m_WindowTitle = "";
 
     glfwSetWindowUserPointer(m_Window, this);
 
@@ -762,7 +761,8 @@ void DeviceManager::SetWindowTitle(const char* title)
 void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const char* extraInfo)
 {
     std::stringstream ss;
-    ss << applicationName;
+    ss << applicationName ? applicationName : "Fusion";
+
     ss << " (" << nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI());
 
     if (m_DeviceParams.enableDebugRuntime)
@@ -780,11 +780,12 @@ void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const
 
     ss << ")";
 
-    double frameTime = GetAverageFrameTimeSeconds();
+    // Adding this info on ImGui instead
+    /*double frameTime = GetAverageFrameTimeSeconds();
     if (frameTime > 0)
     {
         ss << " - " << std::setprecision(4) << (1.0 / frameTime) << " FPS ";
-    }
+    }*/
 
     if (extraInfo)
         ss << extraInfo;
@@ -794,6 +795,8 @@ void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const
 
 donut::app::DeviceManager* donut::app::DeviceManager::Create(nvrhi::GraphicsAPI api)
 {
+    assert(api != nvrhi::GraphicsAPI::D3D11); // we do not support DX11
+
     switch (api)
     {
 #if USE_DX12

@@ -286,6 +286,7 @@ private:
                 return VK_FALSE;
         }
 
+		log::RevertConsoleApplicationMode(); // TODO_RT: fix this once the depth comparision flag validation error is fixed
         log::warning("[Vulkan: location=0x%zx code=%d, layerPrefix='%s'] %s", location, code, layerPrefix, msg);
 
         return VK_FALSE;

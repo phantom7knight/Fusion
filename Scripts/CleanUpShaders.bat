@@ -17,6 +17,22 @@ rd /s /q .
 
 echo All files in Applications/Init/Generated have been deleted.
 
+rem === Applications/Deferred/Generated ===
+
+rem Get the path where the script resides
+set "scriptPath=%~dp0"
+
+rem Define the folder path for Applications/Init/Generated
+set "folderPath=%scriptPath%../Assets/Shaders/Applications/Deferred/Generated"
+
+rem Navigate to the "Applications/Init/Generated" folder
+cd /d "%folderPath%" || exit /b
+
+rem Delete all files and subfolders in the "Applications/Deferred/Generated" folder
+rd /s /q .
+
+echo All files in Applications/Deferred/Generated have been deleted.
+
 rem === RenderPasses/Generated ===
 
 rem Get the path where the script resides

@@ -24,7 +24,6 @@
 
 namespace donut::math
 {
-
     namespace colors
     {
         constexpr float3 black = float3(0.f);
@@ -32,6 +31,7 @@ namespace donut::math
         constexpr float3 red = float3(1.f, 0.f, 0.f);
         constexpr float3 green = float3(0.f, 1.f, 0.f);
         constexpr float3 blue = float3(0.f, 0.f, 1.f);
+		constexpr float3 grey = float3(0.5f, 0.5f, 0.5f);
     }
 
 	// Rec. 709 luma coefficients for linear float3 space

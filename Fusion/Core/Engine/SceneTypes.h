@@ -76,7 +76,6 @@ namespace donut::engine
 
     nvrhi::VertexAttributeDesc GetVertexAttributeDesc(VertexAttribute attribute, const char* name, uint32_t bufferIndex);
 
-
     struct SceneLoadingStats
     {
         std::atomic<uint32_t> ObjectsTotal;
@@ -150,7 +149,6 @@ namespace donut::engine
         void FillConstantBuffer(struct MaterialConstants& constants) const;
         bool SetProperty(const std::string& name, const dm::float4& value);
     };
-
 
     struct InputAssemblerBindings
     {

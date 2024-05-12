@@ -2,71 +2,51 @@
 
 #include "../CorePCH.hpp"
 
-
 // Collection of free utility functions.
 
-inline void FatalError(const STDStringView message,
-                       const std::source_location sourceLocation = std::source_location::current())
+namespace donut::Utilities
 {
-    const STDString errorMessage =
-        std::format("[FATAL ERROR] :: {}. Source Location data : File Name -> {}, Function Name -> "
-                    "{}, Line Number -> {}, Column -> {}.\n",
-                    message, sourceLocation.file_name(), sourceLocation.function_name(), sourceLocation.line(),
-                    sourceLocation.column());
+	class StoreAndResetBool {
+	public:
+		// Constructor takes a reference to an external boolean variable and updates the external variable
+		StoreAndResetBool(bool& aVariableRef, bool aNewValue) : mVariableRef(aVariableRef), mOriginalValue(aVariableRef)
+        {
+            mVariableRef = aNewValue;
+        }
 
-    throw std::runtime_error(errorMessage);
-}
+		// Destructor resets the external variable to the original value
+		~StoreAndResetBool() {
+			mVariableRef = mOriginalValue;
+		}
 
-inline void Log(const STDStringView message)
-{
-    std::cout << "[LOG] :: " << message << '\n';
-}
+	private:
+		bool& mVariableRef;       // Reference to the external boolean variable
+		const bool mOriginalValue; // Original value of the external variable
+	};
 
-inline void Log(const WSTDStringView message)
-{
-    std::wcout << L"[LOG] :: " << message << '\n';
-}
-
-inline void ThrowIfFailed(const HRESULT hr, const std::source_location sourceLocation = std::source_location::current())
-{
-    if (FAILED(hr))
+    inline void FatalError(const std::string_view message,
+        const std::source_location sourceLocation = std::source_location::current())
     {
-        fatalError("HRESULT failed!", sourceLocation);
-    }
-}
+        const std::string errorMessage =
+            std::format("[FATAL ERROR] :: {}. Source Location data : File Name -> {}, Function Name -> "
+                "{}, Line Number -> {}, Column -> {}.\n",
+                message, sourceLocation.file_name(), sourceLocation.function_name(), sourceLocation.line(),
+                sourceLocation.column());
 
-inline WSTDStringView StringToWString(const STDStringView inputString)
-{
-    WSTDStringView result{};
-    const std::string input{inputString};
-
-    const int32_t length = ::MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
-    if (length > 0)
-    {
-        result.resize(size_t(length) - 1);
-        MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, result.data(), length);
+        throw std::runtime_error(errorMessage);
     }
 
-    return std::move(result);
-}
-
-inline std::string wStringToString(const WSTDStringView_view inputWString)
-{
-    std::string result{};
-    const WSTDStringView input{inputWString};
-
-    const int32_t length = ::WideCharToMultiByte(CP_UTF8, 0, input.c_str(), -1, NULL, 0, NULL, NULL);
-    if (length > 0)
+    inline void ThrowIfFailed(const HRESULT hr, const std::source_location sourceLocation = std::source_location::current())
     {
-        result.resize(size_t(length) - 1);
-        WideCharToMultiByte(CP_UTF8, 0, input.c_str(), -1, result.data(), length, NULL, NULL);
+        if (FAILED(hr))
+        {
+            FatalError("HRESULT failed!", sourceLocation);
+        }
     }
 
-    return std::move(result);
-}
-
-template <typename T>
-static inline constexpr typename std::underlying_type<T>::type enumClassValue(const T& value)
-{
-    return static_cast<std::underlying_type<T>::type>(value);
-}
+    template <typename T>
+    static inline constexpr typename std::underlying_type<T>::type enumClassValue(const T& value)
+    {
+        return static_cast<std::underlying_type<T>::type>(value);
+    }
+};

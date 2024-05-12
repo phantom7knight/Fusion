@@ -174,7 +174,7 @@ namespace donut::app
         static DeviceManager* Create(nvrhi::GraphicsAPI api);
 
         bool CreateHeadlessDevice(const DeviceCreationParameters& params);
-        bool CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params, const char* windowTitle);
+        bool CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params);
 
         // Initializes device-independent objects (DXGI factory, Vulkan instnace).
         // Calling CreateInstance() is required before EnumerateAdapters(), but optional if you don't use EnumerateAdapters().
@@ -289,7 +289,7 @@ namespace donut::app
         virtual ~DeviceManager() = default;
 
         void SetWindowTitle(const char* title);
-        void SetInformativeWindowTitle(const char* applicationName, const char* extraInfo = nullptr);
+        void SetInformativeWindowTitle(const char* applicationName = nullptr, const char* extraInfo = nullptr);
 
         virtual bool IsVulkanInstanceExtensionEnabled(const char* extensionName) const { return false; }
         virtual bool IsVulkanDeviceExtensionEnabled(const char* extensionName) const { return false; }

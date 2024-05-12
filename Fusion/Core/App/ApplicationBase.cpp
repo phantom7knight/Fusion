@@ -119,7 +119,7 @@ bool ApplicationBase::IsSceneLoaded() const
     return m_SceneLoaded;
 }
 
-void ApplicationBase::BeginLoadingScene(std::shared_ptr<IFileSystem> fs, const std::filesystem::path& sceneFileName)
+void ApplicationBase::BeginLoadingScene(std::shared_ptr<IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
 	if (m_SceneLoaded)
 		SceneUnloading();
@@ -137,13 +137,13 @@ void ApplicationBase::BeginLoadingScene(std::shared_ptr<IFileSystem> fs, const s
 
 	if (m_IsAsyncLoad)
 	{
-		m_SceneLoadingThread = std::make_unique<std::thread>([this, fs, sceneFileName]() {
-			m_SceneLoaded = LoadScene(fs, sceneFileName);
+		m_SceneLoadingThread = std::make_unique<std::thread>([this, aFileSystem, sceneFileName]() {
+			m_SceneLoaded = LoadScene(aFileSystem, sceneFileName);
 			});
 	}
 	else
 	{
-		m_SceneLoaded = LoadScene(fs, sceneFileName);
+		m_SceneLoaded = LoadScene(aFileSystem, sceneFileName);
 		SceneLoaded();
 	}
 }
@@ -167,15 +167,15 @@ const char* donut::app::GetShaderTypeName(nvrhi::GraphicsAPI api)
     }
 }
 
-std::filesystem::path donut::app::FindDirectoryWithShaderBin(nvrhi::GraphicsAPI api, IFileSystem& fs, const std::filesystem::path& startPath, const std::filesystem::path& relativeFilePath, const std::string& baseFileName, int maxDepth)
+std::filesystem::path donut::app::FindDirectoryWithShaderBin(nvrhi::GraphicsAPI api, IFileSystem& aFileSystem, const std::filesystem::path& startPath, const std::filesystem::path& relativeFilePath, const std::string& baseFileName, int maxDepth)
 {
 	std::string shaderFileSuffix = ".bin";
     std::filesystem::path shaderFileBasePath = GetShaderTypeName(api);
     std::filesystem::path findBytecodeFileName = relativeFilePath / shaderFileBasePath / (baseFileName + shaderFileSuffix);
-	return FindDirectoryWithFile(fs, startPath, findBytecodeFileName, maxDepth);
+	return FindDirectoryWithFile(aFileSystem, startPath, findBytecodeFileName, maxDepth);
 }
 
-std::filesystem::path donut::app::FindDirectory(IFileSystem& fs, const std::filesystem::path& startPath, const std::filesystem::path& dirname, int maxDepth)
+std::filesystem::path donut::app::FindDirectory(IFileSystem& aFileSystem, const std::filesystem::path& startPath, const std::filesystem::path& dirname, int maxDepth)
 {
 	std::filesystem::path searchPath = "";
 
@@ -183,7 +183,7 @@ std::filesystem::path donut::app::FindDirectory(IFileSystem& fs, const std::file
 	{
 		std::filesystem::path currentPath = startPath / searchPath / dirname;
 
-		if (fs.folderExists(currentPath))
+		if (aFileSystem.folderExists(currentPath))
 		{
 			return currentPath.lexically_normal();
 		}
@@ -193,7 +193,7 @@ std::filesystem::path donut::app::FindDirectory(IFileSystem& fs, const std::file
 	return {};
 }
 
-std::filesystem::path donut::app::FindDirectoryWithFile(IFileSystem& fs, const std::filesystem::path& startPath, const std::filesystem::path& relativeFilePath, int maxDepth)
+std::filesystem::path donut::app::FindDirectoryWithFile(IFileSystem& aFileSystem, const std::filesystem::path& startPath, const std::filesystem::path& relativeFilePath, int maxDepth)
 {
 	std::filesystem::path searchPath = "";
 
@@ -201,7 +201,7 @@ std::filesystem::path donut::app::FindDirectoryWithFile(IFileSystem& fs, const s
 	{
 		std::filesystem::path currentPath = startPath / searchPath / relativeFilePath;
 
-		if (fs.fileExists(currentPath))
+		if (aFileSystem.fileExists(currentPath))
 		{
 			return currentPath.parent_path().lexically_normal();
 		}
@@ -212,15 +212,15 @@ std::filesystem::path donut::app::FindDirectoryWithFile(IFileSystem& fs, const s
 }
 
 std::filesystem::path donut::app::FindMediaFolder(const std::filesystem::path& name)
-    {
-		donut::vfs::NativeFileSystem fs;
+{
+    donut::vfs::NativeFileSystem aFileSystem;
 
 	// first check if the environment variable is set
 	const char* value = getenv(env_donut_media_path);
-	if (value && fs.folderExists(value))
+	if (value && aFileSystem.folderExists(value))
 		return value;
 
-	return FindDirectory(fs, GetDirectoryWithExecutable(), name);
+	return FindDirectory(aFileSystem, GetDirectoryWithExecutable(), name);
 }
 
 // XXXX mk: as of C++20, there is no portable solution (yet ?)
@@ -268,7 +268,7 @@ nvrhi::GraphicsAPI donut::app::GetGraphicsAPIFromCommandLine(int argc, const cha
 #endif
 }
 
-std::vector<std::string> donut::app::FindScenes(vfs::IFileSystem& fs, std::filesystem::path const& path)
+std::vector<std::string> donut::app::FindScenes(vfs::IFileSystem& aFileSystem, std::filesystem::path const& path)
 {
     std::vector<std::string> scenes;
     std::vector<std::string> sceneExtensions = { ".scene.json", ".gltf", ".glb" };
@@ -282,13 +282,13 @@ std::vector<std::string> donut::app::FindScenes(vfs::IFileSystem& fs, std::files
         searchList.pop_front();
 
         // search current directory
-        fs.enumerateFiles(currentPath, sceneExtensions, [&scenes, &currentPath](std::string_view name)
+        aFileSystem.enumerateFiles(currentPath, sceneExtensions, [&scenes, &currentPath](std::string_view name)
         {
             scenes.push_back((currentPath / name).generic_string());
         });
 
         // search subdirectories
-        fs.enumerateDirectories(currentPath, [&searchList, &currentPath](std::string_view name)
+        aFileSystem.enumerateDirectories(currentPath, [&searchList, &currentPath](std::string_view name)
         {
             if (name != "glTF-Draco")
                 searchList.push_back(currentPath / name);
