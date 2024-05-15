@@ -282,9 +282,6 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 #ifdef _DEBUG
 	mCommandList->endMarker();
-#endif
-
-#ifdef _DEBUG
 	mCommandList->beginMarker("Deferred Lighting Pass");
 #endif
 
@@ -301,34 +298,18 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 #ifdef _DEBUG
 	mCommandList->endMarker();
-#endif
-
-#ifdef _DEBUG
 	mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
 #endif
 
 	switch (mUIOptions.mRTsViewMode)
 	{
-	case 0:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get());
-		break;
-	case 1:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get());
-		break;
-	case 2:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get());
-		break;
-	case 3:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferNormals, mBindingCache.get());
-		break;
-	case 4:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get());
-		break;
-	case 5:
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get());
-		break;
-	default:
-		break;
+		case 0: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get()); break;
+		case 1: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get()); break;
+		case 2: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get()); break;
+		case 3: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferNormals, mBindingCache.get()); break;
+		case 4: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get()); break;
+		case 5: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get()); break;
+		default: break;
 	}
 
 #ifdef _DEBUG

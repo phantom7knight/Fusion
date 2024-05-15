@@ -26,7 +26,7 @@
 #include "light_cb.h"
 #include "view_cb.h"
 
-#define DEFERRED_MAX_LIGHTS 25 // TODO_RT: original value : 16
+#define DEFERRED_MAX_LIGHTS 16
 #define DEFERRED_MAX_SHADOWS 16
 #define DEFERRED_MAX_LIGHT_PROBES 16
 

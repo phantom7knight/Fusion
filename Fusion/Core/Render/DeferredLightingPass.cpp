@@ -38,6 +38,14 @@ using namespace donut::math;
 using namespace donut::engine;
 using namespace donut::render;
 
+namespace DeferredLightingPass_Private
+{
+    constexpr float4 noisePattern1 = float4(0.059f, 0.529f, 0.176f, 0.647f);
+    constexpr float4 noisePattern2 = float4(0.765f, 0.294f, 0.882f, 0.412f);
+    constexpr float4 noisePattern3 = float4(0.235f, 0.706f, 0.118f, 0.588f);
+    constexpr float4 noisePattern4 = float4(0.941f, 0.471f, 0.824f, 0.353f);
+}
+
 void DeferredLightingPass::Inputs::SetGBuffer(const GBufferRenderTargets& targets)
 {
     depth = targets.Depth;
@@ -132,10 +140,10 @@ void DeferredLightingPass::Render(
 
     DeferredLightingConstants deferredConstants = {};
     deferredConstants.randomOffset = randomOffset;
-    deferredConstants.noisePattern[0] = float4(0.059f, 0.529f, 0.176f, 0.647f);
-    deferredConstants.noisePattern[1] = float4(0.765f, 0.294f, 0.882f, 0.412f);
-    deferredConstants.noisePattern[2] = float4(0.235f, 0.706f, 0.118f, 0.588f);
-    deferredConstants.noisePattern[3] = float4(0.941f, 0.471f, 0.824f, 0.353f);
+    deferredConstants.noisePattern[0] = DeferredLightingPass_Private::noisePattern1;
+    deferredConstants.noisePattern[1] = DeferredLightingPass_Private::noisePattern2;
+    deferredConstants.noisePattern[2] = DeferredLightingPass_Private::noisePattern3;
+    deferredConstants.noisePattern[3] = DeferredLightingPass_Private::noisePattern4;
     deferredConstants.ambientColorTop = float4(inputs.ambientColorTop, 0.f);
     deferredConstants.ambientColorBottom = float4(inputs.ambientColorBottom, 0.f);
     deferredConstants.enableAmbientOcclusion = (inputs.ambientOcclusion != nullptr);
@@ -243,7 +251,6 @@ void DeferredLightingPass::Render(
             }
         }
     }
-
 
     for (uint viewIndex = 0; viewIndex < compositeView.GetNumChildViews(ViewType::PLANAR); viewIndex++)
     {

@@ -20,8 +20,8 @@ set(SRC_FILES
 	"App/ApplicationBase.h"
     "App/ApplicationBase.cpp"
 
-    "Threading/BS_ThreadPool_Light.hpp"
-    "Threading/BS_ThreadPool.hpp"
+    "Threading/ThreadPool_Light.hpp"
+    "Threading/ThreadPool.hpp"
 
     "VFS/Compression.h"
 	"VFS/Compression.cpp"
@@ -92,6 +92,8 @@ set(SRC_FILES
     "Utilities/Logger/Log.h"
     "Utilities/Logger/Log.cpp"
 	
+    "Utilities/Macros.hpp"
+	
 	"Utilities/Utilities.hpp"
 	
 	"Utilities/json.h"
@@ -101,9 +103,6 @@ set(SRC_FILES
 	
     "Utilities/string_utils.h"
 	"Utilities/string_utils.cpp"
-
-	# "Utilities/Shaders/ShaderCompiler.h"
-	# "Utilities/Shaders/ShaderCompiler.cpp"
 	
 	"Utilities/Math/affine.h"
 	"Utilities/Math/basics.h"
@@ -197,11 +196,12 @@ source_group("VFS" FILES
 	"VFS/WinResFS.h"
 	"VFS/WinResFS.cpp")
 source_group("Threading" FILES
-	"Threading/BS_ThreadPool_Light.hpp"
-	"Threading/BS_ThreadPool.hpp")
+	"Threading/ThreadPool_Light.hpp"
+	"Threading/ThreadPool.hpp")
 source_group("Utilities" FILES
 	"Utilities/json.h"
 	"Utilities/json.cpp"
+	"Utilities/Macros.hpp"
 	"Utilities/Utilities.hpp"
 	"Utilities/Timer.h"
 	"Utilities/string_utils.h"
@@ -209,9 +209,6 @@ source_group("Utilities" FILES
 source_group("Utilities\\Logger" FILES
 	"Utilities/Logger/Log.h"
 	"Utilities/Logger/Log.cpp")
-# source_group("Utilities\\Shaders" FILES
-	# "Utilities/Shaders/ShaderCompiler.h"
-	# "Utilities/Shaders/ShaderCompiler.cpp")
 source_group("Utilities\\Math" FILES
 	"Utilities/Math/affine.h"
 	"Utilities/Math/basics.h"
