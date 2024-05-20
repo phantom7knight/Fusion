@@ -17,6 +17,9 @@
 #include "../../Core/Render/GBuffer.h"
 #include "../../Core/Render/GBufferFillPass.h"
 
+// todo_rt; testing
+#include "../../Core/Render/ForwardShadingPass.h"
+
 // TODO_RT
 // 1. Allow multiple lights in the scenes
 // 2. Draw more than 2 models in the scene
@@ -29,10 +32,10 @@ class PBRTestingApp;
 
 struct UIOptions
 {
-	bool mVsync = false;
+	bool mVsync = true;
 	int mRTsViewMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
-	float mSunPos[3] = { 0.f, 0.f, 0.f };
+	bool mAllowTransmission = true;
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -51,6 +54,11 @@ class RenderTargets : public donut::render::GBufferRenderTargets
 {
 public:
 	nvrhi::TextureHandle mOutputColor;
+
+	// todo_rt; testing
+	nvrhi::TextureHandle mFWDDepth;
+	nvrhi::TextureHandle mFWDColor;
+	std::shared_ptr<donut::engine::FramebufferFactory> mFWDFramebuffer;
 
 	RenderTargets(nvrhi::IDevice* aDevice,
 		const dm::uint2 aSize,
@@ -76,12 +84,39 @@ public:
 			aSampleCount,
 			aEnableMotionVectors,
 			aUseReverseProjection);
+
+		// todo_rt; testing
+		nvrhi::TextureDesc textureDesc2;
+		textureDesc2.format = nvrhi::Format::SRGBA8_UNORM;
+		textureDesc2.isRenderTarget = true;
+		textureDesc2.initialState = nvrhi::ResourceStates::RenderTarget;
+		textureDesc2.keepInitialState = true;
+		textureDesc2.clearValue = nvrhi::Color(0.f);
+		textureDesc2.useClearValue = true;
+		textureDesc2.debugName = "Fwd Pass: ColorBuffer";
+		textureDesc2.width = aSize.x;
+		textureDesc2.height = aSize.y;
+		textureDesc2.dimension = nvrhi::TextureDimension::Texture2D;
+		mFWDColor = aDevice->createTexture(textureDesc2);
+
+		textureDesc2.format = nvrhi::Format::D24S8;
+		textureDesc2.debugName = "Fwd Pass: DepthBuffer";
+		textureDesc2.initialState = nvrhi::ResourceStates::DepthWrite;
+		mFWDDepth = aDevice->createTexture(textureDesc2);
+
+		mFWDFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(aDevice);
+		mFWDFramebuffer->RenderTargets = { mFWDColor };
+		mFWDFramebuffer->DepthTarget = mFWDDepth;
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
 	{
 		donut::render::GBufferRenderTargets::Clear(aCommandList);
 		aCommandList->clearTextureFloat(mOutputColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
+
+		// todo_rt; testing
+		aCommandList->clearDepthStencilTexture(mFWDDepth, nvrhi::AllSubresources, true, 0.f, true, 0);
+		aCommandList->clearTextureFloat(mFWDColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
 };
 
@@ -99,6 +134,9 @@ public:
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
 
+	// todo_rt: testing
+	void PreRender(nvrhi::IDevice* aDevice);
+
 	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
 
 	UIOptions mUIOptions;
@@ -113,7 +151,9 @@ private:
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
+	std::unique_ptr<donut::render::ForwardShadingPass> mFWDShadingPass; // todo_rt; testing
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
+	std::unique_ptr<donut::render::TransparentDrawStrategy> mTransparentDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	std::vector<std::shared_ptr<donut::engine::SpotLight>> mLights;
 	std::shared_ptr<RenderTargets> mGBufferRenderTargets;

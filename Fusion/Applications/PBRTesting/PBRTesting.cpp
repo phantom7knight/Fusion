@@ -33,6 +33,8 @@ namespace PBRTesting_Private
 	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
 	const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
 	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
+	const std::filesystem::path dragonAttenuationModel = gltfAssetPath / "2.0/DragonAttenuation/glTF/DragonAttenuation.gltf";
+	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
 
 	const float3 locGetRandomColor()
 	{
@@ -93,11 +95,15 @@ void UIRenderer::BuildUI(void)
 	auto& arr = mPBRTestingApp->mUIOptions.mAppModeOptions;
 	ImGui::Combo("RT Targets", &mPBRTestingApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
 
-	ImGui::SeparatorText("Light Options:");
+	ImGui::SeparatorText("Material Options:");
 
-	ImGui::DragFloat3(": Sun Light Pos", mPBRTestingApp->mUIOptions.mSunPos, -10.f, 10.f);
+	ImGui::Checkbox("Allow Transmission", &mPBRTestingApp->mUIOptions.mAllowTransmission);
 
 	ImGui::End();
+}
+
+void PBRTestingApp::PreRender(nvrhi::IDevice* aDevice)
+{
 }
 
 bool PBRTestingApp::Init()
@@ -121,10 +127,11 @@ bool PBRTestingApp::Init()
 	mCommandList = GetDevice()->createCommandList();
 	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::sponzaModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -138,21 +145,21 @@ bool PBRTestingApp::Init()
 		if (mScene)
 		{
 			int count = 0;
-			for (int i = 0; i < 1; ++i)
+			for (int i = 0; i < 0; ++i)
 			{
 				for (int j = 0; j < 1; ++j)
 				{
-					auto modelNode = mScene->LoadAtLeaf(PBRTesting_Private::suzanneModel);
+					auto modelNode = mScene->LoadAtLeaf(PBRTesting_Private::dragonAttenuationModel);
 					modelNode->SetName(std::format("Model {}", count + 1));
 					modelNode->SetTranslation(double3(0.0 + i * 4, 2.0, -5.5 + j * 3));
-					modelNode->SetScaling(double3(0.2f));
+					modelNode->SetScaling(double3(1.2f));
 					++count;
 				}
 			}
 		}
 
 		// Light Setup
-		for (int x = 0; x < 1; ++x)
+		for (int x = 0; x < 0; ++x)
 		{
 			for (int y = 0; y < 1; ++y)
 			{
@@ -179,6 +186,9 @@ bool PBRTestingApp::Init()
 		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
+
+	// todo_rt; testing
+	//GetDeviceManager()->m_callbacks.beforeRender()
 
 	return true;
 }
@@ -255,6 +265,14 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mGBufferFillPass->Init(*mShaderFactory, params);
 	}
 
+	if (!mFWDShadingPass)
+	{
+		mFWDShadingPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
+
+		donut::render::ForwardShadingPass::CreateParameters forwardParams;
+		mFWDShadingPass->Init(*mShaderFactory, forwardParams);
+	}
+
 	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
 	mView.SetViewport(windowViewport);
 	mView.SetMatrices(mCamera.GetWorldToViewMatrix(),
@@ -264,45 +282,85 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	mCommandList->open();
 
-#ifdef _DEBUG
-	mCommandList->beginMarker("GBuffer Fill Pass");
-#endif
-
-	mGBufferRenderTargets->Clear(mCommandList);
-
-	donut::render::GBufferFillPass::Context ctx = {};
-	donut::render::RenderCompositeView(mCommandList, 
-		&mView, 
-		&mView, 
-		*mGBufferRenderTargets->GBufferFramebuffer,
-		mScene->GetSceneGraph()->GetRootNode(), 
-		*mOpaqueDrawStrategy, 
-		*mGBufferFillPass,
-		ctx);
-
-#ifdef _DEBUG
-	mCommandList->endMarker();
-	mCommandList->beginMarker("Deferred Lighting Pass");
-#endif
-
-	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
-	deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
-	deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
-	deferredLightingInputs.ambientColorTop = 0.2f;
-	deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
-	deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
-
-	mDeferredLightingPass->Render(mCommandList,
-		mView,
-		deferredLightingInputs);
-
-#ifdef _DEBUG
-	mCommandList->endMarker();
-	mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer");
-#endif
-
-	switch (mUIOptions.mRTsViewMode)
+	// todo_rt; testing
+	if (mUIOptions.mAllowTransmission)
 	{
+
+#ifdef _DEBUG
+		mCommandList->beginMarker("Render Forward Pass");
+#endif
+
+		mGBufferRenderTargets->Clear(mCommandList);
+
+		LightingConstants constants = {};
+		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+		mView.FillPlanarViewConstants(constants.view);
+
+		donut::render::ForwardShadingPass::Context forwardContext;
+		mFWDShadingPass->PrepareLights(forwardContext,
+			mCommandList,
+			mScene->GetSceneGraph()->GetLights(),
+			constants.ambientColor,
+			constants.ambientColor,
+			{});
+
+		donut::render::RenderCompositeView(mCommandList,
+			&mView,
+			&mView,
+			*mGBufferRenderTargets->mFWDFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mTransparentDrawStrategy,
+			*mFWDShadingPass,
+			forwardContext);
+#ifdef _DEBUG
+		mCommandList->endMarker();
+#endif
+
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mGBufferRenderTargets->mFWDColor, mBindingCache.get());
+
+
+	}
+	else
+	{
+#ifdef _DEBUG
+		mCommandList->beginMarker("GBuffer Fill Pass");
+#endif
+
+		mGBufferRenderTargets->Clear(mCommandList);
+
+		donut::render::GBufferFillPass::Context ctx = {};
+		donut::render::RenderCompositeView(mCommandList,
+			&mView,
+			&mView,
+			*mGBufferRenderTargets->GBufferFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mOpaqueDrawStrategy,
+			*mGBufferFillPass,
+			ctx);
+
+#ifdef _DEBUG
+		mCommandList->endMarker();
+		mCommandList->beginMarker("Deferred Lighting Pass");
+#endif
+
+		donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
+		deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
+		deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
+		deferredLightingInputs.ambientColorTop = 0.2f;
+		deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
+
+		mDeferredLightingPass->Render(mCommandList,
+			mView,
+			deferredLightingInputs);
+
+#ifdef _DEBUG
+		mCommandList->endMarker();
+		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer"); // todo_rt; testing
+#endif
+
+		switch (mUIOptions.mRTsViewMode)
+		{
 		case 0: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get()); break;
 		case 1: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get()); break;
 		case 2: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get()); break;
@@ -310,6 +368,7 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		case 4: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get()); break;
 		case 5: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get()); break;
 		default: break;
+		}
 	}
 
 #ifdef _DEBUG

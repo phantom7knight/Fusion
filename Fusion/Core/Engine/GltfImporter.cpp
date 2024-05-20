@@ -387,10 +387,10 @@ bool GltfImporter::Load(
 
         if (material.has_transmission)
         {
-            if (material.has_pbr_specular_glossiness)
+            if (material.has_pbr_specular_glossiness || material.unlit)
             {
                 log::warning("Material '%s' uses the KHR_materials_transmission extension, which is undefined on materials using the "
-                    "KHR_materials_pbrSpecularGlossiness extension model.", material.name ? material.name : "<Unnamed>");
+                    "(KHR_materials_pbrSpecularGlossiness | KHR_materials_unlit) extension model.", material.name ? material.name : "<Unnamed>");
             }
 
             matinfo->transmissionTexture = load_texture(material.transmission.transmission_texture.texture, false);
