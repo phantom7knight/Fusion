@@ -97,13 +97,7 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::SeparatorText("Material Options:");
 
-	ImGui::Checkbox("Allow Transmission", &mPBRTestingApp->mUIOptions.mAllowTransmission);
-
 	ImGui::End();
-}
-
-void PBRTestingApp::PreRender(nvrhi::IDevice* aDevice)
-{
 }
 
 bool PBRTestingApp::Init()
@@ -187,9 +181,6 @@ bool PBRTestingApp::Init()
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
 
-	// todo_rt; testing
-	//GetDeviceManager()->m_callbacks.beforeRender()
-
 	return true;
 }
 
@@ -265,12 +256,12 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mGBufferFillPass->Init(*mShaderFactory, params);
 	}
 
-	if (!mFWDShadingPass)
+	if (!mForwardShadingPass)
 	{
-		mFWDShadingPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
+		mForwardShadingPass = std::make_unique<donut::render::ForwardShadingPass>(GetDevice(), m_CommonPasses);
 
 		donut::render::ForwardShadingPass::CreateParameters forwardParams;
-		mFWDShadingPass->Init(*mShaderFactory, forwardParams);
+		mForwardShadingPass->Init(*mShaderFactory, forwardParams);
 	}
 
 	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
@@ -283,7 +274,7 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 	mCommandList->open();
 
 	// todo_rt; testing
-	if (mUIOptions.mAllowTransmission)
+	if (1)
 	{
 
 #ifdef _DEBUG
@@ -297,7 +288,7 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mView.FillPlanarViewConstants(constants.view);
 
 		donut::render::ForwardShadingPass::Context forwardContext;
-		mFWDShadingPass->PrepareLights(forwardContext,
+		mForwardShadingPass->PrepareLights(forwardContext,
 			mCommandList,
 			mScene->GetSceneGraph()->GetLights(),
 			constants.ambientColor,
@@ -310,7 +301,7 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mGBufferRenderTargets->mFWDFramebuffer,
 			mScene->GetSceneGraph()->GetRootNode(),
 			*mTransparentDrawStrategy,
-			*mFWDShadingPass,
+			*mForwardShadingPass,
 			forwardContext);
 #ifdef _DEBUG
 		mCommandList->endMarker();

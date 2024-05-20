@@ -35,7 +35,6 @@ struct UIOptions
 	bool mVsync = true;
 	int mRTsViewMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
-	bool mAllowTransmission = true;
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -134,9 +133,6 @@ public:
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
 
-	// todo_rt: testing
-	void PreRender(nvrhi::IDevice* aDevice);
-
 	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
 
 	UIOptions mUIOptions;
@@ -151,7 +147,7 @@ private:
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
-	std::unique_ptr<donut::render::ForwardShadingPass> mFWDShadingPass; // todo_rt; testing
+	std::unique_ptr<donut::render::ForwardShadingPass> mForwardShadingPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 	std::unique_ptr<donut::render::TransparentDrawStrategy> mTransparentDrawStrategy;
 	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
