@@ -54,11 +54,6 @@ class RenderTargets : public donut::render::GBufferRenderTargets
 public:
 	nvrhi::TextureHandle mOutputColor;
 
-	// todo_rt; testing
-	nvrhi::TextureHandle mFWDDepth;
-	nvrhi::TextureHandle mFWDColor;
-	std::shared_ptr<donut::engine::FramebufferFactory> mFWDFramebuffer;
-
 	RenderTargets(nvrhi::IDevice* aDevice,
 		const dm::uint2 aSize,
 		const uint32_t aSampleCount,
@@ -83,39 +78,12 @@ public:
 			aSampleCount,
 			aEnableMotionVectors,
 			aUseReverseProjection);
-
-		// todo_rt; testing
-		nvrhi::TextureDesc textureDesc2;
-		textureDesc2.format = nvrhi::Format::SRGBA8_UNORM;
-		textureDesc2.isRenderTarget = true;
-		textureDesc2.initialState = nvrhi::ResourceStates::RenderTarget;
-		textureDesc2.keepInitialState = true;
-		textureDesc2.clearValue = nvrhi::Color(0.f);
-		textureDesc2.useClearValue = true;
-		textureDesc2.debugName = "Fwd Pass: ColorBuffer";
-		textureDesc2.width = aSize.x;
-		textureDesc2.height = aSize.y;
-		textureDesc2.dimension = nvrhi::TextureDimension::Texture2D;
-		mFWDColor = aDevice->createTexture(textureDesc2);
-
-		textureDesc2.format = nvrhi::Format::D24S8;
-		textureDesc2.debugName = "Fwd Pass: DepthBuffer";
-		textureDesc2.initialState = nvrhi::ResourceStates::DepthWrite;
-		mFWDDepth = aDevice->createTexture(textureDesc2);
-
-		mFWDFramebuffer = std::make_shared<donut::engine::FramebufferFactory>(aDevice);
-		mFWDFramebuffer->RenderTargets = { mFWDColor };
-		mFWDFramebuffer->DepthTarget = mFWDDepth;
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
 	{
 		donut::render::GBufferRenderTargets::Clear(aCommandList);
 		aCommandList->clearTextureFloat(mOutputColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
-
-		// todo_rt; testing
-		aCommandList->clearDepthStencilTexture(mFWDDepth, nvrhi::AllSubresources, true, 0.f, true, 0);
-		aCommandList->clearTextureFloat(mFWDColor, nvrhi::AllSubresources, nvrhi::Color(0.f));
 	}
 };
 

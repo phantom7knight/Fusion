@@ -28,13 +28,14 @@ namespace PBRTesting_Private
 	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
 	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	const std::filesystem::path helmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	const std::filesystem::path damangedHelmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
 	const std::filesystem::path carbonFibreModel = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
 	const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
 	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 	const std::filesystem::path dragonAttenuationModel = gltfAssetPath / "2.0/DragonAttenuation/glTF/DragonAttenuation.gltf";
 	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
+	//const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
 
 	const float3 locGetRandomColor()
 	{
@@ -125,7 +126,7 @@ bool PBRTestingApp::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::damangedHelmetModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -243,7 +244,7 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mGBufferRenderTargets = nullptr;
 		mGBufferRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
 			dm::uint2(fbinfo.width, fbinfo.height),
-			1,
+			1, // SampleCount
 			false,
 			true); // TODO_RT: Investigate this value for the projection, should it be false or need to be true?
 	}
@@ -273,85 +274,45 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	mCommandList->open();
 
-	// todo_rt; testing
-	if (1)
+#ifdef _DEBUG
+	mCommandList->beginMarker("GBuffer Fill Pass");
+#endif
+
+	mGBufferRenderTargets->Clear(mCommandList);
+
+	donut::render::GBufferFillPass::Context ctx = {};
+	donut::render::RenderCompositeView(mCommandList,
+		&mView,
+		&mView,
+		*mGBufferRenderTargets->GBufferFramebuffer,
+		mScene->GetSceneGraph()->GetRootNode(),
+		*mOpaqueDrawStrategy,
+		*mGBufferFillPass,
+		ctx);
+
+#ifdef _DEBUG
+	mCommandList->endMarker();
+	mCommandList->beginMarker("Deferred Lighting Pass");
+#endif
+
+	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
+	deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
+	deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
+	deferredLightingInputs.ambientColorTop = 0.2f;
+	deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+	deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
+
+	mDeferredLightingPass->Render(mCommandList,
+		mView,
+		deferredLightingInputs);
+
+#ifdef _DEBUG
+	mCommandList->endMarker();
+	mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer"); // todo_rt; testing
+#endif
+
+	switch (mUIOptions.mRTsViewMode)
 	{
-
-#ifdef _DEBUG
-		mCommandList->beginMarker("Render Forward Pass");
-#endif
-
-		mGBufferRenderTargets->Clear(mCommandList);
-
-		LightingConstants constants = {};
-		constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-		mView.FillPlanarViewConstants(constants.view);
-
-		donut::render::ForwardShadingPass::Context forwardContext;
-		mForwardShadingPass->PrepareLights(forwardContext,
-			mCommandList,
-			mScene->GetSceneGraph()->GetLights(),
-			constants.ambientColor,
-			constants.ambientColor,
-			{});
-
-		donut::render::RenderCompositeView(mCommandList,
-			&mView,
-			&mView,
-			*mGBufferRenderTargets->mFWDFramebuffer,
-			mScene->GetSceneGraph()->GetRootNode(),
-			*mTransparentDrawStrategy,
-			*mForwardShadingPass,
-			forwardContext);
-#ifdef _DEBUG
-		mCommandList->endMarker();
-#endif
-
-		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mGBufferRenderTargets->mFWDColor, mBindingCache.get());
-
-
-	}
-	else
-	{
-#ifdef _DEBUG
-		mCommandList->beginMarker("GBuffer Fill Pass");
-#endif
-
-		mGBufferRenderTargets->Clear(mCommandList);
-
-		donut::render::GBufferFillPass::Context ctx = {};
-		donut::render::RenderCompositeView(mCommandList,
-			&mView,
-			&mView,
-			*mGBufferRenderTargets->GBufferFramebuffer,
-			mScene->GetSceneGraph()->GetRootNode(),
-			*mOpaqueDrawStrategy,
-			*mGBufferFillPass,
-			ctx);
-
-#ifdef _DEBUG
-		mCommandList->endMarker();
-		mCommandList->beginMarker("Deferred Lighting Pass");
-#endif
-
-		donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
-		deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
-		deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
-		deferredLightingInputs.ambientColorTop = 0.2f;
-		deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
-		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
-
-		mDeferredLightingPass->Render(mCommandList,
-			mView,
-			deferredLightingInputs);
-
-#ifdef _DEBUG
-		mCommandList->endMarker();
-		mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer"); // todo_rt; testing
-#endif
-
-		switch (mUIOptions.mRTsViewMode)
-		{
 		case 0: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get()); break;
 		case 1: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get()); break;
 		case 2: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get()); break;
@@ -359,7 +320,6 @@ void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
 		case 4: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get()); break;
 		case 5: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get()); break;
 		default: break;
-		}
 	}
 
 #ifdef _DEBUG
