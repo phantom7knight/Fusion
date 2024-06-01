@@ -28,7 +28,7 @@
 //	  ex: render sun&light spheres(required step 2) in fwd and then rest of scene in deferred
 // 5. Make a separate UIOptions class which has default options
 
-class PBRTestingApp;
+class MaterialsPlayground;
 
 struct UIOptions
 {
@@ -40,13 +40,13 @@ struct UIOptions
 class UIRenderer : public donut::app::ImGui_Renderer
 {
 public:
-	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<PBRTestingApp> aApp);
+	UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<MaterialsPlayground> aApp);
 
 protected:
 	virtual void BuildUI(void) override;
 
 private:
-	std::shared_ptr<PBRTestingApp> mPBRTestingApp;
+	std::shared_ptr<MaterialsPlayground> mMaterialsPlaygroundApp;
 };
 
 class RenderTargets : public donut::render::GBufferRenderTargets
@@ -87,7 +87,7 @@ public:
 	}
 };
 
-class PBRTestingApp : public donut::app::ApplicationBase
+class MaterialsPlayground : public donut::app::ApplicationBase
 {
 public:
 	using ApplicationBase::ApplicationBase;

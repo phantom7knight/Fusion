@@ -12,7 +12,8 @@ rem Change to the "Build" directory
 cd Build
 
 rem Run CMake to configure the project
-cmake ..
+rem cmake ..
+cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 ..
 
 rem Pause execution to keep the console window open
 pause

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Core/CorePCH.hpp"
-#include "PBRTesting.h"
+#include "MaterialsPlayground.h"
 
 #include "../../Core/App/ApplicationBase.h"
 #include "../../Core/App/DeviceManager.h"
@@ -56,7 +56,7 @@ int main(int __argc, const char* __argv[])
 	}
 
 	{
-		std::shared_ptr<PBRTestingApp> example = std::make_shared<PBRTestingApp>(deviceManager);
+		std::shared_ptr<MaterialsPlayground> example = std::make_shared<MaterialsPlayground>(deviceManager);
 		std::shared_ptr<UIRenderer> uiRenderer = std::make_shared<UIRenderer>(deviceManager, example);
 
 		if (example->Init())

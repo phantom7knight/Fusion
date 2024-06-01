@@ -1,14 +1,14 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 
 set(SRC_FILES
-    "PBRTesting.h"
-    "PBRTesting.cpp"
+    "MaterialsPlayground.h"
+    "MaterialsPlayground.cpp"
     "main.cpp")
 
 # Create an executable target (application)
-add_executable(PBRTesting ${SRC_FILES})
+add_executable(MaterialsPlayground ${SRC_FILES})
 # target_include_directories(PBRTesting PUBLIC "Include" "../Shaders")
-target_link_libraries(PBRTesting PUBLIC 
+target_link_libraries(MaterialsPlayground PUBLIC 
 Core
 External
 d3dcompiler
@@ -19,7 +19,7 @@ jsoncpp_static
 ) #External1 imgui
 
 # Set preprocessor directives
-target_compile_definitions(PBRTesting PRIVATE
+target_compile_definitions(MaterialsPlayground PRIVATE
 _WINDOWS
 _CRT_SECURE_NO_WARNINGS
 USE_DX12=1
@@ -28,4 +28,6 @@ DONUT_WITH_TASKFLOW=1
 )
 
 # Now set the FOLDER property for the fetched target
-set_target_properties(PBRTesting PROPERTIES FOLDER "Applications/Raster")
+set_target_properties(MaterialsPlayground PROPERTIES FOLDER "Applications/Raster")
+
+add_compile_options(/TP)

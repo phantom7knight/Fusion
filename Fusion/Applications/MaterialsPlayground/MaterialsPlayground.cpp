@@ -1,4 +1,4 @@
-#include "PBRTesting.h"
+#include "MaterialsPlayground.h"
 
 #include <format>
 
@@ -49,9 +49,9 @@ namespace PBRTesting_Private
 	}
 }
 
-UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<PBRTestingApp> aApp)
+UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr<MaterialsPlayground> aApp)
 	: ImGui_Renderer(deviceManager)
-	, mPBRTestingApp(aApp)
+	, mMaterialsPlaygroundApp(aApp)
 {
 	const std::filesystem::path baseAssetsPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/";
 	std::filesystem::path commonShaderPath = baseAssetsPath / "Shaders/Common/Generated";
@@ -60,10 +60,10 @@ UIRenderer::UIRenderer(donut::app::DeviceManager* deviceManager, std::shared_ptr
 	rootFS->mount("/shaders/Common", commonShaderPath);
 
 	std::shared_ptr<donut::engine::ShaderFactory> shaderFactory = std::make_shared<donut::engine::ShaderFactory>(GetDevice(), rootFS, "/shaders");
-	if (mPBRTestingApp)
+	if (mMaterialsPlaygroundApp)
 		Init(shaderFactory);
 
-	assert(mPBRTestingApp);
+	assert(mMaterialsPlaygroundApp);
 
 	ImGui::GetIO().IniFilename = nullptr;
 }
@@ -88,20 +88,20 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::SeparatorText("App Options:");
 
-	dm::float3 camPos = mPBRTestingApp->GetCameraPosition();
+	dm::float3 camPos = mMaterialsPlaygroundApp->GetCameraPosition();
 	ImGui::Text("Camera Position: X: %.2f Y: %.2f Z: %.2f", camPos.x, camPos.y, camPos.z);
 
-	ImGui::Checkbox("Enable Vsync", &mPBRTestingApp->mUIOptions.mVsync);
+	ImGui::Checkbox("Enable Vsync", &mMaterialsPlaygroundApp->mUIOptions.mVsync);
 
-	auto& arr = mPBRTestingApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("RT Targets", &mPBRTestingApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
+	auto& arr = mMaterialsPlaygroundApp->mUIOptions.mAppModeOptions;
+	ImGui::Combo("RT Targets", &mMaterialsPlaygroundApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
 
 	ImGui::SeparatorText("Material Options:");
 
 	ImGui::End();
 }
 
-bool PBRTestingApp::Init()
+bool MaterialsPlayground::Init()
 {	
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Common", PBRTesting_Private::commonShaderPath);
@@ -185,7 +185,7 @@ bool PBRTestingApp::Init()
 	return true;
 }
 
-bool PBRTestingApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
+bool MaterialsPlayground::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
 	assert(m_TextureCache);
 
@@ -200,36 +200,36 @@ bool PBRTestingApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSyst
 	return false;
 }
 
-void PBRTestingApp::BackBufferResizing()
+void MaterialsPlayground::BackBufferResizing()
 {
 	mGBufferRenderTargets = nullptr;
 	mBindingCache->Clear();
 }
 
-void PBRTestingApp::Animate(float fElapsedTimeSeconds)
+void MaterialsPlayground::Animate(float fElapsedTimeSeconds)
 {
 	mCamera.Animate(fElapsedTimeSeconds);
 }
 
-bool PBRTestingApp::KeyboardUpdate(int key, int scancode, int action, int mods)
+bool MaterialsPlayground::KeyboardUpdate(int key, int scancode, int action, int mods)
 {
 	mCamera.KeyboardUpdate(key, scancode, action, mods);
 	return true;
 }
 
-bool PBRTestingApp::MousePosUpdate(double xpos, double ypos)
+bool MaterialsPlayground::MousePosUpdate(double xpos, double ypos)
 {
 	mCamera.MousePosUpdate(xpos, ypos);
 	return true;
 }
 
-bool PBRTestingApp::MouseButtonUpdate(int button, int action, int mods)
+bool MaterialsPlayground::MouseButtonUpdate(int button, int action, int mods)
 {
 	mCamera.MouseButtonUpdate(button, action, mods);
 	return true;
 }
 
-void PBRTestingApp::Render(nvrhi::IFramebuffer* aFramebuffer)
+void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
 
