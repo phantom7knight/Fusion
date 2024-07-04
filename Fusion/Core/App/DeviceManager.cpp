@@ -171,458 +171,458 @@ static void JoystickConnectionCallback_GLFW(int joyId, int connectDisconnect)
 
 static const struct
 {
-    nvrhi::Format format;
-    uint32_t redBits;
-    uint32_t greenBits;
-    uint32_t blueBits;
-    uint32_t alphaBits;
-    uint32_t depthBits;
-    uint32_t stencilBits;
+	nvrhi::Format format;
+	uint32_t redBits;
+	uint32_t greenBits;
+	uint32_t blueBits;
+	uint32_t alphaBits;
+	uint32_t depthBits;
+	uint32_t stencilBits;
 } formatInfo[] = {
-    { nvrhi::Format::UNKNOWN,            0,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::R8_UINT,            8,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::RG8_UINT,           8,  8,  0,  0,  0,  0, },
-    { nvrhi::Format::RG8_UNORM,          8,  8,  0,  0,  0,  0, },
-    { nvrhi::Format::R16_UINT,          16,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::R16_UNORM,         16,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::R16_FLOAT,         16,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::RGBA8_UNORM,        8,  8,  8,  8,  0,  0, },
-    { nvrhi::Format::RGBA8_SNORM,        8,  8,  8,  8,  0,  0, },
-    { nvrhi::Format::BGRA8_UNORM,        8,  8,  8,  8,  0,  0, },
-    { nvrhi::Format::SRGBA8_UNORM,       8,  8,  8,  8,  0,  0, },
-    { nvrhi::Format::SBGRA8_UNORM,       8,  8,  8,  8,  0,  0, },
-    { nvrhi::Format::R10G10B10A2_UNORM, 10, 10, 10,  2,  0,  0, },
-    { nvrhi::Format::R11G11B10_FLOAT,   11, 11, 10,  0,  0,  0, },
-    { nvrhi::Format::RG16_UINT,         16, 16,  0,  0,  0,  0, },
-    { nvrhi::Format::RG16_FLOAT,        16, 16,  0,  0,  0,  0, },
-    { nvrhi::Format::R32_UINT,          32,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::R32_FLOAT,         32,  0,  0,  0,  0,  0, },
-    { nvrhi::Format::RGBA16_FLOAT,      16, 16, 16, 16,  0,  0, },
-    { nvrhi::Format::RGBA16_UNORM,      16, 16, 16, 16,  0,  0, },
-    { nvrhi::Format::RGBA16_SNORM,      16, 16, 16, 16,  0,  0, },
-    { nvrhi::Format::RG32_UINT,         32, 32,  0,  0,  0,  0, },
-    { nvrhi::Format::RG32_FLOAT,        32, 32,  0,  0,  0,  0, },
-    { nvrhi::Format::RGB32_UINT,        32, 32, 32,  0,  0,  0, },
-    { nvrhi::Format::RGB32_FLOAT,       32, 32, 32,  0,  0,  0, },
-    { nvrhi::Format::RGBA32_UINT,       32, 32, 32, 32,  0,  0, },
-    { nvrhi::Format::RGBA32_FLOAT,      32, 32, 32, 32,  0,  0, },
+	{ nvrhi::Format::UNKNOWN,            0,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::R8_UINT,            8,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::RG8_UINT,           8,  8,  0,  0,  0,  0, },
+	{ nvrhi::Format::RG8_UNORM,          8,  8,  0,  0,  0,  0, },
+	{ nvrhi::Format::R16_UINT,          16,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::R16_UNORM,         16,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::R16_FLOAT,         16,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::RGBA8_UNORM,        8,  8,  8,  8,  0,  0, },
+	{ nvrhi::Format::RGBA8_SNORM,        8,  8,  8,  8,  0,  0, },
+	{ nvrhi::Format::BGRA8_UNORM,        8,  8,  8,  8,  0,  0, },
+	{ nvrhi::Format::SRGBA8_UNORM,       8,  8,  8,  8,  0,  0, },
+	{ nvrhi::Format::SBGRA8_UNORM,       8,  8,  8,  8,  0,  0, },
+	{ nvrhi::Format::R10G10B10A2_UNORM, 10, 10, 10,  2,  0,  0, },
+	{ nvrhi::Format::R11G11B10_FLOAT,   11, 11, 10,  0,  0,  0, },
+	{ nvrhi::Format::RG16_UINT,         16, 16,  0,  0,  0,  0, },
+	{ nvrhi::Format::RG16_FLOAT,        16, 16,  0,  0,  0,  0, },
+	{ nvrhi::Format::R32_UINT,          32,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::R32_FLOAT,         32,  0,  0,  0,  0,  0, },
+	{ nvrhi::Format::RGBA16_FLOAT,      16, 16, 16, 16,  0,  0, },
+	{ nvrhi::Format::RGBA16_UNORM,      16, 16, 16, 16,  0,  0, },
+	{ nvrhi::Format::RGBA16_SNORM,      16, 16, 16, 16,  0,  0, },
+	{ nvrhi::Format::RG32_UINT,         32, 32,  0,  0,  0,  0, },
+	{ nvrhi::Format::RG32_FLOAT,        32, 32,  0,  0,  0,  0, },
+	{ nvrhi::Format::RGB32_UINT,        32, 32, 32,  0,  0,  0, },
+	{ nvrhi::Format::RGB32_FLOAT,       32, 32, 32,  0,  0,  0, },
+	{ nvrhi::Format::RGBA32_UINT,       32, 32, 32, 32,  0,  0, },
+	{ nvrhi::Format::RGBA32_FLOAT,      32, 32, 32, 32,  0,  0, },
 };
 
 bool DeviceManager::CreateInstance(const InstanceParameters& params)
 {
-    if (m_InstanceCreated)
-        return true;
+	if (m_InstanceCreated)
+		return true;
 
-    static_cast<InstanceParameters&>(m_DeviceParams) = params;
+	static_cast<InstanceParameters&>(m_DeviceParams) = params;
 
-    if (!params.headlessDevice)
-    {
-        if (!glfwInit())
-            return false;
-    }
+	if (!params.headlessDevice)
+	{
+		if (!glfwInit())
+			return false;
+	}
 
-    m_InstanceCreated = CreateInstanceInternal();
-    return m_InstanceCreated;
+	m_InstanceCreated = CreateInstanceInternal();
+	return m_InstanceCreated;
 }
 
 bool DeviceManager::CreateHeadlessDevice(const DeviceCreationParameters& params)
 {
-    m_DeviceParams = params;
-    m_DeviceParams.headlessDevice = true;
+	m_DeviceParams = params;
+	m_DeviceParams.headlessDevice = true;
 
-    if (!CreateInstance(m_DeviceParams))
-        return false;
+	if (!CreateInstance(m_DeviceParams))
+		return false;
 
-    return CreateDevice();
+	return CreateDevice();
 }
 
 bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params)
 {
 #ifdef _WINDOWS
-    if (params.enablePerMonitorDPI)
-    {
-        // this needs to happen before glfwInit in order to override GLFW behavior
-        SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-    }
-    else {
-        SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
-    }
+	if (params.enablePerMonitorDPI)
+	{
+		// this needs to happen before glfwInit in order to override GLFW behavior
+		SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+	}
+	else {
+		SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
+	}
 #endif
 
-    m_DeviceParams = params;
-    m_DeviceParams.headlessDevice = false;
-    m_RequestedVSync = params.vsyncEnabled;
+	m_DeviceParams = params;
+	m_DeviceParams.headlessDevice = false;
+	m_RequestedVSync = params.vsyncEnabled;
 
-    if (!CreateInstance(m_DeviceParams))
-        return false;
+	if (!CreateInstance(m_DeviceParams))
+		return false;
 
-    glfwSetErrorCallback(ErrorCallback_GLFW);
+	glfwSetErrorCallback(ErrorCallback_GLFW);
 
-    glfwDefaultWindowHints();
+	glfwDefaultWindowHints();
 
-    bool foundFormat = false;
-    for (const auto& info : formatInfo)
-    {
-        if (info.format == params.swapChainFormat)
-        {
-            glfwWindowHint(GLFW_RED_BITS, info.redBits);
-            glfwWindowHint(GLFW_GREEN_BITS, info.greenBits);
-            glfwWindowHint(GLFW_BLUE_BITS, info.blueBits);
-            glfwWindowHint(GLFW_ALPHA_BITS, info.alphaBits);
-            glfwWindowHint(GLFW_DEPTH_BITS, info.depthBits);
-            glfwWindowHint(GLFW_STENCIL_BITS, info.stencilBits);
-            foundFormat = true;
-            break;
-        }
-    }
+	bool foundFormat = false;
+	for (const auto& info : formatInfo)
+	{
+		if (info.format == params.swapChainFormat)
+		{
+			glfwWindowHint(GLFW_RED_BITS, info.redBits);
+			glfwWindowHint(GLFW_GREEN_BITS, info.greenBits);
+			glfwWindowHint(GLFW_BLUE_BITS, info.blueBits);
+			glfwWindowHint(GLFW_ALPHA_BITS, info.alphaBits);
+			glfwWindowHint(GLFW_DEPTH_BITS, info.depthBits);
+			glfwWindowHint(GLFW_STENCIL_BITS, info.stencilBits);
+			foundFormat = true;
+			break;
+		}
+	}
 
-    assert(foundFormat);
+	assert(foundFormat);
 
-    glfwWindowHint(GLFW_SAMPLES, params.swapChainSampleCount);
-    glfwWindowHint(GLFW_REFRESH_RATE, params.refreshRate);
+	glfwWindowHint(GLFW_SAMPLES, params.swapChainSampleCount);
+	glfwWindowHint(GLFW_REFRESH_RATE, params.refreshRate);
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);   // Ignored for fullscreen
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);   // Ignored for fullscreen
 
-    m_Window = glfwCreateWindow(params.backBufferWidth, params.backBufferHeight,
-                                ""/*windowTitle*/, // NOTE: We set window name in "SetInformativeWindowTitle()"
-                                params.startFullscreen ? glfwGetPrimaryMonitor() : nullptr,
-                                nullptr);
+	m_Window = glfwCreateWindow(params.backBufferWidth, params.backBufferHeight,
+								""/*windowTitle*/, // NOTE: We set window name in "SetInformativeWindowTitle()"
+								params.startFullscreen ? glfwGetPrimaryMonitor() : nullptr,
+								nullptr);
 
-    if (m_Window == nullptr)
-    {
-        return false;
-    }
+	if (m_Window == nullptr)
+	{
+		return false;
+	}
 
-    if (params.startFullscreen)
-    {
-        glfwSetWindowMonitor(m_Window, glfwGetPrimaryMonitor(), 0, 0,
-            m_DeviceParams.backBufferWidth, m_DeviceParams.backBufferHeight, m_DeviceParams.refreshRate);
-    }
-    else
-    {
-        int fbWidth = 0, fbHeight = 0;
-        glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
-        m_DeviceParams.backBufferWidth = fbWidth;
-        m_DeviceParams.backBufferHeight = fbHeight;
-    }
+	if (params.startFullscreen)
+	{
+		glfwSetWindowMonitor(m_Window, glfwGetPrimaryMonitor(), 0, 0,
+			m_DeviceParams.backBufferWidth, m_DeviceParams.backBufferHeight, m_DeviceParams.refreshRate);
+	}
+	else
+	{
+		int fbWidth = 0, fbHeight = 0;
+		glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
+		m_DeviceParams.backBufferWidth = fbWidth;
+		m_DeviceParams.backBufferHeight = fbHeight;
+	}
 
-    m_WindowTitle = "";
+	m_WindowTitle = "";
 
-    glfwSetWindowUserPointer(m_Window, this);
+	glfwSetWindowUserPointer(m_Window, this);
 
-    if (params.windowPosX != -1 && params.windowPosY != -1)
-    {
-        glfwSetWindowPos(m_Window, params.windowPosX, params.windowPosY);
-    }
+	if (params.windowPosX != -1 && params.windowPosY != -1)
+	{
+		glfwSetWindowPos(m_Window, params.windowPosX, params.windowPosY);
+	}
 
-    if (params.startMaximized)
-    {
-        glfwMaximizeWindow(m_Window);
-    }
+	if (params.startMaximized)
+	{
+		glfwMaximizeWindow(m_Window);
+	}
 
-    glfwSetWindowPosCallback(m_Window, WindowPosCallback_GLFW);
-    glfwSetWindowCloseCallback(m_Window, WindowCloseCallback_GLFW);
-    glfwSetWindowRefreshCallback(m_Window, WindowRefreshCallback_GLFW);
-    glfwSetWindowFocusCallback(m_Window, WindowFocusCallback_GLFW);
-    glfwSetWindowIconifyCallback(m_Window, WindowIconifyCallback_GLFW);
-    glfwSetKeyCallback(m_Window, KeyCallback_GLFW);
-    glfwSetCharModsCallback(m_Window, CharModsCallback_GLFW);
-    glfwSetCursorPosCallback(m_Window, MousePosCallback_GLFW);
-    glfwSetMouseButtonCallback(m_Window, MouseButtonCallback_GLFW);
-    glfwSetScrollCallback(m_Window, MouseScrollCallback_GLFW);
-    glfwSetJoystickCallback(JoystickConnectionCallback_GLFW);
+	glfwSetWindowPosCallback(m_Window, WindowPosCallback_GLFW);
+	glfwSetWindowCloseCallback(m_Window, WindowCloseCallback_GLFW);
+	glfwSetWindowRefreshCallback(m_Window, WindowRefreshCallback_GLFW);
+	glfwSetWindowFocusCallback(m_Window, WindowFocusCallback_GLFW);
+	glfwSetWindowIconifyCallback(m_Window, WindowIconifyCallback_GLFW);
+	glfwSetKeyCallback(m_Window, KeyCallback_GLFW);
+	glfwSetCharModsCallback(m_Window, CharModsCallback_GLFW);
+	glfwSetCursorPosCallback(m_Window, MousePosCallback_GLFW);
+	glfwSetMouseButtonCallback(m_Window, MouseButtonCallback_GLFW);
+	glfwSetScrollCallback(m_Window, MouseScrollCallback_GLFW);
+	glfwSetJoystickCallback(JoystickConnectionCallback_GLFW);
 
-    // If there are multiple device managers, then this would be called by each one which isn't necessary
-    // but should not hurt.
-    JoyStickManager::Singleton().EnumerateJoysticks();
+	// If there are multiple device managers, then this would be called by each one which isn't necessary
+	// but should not hurt.
+	JoyStickManager::Singleton().EnumerateJoysticks();
 
-    if (!CreateDevice())
-        return false;
+	if (!CreateDevice())
+		return false;
 
-    if (!CreateSwapChain())
-        return false;
+	if (!CreateSwapChain())
+		return false;
 
-    glfwShowWindow(m_Window);
+	glfwShowWindow(m_Window);
 
-    // reset the back buffer size state to enforce a resize event
-    m_DeviceParams.backBufferWidth = 0;
-    m_DeviceParams.backBufferHeight = 0;
+	// reset the back buffer size state to enforce a resize event
+	m_DeviceParams.backBufferWidth = 0;
+	m_DeviceParams.backBufferHeight = 0;
 
-    UpdateWindowSize();
+	UpdateWindowSize();
 
-    return true;
+	return true;
 }
 
 void DeviceManager::AddRenderPassToFront(IRenderPass *pRenderPass)
 {
-    m_vRenderPasses.remove(pRenderPass);
-    m_vRenderPasses.push_front(pRenderPass);
+	m_vRenderPasses.remove(pRenderPass);
+	m_vRenderPasses.push_front(pRenderPass);
 
-    pRenderPass->BackBufferResizing();
-    pRenderPass->BackBufferResized(
-        m_DeviceParams.backBufferWidth,
-        m_DeviceParams.backBufferHeight,
-        m_DeviceParams.swapChainSampleCount);
+	pRenderPass->BackBufferResizing();
+	pRenderPass->BackBufferResized(
+		m_DeviceParams.backBufferWidth,
+		m_DeviceParams.backBufferHeight,
+		m_DeviceParams.swapChainSampleCount);
 }
 
 void DeviceManager::AddRenderPassToBack(IRenderPass *pRenderPass)
 {
-    m_vRenderPasses.remove(pRenderPass);
-    m_vRenderPasses.push_back(pRenderPass);
+	m_vRenderPasses.remove(pRenderPass);
+	m_vRenderPasses.push_back(pRenderPass);
 
-    pRenderPass->BackBufferResizing();
-    pRenderPass->BackBufferResized(
-        m_DeviceParams.backBufferWidth,
-        m_DeviceParams.backBufferHeight,
-        m_DeviceParams.swapChainSampleCount);
+	pRenderPass->BackBufferResizing();
+	pRenderPass->BackBufferResized(
+		m_DeviceParams.backBufferWidth,
+		m_DeviceParams.backBufferHeight,
+		m_DeviceParams.swapChainSampleCount);
 }
 
 void DeviceManager::RemoveRenderPass(IRenderPass *pRenderPass)
 {
-    m_vRenderPasses.remove(pRenderPass);
+	m_vRenderPasses.remove(pRenderPass);
 }
 
 void DeviceManager::BackBufferResizing()
 {
-    m_SwapChainFramebuffers.clear();
+	m_SwapChainFramebuffers.clear();
 
-    for (auto it : m_vRenderPasses)
-    {
-        it->BackBufferResizing();
-    }
+	for (auto it : m_vRenderPasses)
+	{
+		it->BackBufferResizing();
+	}
 }
 
 void DeviceManager::BackBufferResized()
 {
-    for(auto it : m_vRenderPasses)
-    {
-        it->BackBufferResized(m_DeviceParams.backBufferWidth,
-                              m_DeviceParams.backBufferHeight,
-                              m_DeviceParams.swapChainSampleCount);
-    }
+	for(auto it : m_vRenderPasses)
+	{
+		it->BackBufferResized(m_DeviceParams.backBufferWidth,
+							  m_DeviceParams.backBufferHeight,
+							  m_DeviceParams.swapChainSampleCount);
+	}
 
-    uint32_t backBufferCount = GetBackBufferCount();
-    m_SwapChainFramebuffers.resize(backBufferCount);
-    for (uint32_t index = 0; index < backBufferCount; index++)
-    {
-        m_SwapChainFramebuffers[index] = GetDevice()->createFramebuffer(
-            nvrhi::FramebufferDesc().addColorAttachment(GetBackBuffer(index)));
-    }
+	uint32_t backBufferCount = GetBackBufferCount();
+	m_SwapChainFramebuffers.resize(backBufferCount);
+	for (uint32_t index = 0; index < backBufferCount; index++)
+	{
+		m_SwapChainFramebuffers[index] = GetDevice()->createFramebuffer(
+			nvrhi::FramebufferDesc().addColorAttachment(GetBackBuffer(index)));
+	}
 }
 
 void DeviceManager::Animate(double elapsedTime)
 {
-    for(auto it : m_vRenderPasses)
-    {
-        it->Animate(float(elapsedTime));
-    }
+	for(auto it : m_vRenderPasses)
+	{
+		it->Animate(float(elapsedTime));
+	}
 }
 
 void DeviceManager::Render()
 {
-    BeginFrame();
-    
-    nvrhi::IFramebuffer* framebuffer = m_SwapChainFramebuffers[GetCurrentBackBufferIndex()];
+	BeginFrame();
+	
+	nvrhi::IFramebuffer* framebuffer = m_SwapChainFramebuffers[GetCurrentBackBufferIndex()];
 
-    for (auto it : m_vRenderPasses)
-    {
-        it->Render(framebuffer);
-    }
+	for (auto it : m_vRenderPasses)
+	{
+		it->Render(framebuffer);
+	}
 }
 
 void DeviceManager::UpdateAverageFrameTime(double elapsedTime)
 {
-    m_FrameTimeSum += elapsedTime;
-    m_NumberOfAccumulatedFrames += 1;
-    
-    if (m_FrameTimeSum > m_AverageTimeUpdateInterval && m_NumberOfAccumulatedFrames > 0)
-    {
-        m_AverageFrameTime = m_FrameTimeSum / double(m_NumberOfAccumulatedFrames);
-        m_NumberOfAccumulatedFrames = 0;
-        m_FrameTimeSum = 0.0;
-    }
+	m_FrameTimeSum += elapsedTime;
+	m_NumberOfAccumulatedFrames += 1;
+	
+	if (m_FrameTimeSum > m_AverageTimeUpdateInterval && m_NumberOfAccumulatedFrames > 0)
+	{
+		m_AverageFrameTime = m_FrameTimeSum / double(m_NumberOfAccumulatedFrames);
+		m_NumberOfAccumulatedFrames = 0;
+		m_FrameTimeSum = 0.0;
+	}
 }
 
 void DeviceManager::RunMessageLoop()
 {
-    m_PreviousFrameTimestamp = glfwGetTime();
+	m_PreviousFrameTimestamp = glfwGetTime();
 
-    while(!glfwWindowShouldClose(m_Window))
-    {
-        //If Esc button is pressed we close
+	while(!glfwWindowShouldClose(m_Window))
+	{
+		//If Esc button is pressed we close
 		if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
 			glfwSetWindowShouldClose(m_Window, true);
 		}
 
-        if (m_callbacks.beforeFrame) m_callbacks.beforeFrame(*this);
+		if (m_callbacks.beforeFrame) m_callbacks.beforeFrame(*this);
 
-        glfwPollEvents();
-        UpdateWindowSize();
-        AnimateRenderPresent();
-    }
+		glfwPollEvents();
+		UpdateWindowSize();
+		AnimateRenderPresent();
+	}
 
-    GetDevice()->waitForIdle();
+	GetDevice()->waitForIdle();
 }
 
 void DeviceManager::AnimateRenderPresent()
 {
-    double curTime = glfwGetTime();
-    double elapsedTime = curTime - m_PreviousFrameTimestamp;
+	double curTime = glfwGetTime();
+	double elapsedTime = curTime - m_PreviousFrameTimestamp;
 
 	JoyStickManager::Singleton().EraseDisconnectedJoysticks();
 	JoyStickManager::Singleton().UpdateAllJoysticks(m_vRenderPasses);
 
-    if (m_windowVisible)
-    {
-        if (m_callbacks.beforeAnimate) m_callbacks.beforeAnimate(*this);
-        Animate(elapsedTime);
-        if (m_callbacks.afterAnimate) m_callbacks.afterAnimate(*this);
-        if (m_callbacks.beforeRender) m_callbacks.beforeRender(*this);
-        Render();
-        if (m_callbacks.afterRender) m_callbacks.afterRender(*this);
-        if (m_callbacks.beforePresent) m_callbacks.beforePresent(*this);
-        Present();
-        if (m_callbacks.afterPresent) m_callbacks.afterPresent(*this);
-    }
+	if (m_windowVisible)
+	{
+		if (m_callbacks.beforeAnimate) m_callbacks.beforeAnimate(*this);
+		Animate(elapsedTime);
+		if (m_callbacks.afterAnimate) m_callbacks.afterAnimate(*this);
+		if (m_callbacks.beforeRender) m_callbacks.beforeRender(*this);
+		Render();
+		if (m_callbacks.afterRender) m_callbacks.afterRender(*this);
+		if (m_callbacks.beforePresent) m_callbacks.beforePresent(*this);
+		Present();
+		if (m_callbacks.afterPresent) m_callbacks.afterPresent(*this);
+	}
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(0));
+	std::this_thread::sleep_for(std::chrono::milliseconds(0));
 
-    GetDevice()->runGarbageCollection();
+	GetDevice()->runGarbageCollection();
 
-    UpdateAverageFrameTime(elapsedTime);
-    m_PreviousFrameTimestamp = curTime;
+	UpdateAverageFrameTime(elapsedTime);
+	m_PreviousFrameTimestamp = curTime;
 
-    ++m_FrameIndex;
+	++m_FrameIndex;
 }
 
 void DeviceManager::GetWindowDimensions(int& width, int& height)
 {
-    width = m_DeviceParams.backBufferWidth;
-    height = m_DeviceParams.backBufferHeight;
+	width = m_DeviceParams.backBufferWidth;
+	height = m_DeviceParams.backBufferHeight;
 }
 
 const DeviceCreationParameters& DeviceManager::GetDeviceParams()
 {
-    return m_DeviceParams;
+	return m_DeviceParams;
 }
 
 void DeviceManager::UpdateWindowSize()
 {
-    int width;
-    int height;
-    glfwGetWindowSize(m_Window, &width, &height);
+	int width;
+	int height;
+	glfwGetWindowSize(m_Window, &width, &height);
 
-    if (width == 0 || height == 0)
-    {
-        // window is minimized
-        m_windowVisible = false;
-        return;
-    }
+	if (width == 0 || height == 0)
+	{
+		// window is minimized
+		m_windowVisible = false;
+		return;
+	}
 
-    m_windowVisible = true;
+	m_windowVisible = true;
 
-    if (int(m_DeviceParams.backBufferWidth) != width || 
-        int(m_DeviceParams.backBufferHeight) != height ||
-        (m_DeviceParams.vsyncEnabled != m_RequestedVSync && GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN))
-    {
-        // window is not minimized, and the size has changed
+	if (int(m_DeviceParams.backBufferWidth) != width || 
+		int(m_DeviceParams.backBufferHeight) != height ||
+		(m_DeviceParams.vsyncEnabled != m_RequestedVSync && GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN))
+	{
+		// window is not minimized, and the size has changed
 
-        BackBufferResizing();
+		BackBufferResizing();
 
-        m_DeviceParams.backBufferWidth = width;
-        m_DeviceParams.backBufferHeight = height;
-        m_DeviceParams.vsyncEnabled = m_RequestedVSync;
+		m_DeviceParams.backBufferWidth = width;
+		m_DeviceParams.backBufferHeight = height;
+		m_DeviceParams.vsyncEnabled = m_RequestedVSync;
 
-        ResizeSwapChain();
-        BackBufferResized();
-    }
+		ResizeSwapChain();
+		BackBufferResized();
+	}
 
-    m_DeviceParams.vsyncEnabled = m_RequestedVSync;
+	m_DeviceParams.vsyncEnabled = m_RequestedVSync;
 }
 
 void DeviceManager::WindowPosCallback(int x, int y)
 {
 #ifdef _WINDOWS
-    if (m_DeviceParams.enablePerMonitorDPI)
-    {
-        HWND hwnd = glfwGetWin32Window(m_Window);
-        auto monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+	if (m_DeviceParams.enablePerMonitorDPI)
+	{
+		HWND hwnd = glfwGetWin32Window(m_Window);
+		auto monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 
-        unsigned int dpiX;
-        unsigned int dpiY;
-        GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+		unsigned int dpiX;
+		unsigned int dpiY;
+		GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
 
-        m_DPIScaleFactorX = dpiX / 96.f;
-        m_DPIScaleFactorY = dpiY / 96.f;
-    }
+		m_DPIScaleFactorX = dpiX / 96.f;
+		m_DPIScaleFactorY = dpiY / 96.f;
+	}
 #endif    
-    if (m_EnableRenderDuringWindowMovement && m_SwapChainFramebuffers.size() > 0)
-    {
-        if (m_callbacks.beforeFrame) m_callbacks.beforeFrame(*this);
-        AnimateRenderPresent();
-    }
+	if (m_EnableRenderDuringWindowMovement && m_SwapChainFramebuffers.size() > 0)
+	{
+		if (m_callbacks.beforeFrame) m_callbacks.beforeFrame(*this);
+		AnimateRenderPresent();
+	}
 }
 
 void DeviceManager::KeyboardUpdate(int key, int scancode, int action, int mods)
 {
-    if (key == -1)
-    {
-        // filter unknown keys
-        return;
-    }
+	if (key == -1)
+	{
+		// filter unknown keys
+		return;
+	}
 
-    for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
-    {
-        bool ret = (*it)->KeyboardUpdate(key, scancode, action, mods);
-        if (ret)
-            break;
-    }
+	for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
+	{
+		bool ret = (*it)->KeyboardUpdate(key, scancode, action, mods);
+		if (ret)
+			break;
+	}
 }
 
 void DeviceManager::KeyboardCharInput(unsigned int unicode, int mods)
 {
-    for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
-    {
-        bool ret = (*it)->KeyboardCharInput(unicode, mods);
-        if (ret)
-            break;
-    }
+	for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
+	{
+		bool ret = (*it)->KeyboardCharInput(unicode, mods);
+		if (ret)
+			break;
+	}
 }
 
 void DeviceManager::MousePosUpdate(double xpos, double ypos)
 {
-    xpos /= m_DPIScaleFactorX;
-    ypos /= m_DPIScaleFactorY;
+	xpos /= m_DPIScaleFactorX;
+	ypos /= m_DPIScaleFactorY;
 
-    for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
-    {
-        bool ret = (*it)->MousePosUpdate(xpos, ypos);
-        if (ret)
-            break;
-    }
+	for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
+	{
+		bool ret = (*it)->MousePosUpdate(xpos, ypos);
+		if (ret)
+			break;
+	}
 }
 
 void DeviceManager::MouseButtonUpdate(int button, int action, int mods)
 {
-    for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
-    {
-        bool ret = (*it)->MouseButtonUpdate(button, action, mods);
-        if (ret)
-            break;
-    }
+	for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
+	{
+		bool ret = (*it)->MouseButtonUpdate(button, action, mods);
+		if (ret)
+			break;
+	}
 }
 
 void DeviceManager::MouseScrollUpdate(double xoffset, double yoffset)
 {
-    for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
-    {
-        bool ret = (*it)->MouseScrollUpdate(xoffset, yoffset);
-        if (ret)
-            break;
-    }
+	for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
+	{
+		bool ret = (*it)->MouseScrollUpdate(xoffset, yoffset);
+		if (ret)
+			break;
+	}
 }
 
 void JoyStickManager::EnumerateJoysticks()
@@ -668,42 +668,42 @@ void JoyStickManager::UpdateAllJoysticks(const std::list<IRenderPass*>& passes)
 
 static void ApplyDeadZone(dm::float2& v, const float deadZone = 0.1f)
 {
-    v *= std::max(dm::length(v) - deadZone, 0.f) / (1.f - deadZone);
+	v *= std::max(dm::length(v) - deadZone, 0.f) / (1.f - deadZone);
 }
 
 void JoyStickManager::UpdateJoystick(int j, const std::list<IRenderPass*>& passes)
 {
-    GLFWgamepadstate gamepadState;
-    glfwGetGamepadState(j, &gamepadState);
+	GLFWgamepadstate gamepadState;
+	glfwGetGamepadState(j, &gamepadState);
 
 	float* axisValues = gamepadState.axes;
 
-    auto updateAxis = [&] (int axis, float axisVal)
-    {
+	auto updateAxis = [&] (int axis, float axisVal)
+	{
 		for (auto it = passes.crbegin(); it != passes.crend(); it++)
 		{
 			bool ret = (*it)->JoystickAxisUpdate(axis, axisVal);
 			if (ret)
 				break;
 		}
-    };
+	};
 
-    {
-        dm::float2 v(axisValues[GLFW_GAMEPAD_AXIS_LEFT_X], axisValues[GLFW_GAMEPAD_AXIS_LEFT_Y]);
-        ApplyDeadZone(v);
-        updateAxis(GLFW_GAMEPAD_AXIS_LEFT_X, v.x);
-        updateAxis(GLFW_GAMEPAD_AXIS_LEFT_Y, v.y);
-    }
+	{
+		dm::float2 v(axisValues[GLFW_GAMEPAD_AXIS_LEFT_X], axisValues[GLFW_GAMEPAD_AXIS_LEFT_Y]);
+		ApplyDeadZone(v);
+		updateAxis(GLFW_GAMEPAD_AXIS_LEFT_X, v.x);
+		updateAxis(GLFW_GAMEPAD_AXIS_LEFT_Y, v.y);
+	}
 
-    {
-        dm::float2 v(axisValues[GLFW_GAMEPAD_AXIS_RIGHT_X], axisValues[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
-        ApplyDeadZone(v);
-        updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_X, v.x);
-        updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_Y, v.y);
-    }
+	{
+		dm::float2 v(axisValues[GLFW_GAMEPAD_AXIS_RIGHT_X], axisValues[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
+		ApplyDeadZone(v);
+		updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_X, v.x);
+		updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_Y, v.y);
+	}
 
-    updateAxis(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, axisValues[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]);
-    updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, axisValues[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]);
+	updateAxis(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER, axisValues[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]);
+	updateAxis(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER, axisValues[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]);
 
 	for (int b = 0; b != GLFW_GAMEPAD_BUTTON_LAST; ++b)
 	{
@@ -719,124 +719,124 @@ void JoyStickManager::UpdateJoystick(int j, const std::list<IRenderPass*>& passe
 
 void DeviceManager::Shutdown()
 {
-    m_SwapChainFramebuffers.clear();
+	m_SwapChainFramebuffers.clear();
 
-    DestroyDeviceAndSwapChain();
+	DestroyDeviceAndSwapChain();
 
-    if (m_Window)
-    {
-        glfwDestroyWindow(m_Window);
-        m_Window = nullptr;
-    }
+	if (m_Window)
+	{
+		glfwDestroyWindow(m_Window);
+		m_Window = nullptr;
+	}
 
-    glfwTerminate();
+	glfwTerminate();
 
-    m_InstanceCreated = false;
+	m_InstanceCreated = false;
 }
 
 nvrhi::IFramebuffer* donut::app::DeviceManager::GetCurrentFramebuffer()
 {
-    return GetFramebuffer(GetCurrentBackBufferIndex());
+	return GetFramebuffer(GetCurrentBackBufferIndex());
 }
 
 nvrhi::IFramebuffer* donut::app::DeviceManager::GetFramebuffer(uint32_t index)
 {
-    if (index < m_SwapChainFramebuffers.size())
-        return m_SwapChainFramebuffers[index];
+	if (index < m_SwapChainFramebuffers.size())
+		return m_SwapChainFramebuffers[index];
 
-    return nullptr;
+	return nullptr;
 }
 
 void DeviceManager::SetWindowTitle(const char* title)
 {
-    assert(title);
-    if (m_WindowTitle == title)
-        return;
+	assert(title);
+	if (m_WindowTitle == title)
+		return;
 
-    glfwSetWindowTitle(m_Window, title);
+	glfwSetWindowTitle(m_Window, title);
 
-    m_WindowTitle = title;
+	m_WindowTitle = title;
 }
 
 void DeviceManager::SetInformativeWindowTitle(const char* applicationName, const char* extraInfo)
 {
-    std::stringstream ss;
-    ss << applicationName ? applicationName : "Fusion";
+	std::stringstream ss;
+	ss << applicationName ? applicationName : "Fusion";
 
-    ss << " (" << nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI());
+	ss << " (" << nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI());
 
-    if (m_DeviceParams.enableDebugRuntime)
-    {
-        if (GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
-            ss << ", VulkanValidationLayer";
-        else
-            ss << ", DebugRuntime";
-    }
+	if (m_DeviceParams.enableDebugRuntime)
+	{
+		if (GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
+			ss << ", VulkanValidationLayer";
+		else
+			ss << ", DebugRuntime";
+	}
 
-    if (m_DeviceParams.enableNvrhiValidationLayer)
-    {
-        ss << ", NvrhiValidationLayer";
-    }
+	if (m_DeviceParams.enableNvrhiValidationLayer)
+	{
+		ss << ", NvrhiValidationLayer";
+	}
 
-    ss << ")";
+	ss << ")";
 
-    // Adding this info on ImGui instead
-    /*double frameTime = GetAverageFrameTimeSeconds();
-    if (frameTime > 0)
-    {
-        ss << " - " << std::setprecision(4) << (1.0 / frameTime) << " FPS ";
-    }*/
+	// Adding this info on ImGui instead
+	/*double frameTime = GetAverageFrameTimeSeconds();
+	if (frameTime > 0)
+	{
+		ss << " - " << std::setprecision(4) << (1.0 / frameTime) << " FPS ";
+	}*/
 
-    if (extraInfo)
-        ss << extraInfo;
+	if (extraInfo)
+		ss << extraInfo;
 
-    SetWindowTitle(ss.str().c_str());
+	SetWindowTitle(ss.str().c_str());
 }
 
 donut::app::DeviceManager* donut::app::DeviceManager::Create(nvrhi::GraphicsAPI api)
 {
-    assert(api != nvrhi::GraphicsAPI::D3D11); // we do not support DX11
+	assert(api != nvrhi::GraphicsAPI::D3D11); // we do not support DX11
 
-    switch (api)
-    {
+	switch (api)
+	{
 #if USE_DX12
-    case nvrhi::GraphicsAPI::D3D12:
-        return CreateD3D12();
+	case nvrhi::GraphicsAPI::D3D12:
+		return CreateD3D12();
 #endif
 #if USE_VK
-    case nvrhi::GraphicsAPI::VULKAN:
-        return CreateVK();
+	case nvrhi::GraphicsAPI::VULKAN:
+		return CreateVK();
 #endif
-    default:
-        log::error("DeviceManager::Create: Unsupported Graphics API (%d)", api);
-        return nullptr;
-    }
+	default:
+		log::error("DeviceManager::Create: Unsupported Graphics API (%d)", api);
+		return nullptr;
+	}
 }
 
 DefaultMessageCallback& DefaultMessageCallback::GetInstance()
 {
-    static DefaultMessageCallback Instance;
-    return Instance;
+	static DefaultMessageCallback Instance;
+	return Instance;
 }
 
 void DefaultMessageCallback::message(nvrhi::MessageSeverity severity, const char* messageText)
 {
-    donut::log::Severity donutSeverity = donut::log::Severity::Info;
-    switch (severity)
-    {
-    case nvrhi::MessageSeverity::Info:
-        donutSeverity = donut::log::Severity::Info;
-        break;
-    case nvrhi::MessageSeverity::Warning:
-        donutSeverity = donut::log::Severity::Warning;
-        break;
-    case nvrhi::MessageSeverity::Error:
-        donutSeverity = donut::log::Severity::Error;
-        break;
-    case nvrhi::MessageSeverity::Fatal:
-        donutSeverity = donut::log::Severity::Fatal;
-        break;
-    }
-    
-    donut::log::message(donutSeverity, "%s", messageText);
+	donut::log::Severity donutSeverity = donut::log::Severity::Info;
+	switch (severity)
+	{
+	case nvrhi::MessageSeverity::Info:
+		donutSeverity = donut::log::Severity::Info;
+		break;
+	case nvrhi::MessageSeverity::Warning:
+		donutSeverity = donut::log::Severity::Warning;
+		break;
+	case nvrhi::MessageSeverity::Error:
+		donutSeverity = donut::log::Severity::Error;
+		break;
+	case nvrhi::MessageSeverity::Fatal:
+		donutSeverity = donut::log::Severity::Fatal;
+		break;
+	}
+	
+	donut::log::message(donutSeverity, "%s", messageText);
 }

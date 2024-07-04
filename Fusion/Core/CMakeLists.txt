@@ -31,6 +31,9 @@ set(SRC_FILES
 	"VFS/VFS.cpp"
 	"VFS/WinResFS.h"
 	"VFS/WinResFS.cpp"
+	
+	"Editors/Material/MaterialEditor.h"
+	"Editors/Material/MaterialEditor.cpp"
 
 	"Engine/BindingCache.h"
 	"Engine/BindingCache.cpp"
@@ -69,6 +72,19 @@ set(SRC_FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c"
+	
+	"Events/internal/eventpolicies_i.h"
+	"Events/internal/eventqueue_i.h"
+	"Events/internal/typeutil_i.h"
+	"Events/utilities/anydata.h"
+	"Events/utilities/anyid.h"
+	"Events/utilities/eventmaker.h"
+	"Events/utilities/eventutil.h"
+	"Events/utilities/orderedqueuelist.h"
+	"Events/callbacklist.h"
+	"Events/eventdispatcher.h"
+	"Events/eventpolicies.h"
+	"Events/eventqueue.h"
 
 	"Render/DrawStrategy.h"
 	"Render/DrawStrategy.cpp"
@@ -88,6 +104,10 @@ set(SRC_FILES
 	"ShaderMake/ShaderBlob.h"
 	"ShaderMake/ShaderBlob.cpp"
 	"ShaderMake/ShaderMake.hpp"
+	
+	"SignalSlot/adapter/boost.hpp"
+	"SignalSlot/adapter/qt.hpp"
+	"SignalSlot/signal.hpp"
 
     "Utilities/Logger/Log.h"
     "Utilities/Logger/Log.cpp"
@@ -226,12 +246,34 @@ source_group("Utilities\\Math" FILES
 	"Utilities/Math/vector.h"
 	"Utilities/Math/vector.cpp")
 source_group("App\\Imgui" FILES
- "App/Imgui/imgui_console.h"
- "App/Imgui/imgui_console.cpp"
- "App/Imgui/imgui_nvrhi.h"
- "App/Imgui/imgui_nvrhi.cpp"
- "App/Imgui/imgui_renderer.h"
- "App/Imgui/imgui_renderer.cpp")
+	"App/Imgui/imgui_console.h"
+	"App/Imgui/imgui_console.cpp"
+	"App/Imgui/imgui_nvrhi.h"
+	"App/Imgui/imgui_nvrhi.cpp"
+	"App/Imgui/imgui_renderer.h"
+	"App/Imgui/imgui_renderer.cpp")
+source_group("Editors\\Material" FILES
+	"Editors/Material/MaterialEditor.h"
+	"Editors/Material/MaterialEditor.cpp")
+source_group("Engine\\Events\\Internal" FILES
+	"Events/internal/eventpolicies_i.h"
+	"Events/internal/eventqueue_i.h"
+	"Events/internal/typeutil_i.h")
+source_group("Engine\\Events\\Utilities" FILES
+	"Events/utilities/anydata.h"
+	"Events/utilities/anyid.h"
+	"Events/utilities/eventmaker.h"
+	"Events/utilities/eventutil.h"
+	"Events/utilities/orderedqueuelist.h")
+ source_group("Engine\\Events" FILES
+	"Events/callbacklist.h"
+	"Events/eventdispatcher.h"
+	"Events/eventpolicies.h"
+	"Events/eventqueue.h")
+source_group("Engine\\SignalSlot" FILES	
+	"SignalSlot/adapter/boost.hpp"
+	"SignalSlot/adapter/qt.hpp"
+	"SignalSlot/signal.hpp")
 
 add_library(Core STATIC ${SRC_FILES})
 

@@ -11,6 +11,10 @@
 
 #include "../../Core/Render/ForwardShadingPass.h"
 
+// todo_rt; testing
+#include "../../Core/Editors/Material/MaterialEditor.h"
+//#include "../../Core/SignalSlot/signal.hpp"
+
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
@@ -98,11 +102,35 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::SeparatorText("Material Options:");
 
+	// todo_rt; testing, get all the meshes
+	auto res = mMaterialsPlaygroundApp->GetScene()->GetSceneGraph();
+	auto meshList = res->GetMeshes();
+	auto matList = res->GetMaterials();
+	//auto matlist = MeshsList[0]->name;
+	
+	for (auto mesh : meshList)
+	{
+		for (auto geo : mesh->geometries)
+		{
+			auto mat = geo->material;
+
+			ImGui::Text("%s", mat->name.c_str());
+		}
+	}
+
+
+	auto a = 22;
+
+
+
 	ImGui::End();
 }
 
 bool MaterialsPlayground::Init()
-{	
+{
+	// todo_rt; testing
+	donut::engine::MaterialEditor testing;
+	
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Common", PBRTesting_Private::commonShaderPath);
 	rootFS->mount("/assets/Textures", PBRTesting_Private::assetTexturesPath);
@@ -126,7 +154,7 @@ bool MaterialsPlayground::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::damangedHelmetModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -190,7 +218,7 @@ bool MaterialsPlayground::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFi
 	assert(m_TextureCache);
 
 	if(!mScene)
-		mScene = std::make_unique<donut::engine::Scene>(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
+		mScene = std::make_shared<donut::engine::Scene>(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 	
 	if (mScene->Load(sceneFileName))
 	{

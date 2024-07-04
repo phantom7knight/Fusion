@@ -51,6 +51,8 @@ int main(int __argc, const char* __argv[])
 		// Shader Generation Setup
 		if (!MainPBRTesting_Private::locShaderSetup(deviceManager->GetGraphicsAPI()))
 		{
+			deviceManager->Shutdown();
+			delete deviceManager;
 			donut::log::fatal("Shader creation setup failed!!!");
 		}
 	}

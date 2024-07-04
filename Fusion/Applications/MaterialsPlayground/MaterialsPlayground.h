@@ -102,6 +102,7 @@ public:
 	bool MouseButtonUpdate(int button, int action, int mods) override;
 
 	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
+	std::shared_ptr<donut::engine::Scene> GetScene() { return mScene; }
 
 	UIOptions mUIOptions;
 
@@ -111,7 +112,7 @@ private:
 	donut::engine::PlanarView mView;
 	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
-	std::unique_ptr<donut::engine::Scene> mScene;
+	std::shared_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
