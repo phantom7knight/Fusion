@@ -1,29 +1,29 @@
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 
 set(SRC_FILES
-    "App/Camera/Camera.h"
-    "App/Camera/Camera.cpp"
+	"App/Camera/Camera.h"
+	"App/Camera/Camera.cpp"
 
-    "App/DX12/DeviceManager_DX12.cpp"
-    "App/Vulkan/DeviceManager_VK.cpp"
+	"App/DX12/DeviceManager_DX12.cpp"
+	"App/Vulkan/DeviceManager_VK.cpp"
 	
-    "App/Imgui/imgui_console.h"
-    "App/Imgui/imgui_console.cpp"
-    "App/Imgui/imgui_nvrhi.h"
-    "App/Imgui/imgui_nvrhi.cpp"
-    "App/Imgui/imgui_renderer.h"
-    "App/Imgui/imgui_renderer.cpp"
+	"App/Imgui/imgui_console.h"
+	"App/Imgui/imgui_console.cpp"
+	"App/Imgui/imgui_nvrhi.h"
+	"App/Imgui/imgui_nvrhi.cpp"
+	"App/Imgui/imgui_renderer.h"
+	"App/Imgui/imgui_renderer.cpp"
 	
-    "App/DeviceManager.h"
-    "App/DeviceManager.cpp"
+	"App/DeviceManager.h"
+	"App/DeviceManager.cpp"
 	
 	"App/ApplicationBase.h"
-    "App/ApplicationBase.cpp"
+	"App/ApplicationBase.cpp"
 
-    "Threading/ThreadPool_Light.hpp"
-    "Threading/ThreadPool.hpp"
+	"Threading/ThreadPool_Light.hpp"
+	"Threading/ThreadPool.hpp"
 
-    "VFS/Compression.h"
+	"VFS/Compression.h"
 	"VFS/Compression.cpp"
 	"VFS/TarFile.h"
 	"VFS/TarFile.cpp"
@@ -72,19 +72,6 @@ set(SRC_FILES
 	"Engine/View.h"
 	"Engine/View.cpp"
 	"Engine/stb_impl.c"
-	
-	"Events/internal/eventpolicies_i.h"
-	"Events/internal/eventqueue_i.h"
-	"Events/internal/typeutil_i.h"
-	"Events/utilities/anydata.h"
-	"Events/utilities/anyid.h"
-	"Events/utilities/eventmaker.h"
-	"Events/utilities/eventutil.h"
-	"Events/utilities/orderedqueuelist.h"
-	"Events/callbacklist.h"
-	"Events/eventdispatcher.h"
-	"Events/eventpolicies.h"
-	"Events/eventqueue.h"
 
 	"Render/DrawStrategy.h"
 	"Render/DrawStrategy.cpp"
@@ -109,19 +96,19 @@ set(SRC_FILES
 	"SignalSlot/adapter/qt.hpp"
 	"SignalSlot/signal.hpp"
 
-    "Utilities/Logger/Log.h"
-    "Utilities/Logger/Log.cpp"
+	"Utilities/Logger/Log.h"
+	"Utilities/Logger/Log.cpp"
 	
-    "Utilities/Macros.hpp"
+	"Utilities/Macros.hpp"
 	
 	"Utilities/Utilities.hpp"
 	
 	"Utilities/json.h"
 	"Utilities/json.cpp"
 	
-    "Utilities/Timer.h"
+	"Utilities/Timer.h"
 	
-    "Utilities/string_utils.h"
+	"Utilities/string_utils.h"
 	"Utilities/string_utils.cpp"
 	
 	"Utilities/Math/affine.h"
@@ -255,21 +242,6 @@ source_group("App\\Imgui" FILES
 source_group("Editors\\Material" FILES
 	"Editors/Material/MaterialEditor.h"
 	"Editors/Material/MaterialEditor.cpp")
-source_group("Engine\\Events\\Internal" FILES
-	"Events/internal/eventpolicies_i.h"
-	"Events/internal/eventqueue_i.h"
-	"Events/internal/typeutil_i.h")
-source_group("Engine\\Events\\Utilities" FILES
-	"Events/utilities/anydata.h"
-	"Events/utilities/anyid.h"
-	"Events/utilities/eventmaker.h"
-	"Events/utilities/eventutil.h"
-	"Events/utilities/orderedqueuelist.h")
- source_group("Engine\\Events" FILES
-	"Events/callbacklist.h"
-	"Events/eventdispatcher.h"
-	"Events/eventpolicies.h"
-	"Events/eventqueue.h")
 source_group("Engine\\SignalSlot" FILES	
 	"SignalSlot/adapter/boost.hpp"
 	"SignalSlot/adapter/qt.hpp"
@@ -278,7 +250,7 @@ source_group("Engine\\SignalSlot" FILES
 add_library(Core STATIC ${SRC_FILES})
 
 if (MSVC)
-    set (COMPILE_OPTIONS /W3 /TP)
+	set (COMPILE_OPTIONS /W3 /TP)
 	set_property(TARGET Core PROPERTY CXX_STANDARD 20)
 endif ()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /TP")
@@ -288,20 +260,20 @@ endif ()
 # Enable hot reload in Visual studio 2022.
 if (MSVC AND WIN32 AND NOT MSVC_VERSION VERSION_LESS 141)
 
-    target_link_options(Core PRIVATE $<$<CONFIG:Debug>:/INCREMENTAL>)
-    target_compile_options(Core PRIVATE $<$<CONFIG:Debug>:/Zi>)
+	target_link_options(Core PRIVATE $<$<CONFIG:Debug>:/INCREMENTAL>)
+	target_compile_options(Core PRIVATE $<$<CONFIG:Debug>:/Zi>)
 
 endif()
 
 # Setup precompiled headers.
 target_precompile_headers(
-    Core
-    PUBLIC
-    "CorePCH.hpp"
+	Core
+	PUBLIC
+	"CorePCH.hpp"
 )
 
 # Link libraries, compile definitions, and set the FOLDER property
-target_link_libraries(Core PUBLIC External) #nvrhi
+target_link_libraries(Core PUBLIC External)
 target_compile_definitions(Core PRIVATE 
 USE_DX12=1
 USE_VK=1

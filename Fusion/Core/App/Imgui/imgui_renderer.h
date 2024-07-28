@@ -55,50 +55,50 @@ SOFTWARE.
 
 namespace donut::vfs
 {
-    class IBlob;
-    class IFileSystem;
+	class IBlob;
+	class IFileSystem;
 }
 
 namespace donut::engine
 {
-    class ShaderFactory;
+	class ShaderFactory;
 }
 
 namespace donut::app
 {
-    // base class to build IRenderPass-based UIs using ImGui through NVRHI
-    class ImGui_Renderer : public IRenderPass
-    {
-    protected:
+	// base class to build IRenderPass-based UIs using ImGui through NVRHI
+	class ImGui_Renderer : public IRenderPass
+	{
+	protected:
 
-        std::unique_ptr<ImGui_NVRHI> imgui_nvrhi;
+		std::unique_ptr<ImGui_NVRHI> imgui_nvrhi;
 
-        // buffer mouse click and keypress events to make sure we don't lose events which last less than a full frame
-        std::array<bool, 3> mouseDown = { false };
-        std::array<bool, GLFW_KEY_LAST + 1> keyDown = { false };
+		// buffer mouse click and keypress events to make sure we don't lose events which last less than a full frame
+		std::array<bool, 3> mouseDown = { false };
+		std::array<bool, GLFW_KEY_LAST + 1> keyDown = { false };
 
-    public:
-        ImGui_Renderer(DeviceManager *devManager);
-        ~ImGui_Renderer();
-        bool Init(std::shared_ptr<engine::ShaderFactory> shaderFactory);
-        
+	public:
+		ImGui_Renderer(DeviceManager *devManager);
+		~ImGui_Renderer();
+		bool Init(std::shared_ptr<engine::ShaderFactory> shaderFactory);
+		
 		ImFont* LoadFont(vfs::IFileSystem& fs, std::filesystem::path const& fontFile, float fontSize);
 
-        virtual bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
-        virtual bool KeyboardCharInput(unsigned int unicode, int mods) override;
-        virtual bool MousePosUpdate(double xpos, double ypos) override;
-        virtual bool MouseScrollUpdate(double xoffset, double yoffset) override;
-        virtual bool MouseButtonUpdate(int button, int action, int mods) override;
-        virtual void Animate(float elapsedTimeSeconds) override;
-        virtual void Render(nvrhi::IFramebuffer* framebuffer) override;
-        virtual void BackBufferResizing() override;
+		virtual bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
+		virtual bool KeyboardCharInput(unsigned int unicode, int mods) override;
+		virtual bool MousePosUpdate(double xpos, double ypos) override;
+		virtual bool MouseScrollUpdate(double xoffset, double yoffset) override;
+		virtual bool MouseButtonUpdate(int button, int action, int mods) override;
+		virtual void Animate(float elapsedTimeSeconds) override;
+		virtual void Render(nvrhi::IFramebuffer* framebuffer) override;
+		virtual void BackBufferResizing() override;
 
-    protected:
-        // creates the UI in ImGui, updates internal UI state
-        virtual void BuildUI(void) = 0;
+	protected:
+		// creates the UI in ImGui, updates internal UI state
+		virtual void BuildUI(void) = 0;
 
-        void BeginFullScreenWindow();
-        void DrawScreenCenteredText(const char* text);
-        void EndFullScreenWindow();
-    };
+		void BeginFullScreenWindow();
+		void DrawScreenCenteredText(const char* text);
+		void EndFullScreenWindow();
+	};
 }

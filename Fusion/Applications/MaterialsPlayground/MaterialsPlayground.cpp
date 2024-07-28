@@ -11,10 +11,6 @@
 
 #include "../../Core/Render/ForwardShadingPass.h"
 
-// todo_rt; testing
-#include "../../Core/Editors/Material/MaterialEditor.h"
-//#include "../../Core/SignalSlot/signal.hpp"
-
 using namespace donut::math;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
@@ -102,35 +98,64 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::SeparatorText("Material Options:");
 
-	// todo_rt; testing, get all the meshes
-	auto res = mMaterialsPlaygroundApp->GetScene()->GetSceneGraph();
-	auto meshList = res->GetMeshes();
-	auto matList = res->GetMaterials();
-	//auto matlist = MeshsList[0]->name;
-	
-	for (auto mesh : meshList)
+	// todo_rt; testing
+	ImGui::Checkbox("Enable Material Editor", &mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor);
+	if (mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor) // todo_rt; handle the turn on off condition better
 	{
-		for (auto geo : mesh->geometries)
+		if (auto sceneGraph = mMaterialsPlaygroundApp->GetScene()->GetSceneGraph())
 		{
-			auto mat = geo->material;
+			auto const& meshInstances = sceneGraph->GetMeshInstances();
+			const char* currentSelectedMesh = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->name.c_str();
+			if (ImGui::BeginCombo("Meshes", currentSelectedMesh))
+			{
+				for (int i = 0; i < meshInstances.size(); ++i)
+				{
+					const bool idx = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
+					if (ImGui::Selectable(meshInstances[i]->GetMesh()->name.c_str(), idx))
+						mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx = i;
 
-			ImGui::Text("%s", mat->name.c_str());
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (idx)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			const char* currentMeshMaterialName = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material->name.c_str();
+
+			donut::engine::MaterialEditorData matEditorData;
+			matEditorData.mGLTFMaterial = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
+
+			mMaterialEditor->Show(matEditorData);
+
+#pragma region Material-Selection
+			//if (ImGui::BeginCombo("Material", currentMeshMaterialName))
+				//{
+				//	for (int i = 0; i < meshInstances.size(); ++i)
+				//	{
+				//		const bool idx = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
+				//		if (ImGui::Selectable(meshInstances[i]->GetMesh()->name.c_str(), idx))
+				//			mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx = i;
+
+				//		// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				//		if (idx)
+				//			ImGui::SetItemDefaultFocus();
+				//	}
+
+				//	ImGui::EndCombo();
+				//}
+#pragma endregion
+			
 		}
 	}
-
-
-	auto a = 22;
-
-
-
 	ImGui::End();
+}
+void UIRenderer::RefereshMaterialEditor()
+{
 }
 
 bool MaterialsPlayground::Init()
-{
-	// todo_rt; testing
-	donut::engine::MaterialEditor testing;
-	
+{	
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Common", PBRTesting_Private::commonShaderPath);
 	rootFS->mount("/assets/Textures", PBRTesting_Private::assetTexturesPath);
@@ -154,7 +179,7 @@ bool MaterialsPlayground::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::damangedHelmetModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -172,7 +197,7 @@ bool MaterialsPlayground::Init()
 			{
 				for (int j = 0; j < 1; ++j)
 				{
-					auto modelNode = mScene->LoadAtLeaf(PBRTesting_Private::dragonAttenuationModel);
+					auto modelNode = mScene->LoadAtLeaf(PBRTesting_Private::duckModel);
 					modelNode->SetName(std::format("Model {}", count + 1));
 					modelNode->SetTranslation(double3(0.0 + i * 4, 2.0, -5.5 + j * 3));
 					modelNode->SetScaling(double3(1.2f));
@@ -301,6 +326,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	mView.UpdateCache();
 
 	mCommandList->open();
+
+	mScene->RefreshBuffers(mCommandList, GetFrameIndex());
 
 #ifdef _DEBUG
 	mCommandList->beginMarker("GBuffer Fill Pass");

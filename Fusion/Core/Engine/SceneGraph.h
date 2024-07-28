@@ -451,7 +451,7 @@ namespace donut::engine
 
     // A container that tracks unique resources of the same type used by some entity, for example unique meshes used in a scene graph.
     // It works by putting the resource shared pointers into a map and associating a reference count with each resource.
-    // When the resource is added and released an equal number of times, its refrence count reaches zero, and it's removed from the container.
+    // When the resource is added and released an equal number of times, its reference count reaches zero, and it's removed from the container.
     template<typename T>
     class ResourceTracker
     {

@@ -1,37 +1,79 @@
 #pragma once
 
 #include "../../Engine/SceneTypes.h"
-
-// Signal-Slot
 #include "../../SignalSlot/signal.hpp"
-
-void Testing()
-{
-	auto lambda = []() { std::cout << "lambda\n"; };
-
-	donut::engine::SigSlot::signal<> sig;
-
-	sig.connect(lambda);
-
-	sig();
-
-}
+#include "../../Engine/SceneGraph.h"
 
 
 namespace donut::engine
 {
+	using namespace donut::engine::SigSlot;
+
+	struct MatEditorOptions
+	{
+		MatEditorOptions() : mData(0) {}
+
+		void setSelectedMesh(int value)
+		{
+			mData = (mData & 0xFFF0) | (value & 0xF); // 4 bits for mSelectedMesh
+		}
+
+		int getSelectedMesh() const
+		{
+			return mData & 0xF;
+		}
+
+		void setSelectedMaterialDomain(int value)
+		{
+			mData = (mData & 0xFF0F) | ((value & 0xF) << 4); // 4 bits for mSelectedDomain
+		}
+
+		int getSelectedMaterialDomain() const
+		{
+			return (mData >> 4) & 0xF;
+		}
+
+		void setSelectedMaterialType(int value)
+		{
+			mData = (mData & 0xF0FF) | ((value & 0xF) << 8); // 4 bits for mSelectedMaterialType
+		}
+
+		int getSelectedMaterialType() const
+		{
+			return (mData >> 8) & 0xF;
+		}
+
+	private:
+		uint16_t mData; // Selected Mesh, Selected Mat Domain, Selected Material Type(GLTF, Adobe, MatX)
+	};
+
+	struct MaterialEditorData
+	{
+		std::shared_ptr<donut::engine::Material> mGLTFMaterial;
+		//std::shared_ptr < donut::engine::Material > mMTLXMaterial;
+		//std::shared_ptr < donut::engine::Material > mAdobeSurfaceMaterial;
+	};
+
 	class MaterialEditor
 	{
 	public:
-		MaterialEditor()
-		{
-			Testing();
-		}
-		//if (m_callbacks.afterRender) m_callbacks.afterRender(*this);
-		//std::function<void(DeviceManager&)> afterRender = nullptr;
+		MaterialEditor() {}
+		MaterialEditor(std::shared_ptr<SceneGraph> aSceneGraph);
+		~MaterialEditor();
+		
+		MaterialEditor(const MaterialEditor&) = delete;
+		MaterialEditor& operator=(const MaterialEditor&) = delete;
+
+		void Show(MaterialEditorData aMatEditorData);
+
+		signal<> OnMaterialChanged;
+		signal<> OnMaterialReferesh;
+
 	private:
-		std::shared_ptr < donut::engine::Material > mGLTFMaterial;
-		//std::shared_ptr < donut::engine::Material > mMTLXMaterial;
-		//std::shared_ptr < donut::engine::Material > mAdobeSurfaceMaterial;
+		void SetupMaterialEditor(MaterialEditorData aMatEditorData);
+		void GLTFMaterialSetup(std::shared_ptr<donut::engine::Material> aGLTFMaterial);
+
+		MatEditorOptions mOptions;
+		std::shared_ptr<SceneGraph> mSceneGraph;
 	};
 }

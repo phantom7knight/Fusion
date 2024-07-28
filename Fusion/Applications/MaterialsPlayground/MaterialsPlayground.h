@@ -18,7 +18,8 @@
 #include "../../Core/Render/GBufferFillPass.h"
 
 // todo_rt; testing
-#include "../../Core/Render/ForwardShadingPass.h"
+#include "../../Core/Editors/Material/MaterialEditor.h"
+#include "../../Core/Render/ForwardShadingPass.h" // todo_rt: when the fwd+def. pass is worked on enable this
 
 // TODO_RT
 // 1. Allow multiple lights in the scenes
@@ -33,7 +34,9 @@ class MaterialsPlayground;
 struct UIOptions
 {
 	bool mVsync = true;
+	bool mEnableMaterialEditor = false;
 	int mRTsViewMode = 0;
+	int mCurrentlySelectedMeshIdx = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
 };
 
@@ -46,6 +49,9 @@ protected:
 	virtual void BuildUI(void) override;
 
 private:
+	void RefereshMaterialEditor();
+
+	std::shared_ptr<donut::engine::MaterialEditor> mMaterialEditor;
 	std::shared_ptr<MaterialsPlayground> mMaterialsPlaygroundApp;
 };
 

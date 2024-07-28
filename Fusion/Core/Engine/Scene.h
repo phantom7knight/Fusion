@@ -35,122 +35,122 @@ using HASHMAP = std::unordered_map<TYPE1, TYPE2>;
 
 namespace tf
 {
-    class Executor;
+	class Executor;
 }
 
 namespace Json
 {
-    class Value;
+	class Value;
 }
 
 namespace donut::vfs
 {
-    class IFileSystem;
+	class IFileSystem;
 }
 
 namespace donut::engine
 {
-    class ShaderFactory;
-    struct SceneImportResult;
-    class TextureCache;
-    class DescriptorTableManager;
-    class GltfImporter;
-    
-    class Scene
-    {
-    protected:
-        std::shared_ptr<vfs::IFileSystem> m_fs;
-        std::shared_ptr<SceneTypeFactory> m_SceneTypeFactory;
-        std::shared_ptr<TextureCache> m_TextureCache;
-        std::shared_ptr<DescriptorTableManager> m_DescriptorTable;
-        std::shared_ptr<SceneGraph> m_SceneGraph;
-        std::shared_ptr<GltfImporter> m_GltfImporter;
-        std::vector<SceneImportResult> m_Models;
-        bool m_EnableBindlessResources = false;
-        
-        nvrhi::BufferHandle m_MaterialBuffer;
-        nvrhi::BufferHandle m_GeometryBuffer;
-        nvrhi::BufferHandle m_InstanceBuffer;
+	class ShaderFactory;
+	struct SceneImportResult;
+	class TextureCache;
+	class DescriptorTableManager;
+	class GltfImporter;
+	
+	class Scene
+	{
+	protected:
+		std::shared_ptr<vfs::IFileSystem> m_fs;
+		std::shared_ptr<SceneTypeFactory> m_SceneTypeFactory;
+		std::shared_ptr<TextureCache> m_TextureCache;
+		std::shared_ptr<DescriptorTableManager> m_DescriptorTable;
+		std::shared_ptr<SceneGraph> m_SceneGraph;
+		std::shared_ptr<GltfImporter> m_GltfImporter;
+		std::vector<SceneImportResult> m_Models;
+		bool m_EnableBindlessResources = false;
+		
+		nvrhi::BufferHandle m_MaterialBuffer;
+		nvrhi::BufferHandle m_GeometryBuffer;
+		nvrhi::BufferHandle m_InstanceBuffer;
 
-        nvrhi::DeviceHandle m_Device;
-        nvrhi::ShaderHandle m_SkinningShader;
-        nvrhi::ComputePipelineHandle m_SkinningPipeline;
-        nvrhi::BindingLayoutHandle m_SkinningBindingLayout;
+		nvrhi::DeviceHandle m_Device;
+		nvrhi::ShaderHandle m_SkinningShader;
+		nvrhi::ComputePipelineHandle m_SkinningPipeline;
+		nvrhi::BindingLayoutHandle m_SkinningBindingLayout;
 
-        bool m_RayTracingSupported = false;
-        bool m_SceneTransformsChanged = false;
-        bool m_SceneStructureChanged = false;
+		bool m_RayTracingSupported = false;
+		bool m_SceneTransformsChanged = false;
+		bool m_SceneStructureChanged = false;
 
-        struct Resources; // Hide the implementation to avoid including <material_cb.h> and <bindless.h> here
-        std::shared_ptr<Resources> m_Resources;
+		struct Resources; // Hide the implementation to avoid including <material_cb.h> and <bindless.h> here
+		std::shared_ptr<Resources> m_Resources;
 
-        void LoadModelAsync(
-            uint32_t index,
-            const std::filesystem::path& fileName,
-            tf::Executor* executor);
+		void LoadModelAsync(
+			uint32_t index,
+			const std::filesystem::path& fileName,
+			tf::Executor* executor);
 
-        void LoadModels(
-            const Json::Value& modelList, 
-            const std::filesystem::path& scenePath, 
-            tf::Executor* executor);
+		void LoadModels(
+			const Json::Value& modelList, 
+			const std::filesystem::path& scenePath, 
+			tf::Executor* executor);
 
-        void LoadSceneGraph(const Json::Value& nodeList, const std::shared_ptr<SceneGraphNode>& parent);
-        void LoadAnimations(const Json::Value& nodeList);
-        void LoadHelpers(const Json::Value& nodeList) const;
-        
-        void UpdateMaterial(const std::shared_ptr<Material>& material);
-        void UpdateGeometry(const std::shared_ptr<MeshInfo>& mesh);
-        void UpdateInstance(const std::shared_ptr<MeshInstance>& instance);
+		void LoadSceneGraph(const Json::Value& nodeList, const std::shared_ptr<SceneGraphNode>& parent);
+		void LoadAnimations(const Json::Value& nodeList);
+		void LoadHelpers(const Json::Value& nodeList) const;
+		
+		void UpdateMaterial(const std::shared_ptr<Material>& material);
+		void UpdateGeometry(const std::shared_ptr<MeshInfo>& mesh);
+		void UpdateInstance(const std::shared_ptr<MeshInstance>& instance);
 
-        void UpdateSkinnedMeshes(nvrhi::ICommandList* commandList, uint32_t frameIndex);
+		void UpdateSkinnedMeshes(nvrhi::ICommandList* commandList, uint32_t frameIndex);
 
-        void WriteMaterialBuffer(nvrhi::ICommandList* commandList) const;
-        void WriteGeometryBuffer(nvrhi::ICommandList* commandList) const;
-        void WriteInstanceBuffer(nvrhi::ICommandList* commandList) const;
+		void WriteMaterialBuffer(nvrhi::ICommandList* commandList) const;
+		void WriteGeometryBuffer(nvrhi::ICommandList* commandList) const;
+		void WriteInstanceBuffer(nvrhi::ICommandList* commandList) const;
 
-        virtual void CreateMeshBuffers(nvrhi::ICommandList* commandList);
-        virtual nvrhi::BufferHandle CreateMaterialBuffer();
-        virtual nvrhi::BufferHandle CreateGeometryBuffer();
-        virtual nvrhi::BufferHandle CreateInstanceBuffer();
-        virtual nvrhi::BufferHandle CreateMaterialConstantBuffer(const std::string& debugName);
+		virtual void CreateMeshBuffers(nvrhi::ICommandList* commandList);
+		virtual nvrhi::BufferHandle CreateMaterialBuffer();
+		virtual nvrhi::BufferHandle CreateGeometryBuffer();
+		virtual nvrhi::BufferHandle CreateInstanceBuffer();
+		virtual nvrhi::BufferHandle CreateMaterialConstantBuffer(const std::string& debugName);
 
-        virtual bool LoadCustomData(Json::Value& rootNode, tf::Executor* executor);
-    public:
-        virtual ~Scene() = default;
+		virtual bool LoadCustomData(Json::Value& rootNode, tf::Executor* executor);
+	public:
+		virtual ~Scene() = default;
 
-        Scene(
-            nvrhi::IDevice* device,
-            ShaderFactory& shaderFactory,
-            std::shared_ptr<vfs::IFileSystem> fs,
-            std::shared_ptr<TextureCache> textureCache,
-            std::shared_ptr<DescriptorTableManager> descriptorTable,
-            std::shared_ptr<SceneTypeFactory> sceneTypeFactory);
-        
-        void FinishedLoading(uint32_t frameIndex);
+		Scene(
+			nvrhi::IDevice* device,
+			ShaderFactory& shaderFactory,
+			std::shared_ptr<vfs::IFileSystem> fs,
+			std::shared_ptr<TextureCache> textureCache,
+			std::shared_ptr<DescriptorTableManager> descriptorTable,
+			std::shared_ptr<SceneTypeFactory> sceneTypeFactory);
+		
+		void FinishedLoading(uint32_t frameIndex);
 
-        // Processes animations, transforms, bounding boxes etc.
-        void RefreshSceneGraph(uint32_t frameIndex);
+		// Processes animations, transforms, bounding boxes etc.
+		void RefreshSceneGraph(uint32_t frameIndex);
 
-        // Creates missing buffers, uploads vertex buffers, instance data, materials, etc.
-        void RefreshBuffers(nvrhi::ICommandList* commandList, uint32_t frameIndex);
+		// Creates missing buffers, uploads vertex buffers, instance data, materials, etc.
+		void RefreshBuffers(nvrhi::ICommandList* commandList, uint32_t frameIndex);
 
-        // A combination of RefreshSceneGraph and RefreshBuffers
-        void Refresh(nvrhi::ICommandList* commandList, uint32_t frameIndex);
+		// A combination of RefreshSceneGraph and RefreshBuffers
+		void Refresh(nvrhi::ICommandList* commandList, uint32_t frameIndex);
 
-        bool Load(const std::filesystem::path& jsonFileName);
-        
-        std::shared_ptr<SceneGraphNode> LoadAtLeaf(const std::filesystem::path& jsonFileName);
+		bool Load(const std::filesystem::path& jsonFileName);
+		
+		std::shared_ptr<SceneGraphNode> LoadAtLeaf(const std::filesystem::path& jsonFileName);
 
-        virtual bool LoadWithExecutor(const std::filesystem::path& sceneFileName, tf::Executor* executor);
+		virtual bool LoadWithExecutor(const std::filesystem::path& sceneFileName, tf::Executor* executor);
 
-        static const SceneLoadingStats& GetLoadingStats();
+		static const SceneLoadingStats& GetLoadingStats();
 
-        [[nodiscard]] std::shared_ptr<SceneGraph> GetSceneGraph() const { return m_SceneGraph; }
-        [[nodiscard]] nvrhi::IDescriptorTable* GetDescriptorTable() const { return m_DescriptorTable ? m_DescriptorTable->GetDescriptorTable() : nullptr; }
+		[[nodiscard]] std::shared_ptr<SceneGraph> GetSceneGraph() const { return m_SceneGraph; }
+		[[nodiscard]] nvrhi::IDescriptorTable* GetDescriptorTable() const { return m_DescriptorTable ? m_DescriptorTable->GetDescriptorTable() : nullptr; }
 		[[nodiscard]] nvrhi::IBuffer* GetMaterialBuffer() const { return m_MaterialBuffer; }
 		[[nodiscard]] nvrhi::IBuffer* GetGeometryBuffer() const { return m_GeometryBuffer; }
 		[[nodiscard]] nvrhi::IBuffer* GetInstanceBuffer() const { return m_InstanceBuffer; }
 
-        HASHMAP<std::string, SceneImportResult> mModelSceneImportResultMap;
-    };
+		HASHMAP<std::string, SceneImportResult> mModelSceneImportResultMap;
+	};
 }
