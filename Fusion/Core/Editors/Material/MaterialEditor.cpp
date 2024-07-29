@@ -29,14 +29,11 @@ void donut::engine::MaterialEditor::GLTFMaterialSetup(std::shared_ptr<Material> 
 	isMatDirty |= ImGui::SliderFloat("Roughness", &aGLTFMaterial->roughness, 0.f, 1.f);
 	isMatDirty |= ImGui::SliderFloat("Emissive Intensity", &aGLTFMaterial->emissiveIntensity, 1.f, 10.f);
 
-	isMatDirty != 
-		ImGui::ColorEdit4("Diffuse Color", (float*)aGLTFMaterial->baseOrDiffuseColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
+	isMatDirty |= ImGui::ColorEdit4("Diffuse Color", (float*)aGLTFMaterial->baseOrDiffuseColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
 	
-	isMatDirty !=
-		ImGui::ColorEdit4("Specular Color", (float*)aGLTFMaterial->specularColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
+	isMatDirty |= ImGui::ColorEdit4("Specular Color", (float*)aGLTFMaterial->specularColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
 
-	isMatDirty !=
-		ImGui::ColorEdit4("Emissive Color", (float*)aGLTFMaterial->emissiveColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
+	isMatDirty |= ImGui::ColorEdit4("Emissive Color", (float*)aGLTFMaterial->emissiveColor.data(), ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
 
 
 	if (isMatDirty)
