@@ -93,10 +93,17 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Checkbox("Enable Vsync", &mMaterialsPlaygroundApp->mUIOptions.mVsync);
 
-	auto& arr = mMaterialsPlaygroundApp->mUIOptions.mAppModeOptions;
-	ImGui::Combo("RT Targets", &mMaterialsPlaygroundApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
+	ImGui::Checkbox("Enable Deferred Shading", &mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading);
+
+	if (mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading)
+	{
+		auto& arr = mMaterialsPlaygroundApp->mUIOptions.mAppModeOptions;
+		ImGui::Combo("RT Targets", &mMaterialsPlaygroundApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
+	}
 
 	ImGui::SeparatorText("Material Options:");
+
+	ImGui::Checkbox("Enable Transparency", &mMaterialsPlaygroundApp->mUIOptions.mEnableTransparency);
 
 	// todo_rt; testing
 	ImGui::Checkbox("Enable Material Editor", &mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor);
@@ -123,7 +130,7 @@ void UIRenderer::BuildUI(void)
 
 			const char* currentMeshMaterialName = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material->name.c_str();
 
-			donut::engine::MaterialEditorData matEditorData;
+			donut::engine::MaterialsData matEditorData;
 			matEditorData.mGLTFMaterial = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
 
 			mMaterialEditor->Show(matEditorData);
@@ -150,9 +157,6 @@ void UIRenderer::BuildUI(void)
 	}
 	ImGui::End();
 }
-void UIRenderer::RefereshMaterialEditor()
-{
-}
 
 bool MaterialsPlayground::Init()
 {	
@@ -176,10 +180,11 @@ bool MaterialsPlayground::Init()
 	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
+	mFwdFramebuffer = std::make_unique<donut::engine::FramebufferFactory>(GetDevice());
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::damangedHelmetModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -255,7 +260,7 @@ bool MaterialsPlayground::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFi
 
 void MaterialsPlayground::BackBufferResizing()
 {
-	mGBufferRenderTargets = nullptr;
+	mRenderTargets = nullptr;
 	mBindingCache->Clear();
 }
 
@@ -288,14 +293,14 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	const auto& fbinfo = aFramebuffer->getFramebufferInfo();
 
-	if (!mGBufferRenderTargets) // Gbuffer Render Targets Setup
+	if (!mRenderTargets) // Gbuffer Render Targets Setup
 	{
 		mBindingCache->Clear();
 		mDeferredLightingPass->ResetBindingCache();
 		mGBufferFillPass.reset();
 
-		mGBufferRenderTargets = nullptr;
-		mGBufferRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
+		mRenderTargets = nullptr;
+		mRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
 			dm::uint2(fbinfo.width, fbinfo.height),
 			1, // SampleCount
 			false,
@@ -316,6 +321,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 		donut::render::ForwardShadingPass::CreateParameters forwardParams;
 		mForwardShadingPass->Init(*mShaderFactory, forwardParams);
+
+		mFwdFramebuffer->RenderTargets = { mRenderTargets->mOutputColor };
+		mFwdFramebuffer->DepthTarget = mRenderTargets->Depth;
 	}
 
 	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
@@ -333,48 +341,105 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	mCommandList->beginMarker("GBuffer Fill Pass");
 #endif
 
-	mGBufferRenderTargets->Clear(mCommandList);
+	mRenderTargets->Clear(mCommandList);
 
 	donut::render::GBufferFillPass::Context ctx = {};
 	donut::render::RenderCompositeView(mCommandList,
 		&mView,
 		&mView,
-		*mGBufferRenderTargets->GBufferFramebuffer,
+		*mRenderTargets->GBufferFramebuffer,
 		mScene->GetSceneGraph()->GetRootNode(),
 		*mOpaqueDrawStrategy,
 		*mGBufferFillPass,
 		ctx);
 
-#ifdef _DEBUG
-	mCommandList->endMarker();
-	mCommandList->beginMarker("Deferred Lighting Pass");
-#endif
+	donut::render::ForwardShadingPass::Context ctxFwd;
+	LightingConstants constants = {};
+	constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
-	deferredLightingInputs.SetGBuffer(*mGBufferRenderTargets);
-	deferredLightingInputs.output = mGBufferRenderTargets->mOutputColor;
-	deferredLightingInputs.ambientColorTop = 0.2f;
-	deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
-	deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
-	mDeferredLightingPass->Render(mCommandList,
-		mView,
-		deferredLightingInputs);
+	if (mUIOptions.mEnableDeferredShading)
+	{
+
+#ifdef _DEBUG
+		mCommandList->endMarker();
+		mCommandList->beginMarker("Deferred Lighting Pass");
+#endif
+		deferredLightingInputs.SetGBuffer(*mRenderTargets);
+		deferredLightingInputs.output = mRenderTargets->mOutputColor;
+		deferredLightingInputs.ambientColorTop = 0.2f;
+		deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
+
+		mDeferredLightingPass->Render(mCommandList,
+			mView,
+			deferredLightingInputs);
+	}
+	else
+	{
+		mForwardShadingPass->PrepareLights(ctxFwd,
+			mCommandList,
+			mScene->GetSceneGraph()->GetLights(),
+			constants.ambientColor,
+			constants.ambientColor,
+			{});
+
+		donut::render::RenderCompositeView(mCommandList,
+			&mView,
+			&mView,
+			*mFwdFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mOpaqueDrawStrategy,
+			*mForwardShadingPass,
+			ctxFwd);
+	}
+
+	if (mUIOptions.mEnableTransparency)
+	{
+#ifdef _DEBUG
+		mCommandList->endMarker();
+		mCommandList->beginMarker("Forward Pass");
+#endif
+
+		mForwardShadingPass->PrepareLights(ctxFwd,
+			mCommandList,
+			mScene->GetSceneGraph()->GetLights(),
+			constants.ambientColor,
+			constants.ambientColor,
+			{});
+
+		donut::render::RenderCompositeView(mCommandList,
+			&mView,
+			&mView,
+			*mFwdFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mTransparentDrawStrategy,
+			*mForwardShadingPass,
+			ctxFwd);
+	}
 
 #ifdef _DEBUG
 	mCommandList->endMarker();
-	mCommandList->beginMarker("Blit Fwd Pass Tex to Back Buffer"); // todo_rt; testing
+	mCommandList->beginMarker("Blit Pass");
 #endif
 
-	switch (mUIOptions.mRTsViewMode)
+	if (mUIOptions.mEnableDeferredShading)
 	{
-		case 0: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get()); break;
-		case 1: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get()); break;
-		case 2: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get()); break;
-		case 3: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferNormals, mBindingCache.get()); break;
-		case 4: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get()); break;
-		case 5: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get()); break;
-		default: break;
+		switch (mUIOptions.mRTsViewMode)
+		{
+			case 0: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.output, mBindingCache.get()); break;
+			case 1: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferDiffuse, mBindingCache.get()); break;
+			case 2: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferSpecular, mBindingCache.get()); break;
+			case 3: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferNormals, mBindingCache.get()); break;
+			case 4: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.gbufferEmissive, mBindingCache.get()); break;
+			case 5: m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, deferredLightingInputs.depth, mBindingCache.get()); break;
+			default: break;
+		}
+	}
+	else
+	{
+		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mRenderTargets->mOutputColor, mBindingCache.get());
 	}
 
 #ifdef _DEBUG

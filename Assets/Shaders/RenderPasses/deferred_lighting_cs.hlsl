@@ -45,8 +45,8 @@ SamplerState s_BrdfSampler : register(s3);
 Texture2D t_GBufferDepth : register(t8);
 Texture2D t_GBufferDiffuse : register(t9);
 Texture2D t_GBufferSpecular : register(t10);
-Texture2D t_GBuffer2 : register(t11);
-Texture2D t_GBuffer3 : register(t12);
+Texture2D t_GBufferNormals : register(t11);
+Texture2D t_GBufferEmissive : register(t12);
 
 Texture2D t_IndirectDiffuse : register(t14);
 Texture2D t_IndirectSpecular : register(t15);
@@ -73,8 +73,8 @@ void main(int2 i_globalIdx : SV_DispatchThreadID)
     float4 gbufferChannels[4];
     gbufferChannels[0] = t_GBufferDiffuse[pixelPosition];
     gbufferChannels[1] = t_GBufferSpecular[pixelPosition];
-    gbufferChannels[2] = t_GBuffer2[pixelPosition];
-    gbufferChannels[3] = t_GBuffer3[pixelPosition];
+    gbufferChannels[2] = t_GBufferNormals[pixelPosition];
+    gbufferChannels[3] = t_GBufferEmissive[pixelPosition];
     MaterialSample surfaceMaterial = DecodeGBuffer(gbufferChannels);
 
     float3 surfaceWorldPos = ReconstructWorldPosition(g_Deferred.view, float2(pixelPosition) + 0.5, t_GBufferDepth[pixelPosition].x);

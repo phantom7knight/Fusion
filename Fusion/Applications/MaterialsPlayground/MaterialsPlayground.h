@@ -17,17 +17,8 @@
 #include "../../Core/Render/GBuffer.h"
 #include "../../Core/Render/GBufferFillPass.h"
 
-// todo_rt; testing
 #include "../../Core/Editors/Material/MaterialEditor.h"
-#include "../../Core/Render/ForwardShadingPass.h" // todo_rt: when the fwd+def. pass is worked on enable this
-
-// TODO_RT
-// 1. Allow multiple lights in the scenes
-// 2. Draw more than 2 models in the scene
-// 3. keep both fwd and def. pass as options
-// 4. Run a hybrid pass with some models in fwd and others in deferred
-//	  ex: render sun&light spheres(required step 2) in fwd and then rest of scene in deferred
-// 5. Make a separate UIOptions class which has default options
+#include "../../Core/Render/ForwardShadingPass.h"
 
 class MaterialsPlayground;
 
@@ -35,6 +26,8 @@ struct UIOptions
 {
 	bool mVsync = true;
 	bool mEnableMaterialEditor = false;
+	bool mEnableTransparency = true;
+	bool mEnableDeferredShading = true;
 	int mRTsViewMode = 0;
 	int mCurrentlySelectedMeshIdx = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
@@ -49,7 +42,6 @@ protected:
 	virtual void BuildUI(void) override;
 
 private:
-	void RefereshMaterialEditor();
 
 	std::shared_ptr<donut::engine::MaterialEditor> mMaterialEditor;
 	std::shared_ptr<MaterialsPlayground> mMaterialsPlaygroundApp;
@@ -71,6 +63,7 @@ public:
 		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		textureDesc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 		textureDesc.isUAV = true;
+		textureDesc.isRenderTarget = true; // todo_rt: testing
 		textureDesc.keepInitialState = true;
 		textureDesc.debugName = "Lighting Pass: OutputBuffer";
 		textureDesc.width = aSize.x;
@@ -116,16 +109,19 @@ private:
 
 	nvrhi::CommandListHandle mCommandList;
 	donut::engine::PlanarView mView;
+	//donut::engine::PlanarView mPrevView; todo_rt; add this
+	donut::engine::CompositeView mCompView;
 	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::shared_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
+	std::unique_ptr<donut::engine::FramebufferFactory> mFwdFramebuffer;
+	std::shared_ptr<donut::engine::DirectionalLight> mSunLight;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;
 	std::unique_ptr<donut::render::ForwardShadingPass> mForwardShadingPass;
 	std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 	std::unique_ptr<donut::render::TransparentDrawStrategy> mTransparentDrawStrategy;
-	std::shared_ptr<donut::engine::DirectionalLight>  mSunLight;
 	std::vector<std::shared_ptr<donut::engine::SpotLight>> mLights;
-	std::shared_ptr<RenderTargets> mGBufferRenderTargets;
+	std::shared_ptr<RenderTargets> mRenderTargets;
 };

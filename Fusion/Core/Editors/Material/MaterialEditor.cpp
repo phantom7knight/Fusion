@@ -13,9 +13,9 @@ donut::engine::MaterialEditor::~MaterialEditor()
 {
 }
 
-void donut::engine::MaterialEditor::Show(MaterialEditorData aMatEditorData)
+void donut::engine::MaterialEditor::Show(MaterialsData aMatData)
 {
-	SetupMaterialEditor(aMatEditorData);
+	SetupMaterialEditor(aMatData);
 }
 
 void donut::engine::MaterialEditor::GLTFMaterialSetup(std::shared_ptr<Material> aGLTFMaterial)
@@ -23,6 +23,8 @@ void donut::engine::MaterialEditor::GLTFMaterialSetup(std::shared_ptr<Material> 
 	bool isMatDirty = false;
 
 	ImGui::Text("Material Name: %s", aGLTFMaterial->name.c_str());
+
+
 	
 	{
 		isMatDirty |= ImGui::Checkbox("Use Base or Diffuse Texture", &aGLTFMaterial->enableBaseOrDiffuseTexture);
@@ -63,11 +65,11 @@ void donut::engine::MaterialEditor::GLTFMaterialSetup(std::shared_ptr<Material> 
 
 }
 
-void MaterialEditor::SetupMaterialEditor(MaterialEditorData aMatEditorData)
+void MaterialEditor::SetupMaterialEditor(MaterialsData aMatData)
 {
 	ImGui::Begin("Material Editor", 0, ImGuiWindowFlags_AlwaysAutoResize);
 
-	if (std::shared_ptr<Material> gltfMat = aMatEditorData.mGLTFMaterial)
+	if (std::shared_ptr<Material> gltfMat = aMatData.mGLTFMaterial)
 	{
 		GLTFMaterialSetup(gltfMat);
 	}
