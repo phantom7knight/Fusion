@@ -26,8 +26,8 @@ struct UIOptions
 {
 	bool mVsync = true;
 	bool mEnableMaterialEditor = false;
-	bool mEnableTransparency = true;
-	bool mEnableDeferredShading = true;
+	bool mEnableTranslucency = true;
+	bool mEnableDeferredShading = false;
 	int mRTsViewMode = 0;
 	int mCurrentlySelectedMeshIdx = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
@@ -63,7 +63,7 @@ public:
 		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		textureDesc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 		textureDesc.isUAV = true;
-		textureDesc.isRenderTarget = true; // todo_rt: testing
+		textureDesc.isRenderTarget = true;
 		textureDesc.keepInitialState = true;
 		textureDesc.debugName = "Lighting Pass: OutputBuffer";
 		textureDesc.width = aSize.x;
@@ -99,6 +99,7 @@ public:
 	bool KeyboardUpdate(int key, int scancode, int action, int mods) override;
 	bool MousePosUpdate(double xpos, double ypos) override;
 	bool MouseButtonUpdate(int button, int action, int mods) override;
+	virtual void BackBufferResized(const uint32_t width, const uint32_t height, const uint32_t sampleCount);
 
 	const dm::float3& GetCameraPosition() { return mCamera.GetPosition(); }
 	std::shared_ptr<donut::engine::Scene> GetScene() { return mScene; }

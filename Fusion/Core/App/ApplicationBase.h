@@ -63,6 +63,7 @@ namespace donut::app
 		virtual bool LoadScene(std::shared_ptr<vfs::IFileSystem> fs, const std::filesystem::path& sceneFileName) = 0;
 		virtual void SceneUnloading();
 		virtual void SceneLoaded();
+		/*virtual void BackBufferResized(const uint32_t width, const uint32_t height, const uint32_t sampleCount);*/
 
 		void SetAsynchronousLoadingEnabled(bool enabled);
 		bool IsSceneLoading() const;

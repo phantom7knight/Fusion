@@ -260,6 +260,7 @@ void CommonRenderPasses::BlitTexture(nvrhi::ICommandList* commandList, const Bli
 
 void CommonRenderPasses::BlitTexture(nvrhi::ICommandList* commandList, nvrhi::IFramebuffer* targetFramebuffer, nvrhi::ITexture* sourceTexture, BindingCache* bindingCache)
 {
+    commandList->beginMarker("Blit Pass");
     assert(commandList);
     assert(targetFramebuffer);
     assert(sourceTexture);
@@ -268,4 +269,6 @@ void CommonRenderPasses::BlitTexture(nvrhi::ICommandList* commandList, nvrhi::IF
     params.targetFramebuffer = targetFramebuffer;
     params.sourceTexture = sourceTexture;
     BlitTexture(commandList, params, bindingCache);
+
+    commandList->endMarker();
 }

@@ -37,6 +37,9 @@ namespace PBRTesting_Private
 	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
 	//const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
 
+	constexpr dm::float3 ambientColorTop = 0.2f;
+	constexpr dm::float3 ambientColorBottom = ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+
 	const float3 locGetRandomColor()
 	{
 		// Seed the random number generator using std::time
@@ -74,6 +77,8 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Text("GPU: %s", GetDeviceManager()->GetRendererString());
 
+	ImGui::Text("Graphics API: %s", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
+
 	double frameTime = GetDeviceManager()->GetAverageFrameTimeSeconds();
 	if (frameTime > 0)
 	{
@@ -103,7 +108,7 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::SeparatorText("Material Options:");
 
-	ImGui::Checkbox("Enable Transparency", &mMaterialsPlaygroundApp->mUIOptions.mEnableTransparency);
+	ImGui::Checkbox("Enable Transparency", &mMaterialsPlaygroundApp->mUIOptions.mEnableTranslucency);
 
 	// todo_rt; testing
 	ImGui::Checkbox("Enable Material Editor", &mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor);
@@ -287,6 +292,15 @@ bool MaterialsPlayground::MouseButtonUpdate(int button, int action, int mods)
 	return true;
 }
 
+void MaterialsPlayground::BackBufferResized(const uint32_t width, const uint32_t height, const uint32_t sampleCount)
+{
+	 // TODO_RT: Support This
+	mRenderTargets = nullptr;
+	mGBufferFillPass = nullptr;
+	mDeferredLightingPass = nullptr;
+	mForwardShadingPass = nullptr;
+}
+
 void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 {
 	GetDeviceManager()->SetVsyncEnabled(mUIOptions.mVsync);
@@ -296,10 +310,6 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	if (!mRenderTargets) // Gbuffer Render Targets Setup
 	{
 		mBindingCache->Clear();
-		mDeferredLightingPass->ResetBindingCache();
-		mGBufferFillPass.reset();
-
-		mRenderTargets = nullptr;
 		mRenderTargets = std::make_shared<RenderTargets>(GetDevice(),
 			dm::uint2(fbinfo.width, fbinfo.height),
 			1, // SampleCount
@@ -313,6 +323,13 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 		donut::render::GBufferFillPass::CreateParameters params;
 		mGBufferFillPass->Init(*mShaderFactory, params);
+	}
+
+	if (!mDeferredLightingPass)
+	{
+		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
+		mDeferredLightingPass->Init(mShaderFactory);
+		mDeferredLightingPass->ResetBindingCache();
 	}
 
 	if (!mForwardShadingPass)
@@ -337,39 +354,28 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	mScene->RefreshBuffers(mCommandList, GetFrameIndex());
 
-#ifdef _DEBUG
-	mCommandList->beginMarker("GBuffer Fill Pass");
-#endif
-
 	mRenderTargets->Clear(mCommandList);
 
-	donut::render::GBufferFillPass::Context ctx = {};
-	donut::render::RenderCompositeView(mCommandList,
-		&mView,
-		&mView,
-		*mRenderTargets->GBufferFramebuffer,
-		mScene->GetSceneGraph()->GetRootNode(),
-		*mOpaqueDrawStrategy,
-		*mGBufferFillPass,
-		ctx);
-
-	donut::render::ForwardShadingPass::Context ctxFwd;
-	LightingConstants constants = {};
-	constants.ambientColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-
 	donut::render::DeferredLightingPass::Inputs deferredLightingInputs;
+	donut::render::ForwardShadingPass::Context ctxFwd;
 
 	if (mUIOptions.mEnableDeferredShading)
 	{
+		donut::render::GBufferFillPass::Context ctx = {};
+		donut::render::RenderCompositeView(mCommandList,
+			&mView,
+			&mView,
+			*mRenderTargets->GBufferFramebuffer,
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mOpaqueDrawStrategy,
+			*mGBufferFillPass,
+			ctx,
+			"GBuffer Fill Pass");
 
-#ifdef _DEBUG
-		mCommandList->endMarker();
-		mCommandList->beginMarker("Deferred Lighting Pass");
-#endif
 		deferredLightingInputs.SetGBuffer(*mRenderTargets);
 		deferredLightingInputs.output = mRenderTargets->mOutputColor;
-		deferredLightingInputs.ambientColorTop = 0.2f;
-		deferredLightingInputs.ambientColorBottom = deferredLightingInputs.ambientColorTop * float3(0.3f, 0.4f, 0.3f);
+		deferredLightingInputs.ambientColorTop = PBRTesting_Private::ambientColorTop;
+		deferredLightingInputs.ambientColorBottom = PBRTesting_Private::ambientColorBottom;
 		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
 		mDeferredLightingPass->Render(mCommandList,
@@ -381,8 +387,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		mForwardShadingPass->PrepareLights(ctxFwd,
 			mCommandList,
 			mScene->GetSceneGraph()->GetLights(),
-			constants.ambientColor,
-			constants.ambientColor,
+			PBRTesting_Private::ambientColorTop,
+			PBRTesting_Private::ambientColorBottom,
 			{});
 
 		donut::render::RenderCompositeView(mCommandList,
@@ -392,21 +398,17 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			mScene->GetSceneGraph()->GetRootNode(),
 			*mOpaqueDrawStrategy,
 			*mForwardShadingPass,
-			ctxFwd);
+			ctxFwd,
+			"Forward Opaque Pass");
 	}
 
-	if (mUIOptions.mEnableTransparency)
+	if (mUIOptions.mEnableTranslucency) // TODO_RT: check if we need this, "|| !mUIOptions.mEnableDeferredShading"
 	{
-#ifdef _DEBUG
-		mCommandList->endMarker();
-		mCommandList->beginMarker("Forward Pass");
-#endif
-
 		mForwardShadingPass->PrepareLights(ctxFwd,
 			mCommandList,
 			mScene->GetSceneGraph()->GetLights(),
-			constants.ambientColor,
-			constants.ambientColor,
+			PBRTesting_Private::ambientColorTop,
+			PBRTesting_Private::ambientColorBottom,
 			{});
 
 		donut::render::RenderCompositeView(mCommandList,
@@ -416,13 +418,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			mScene->GetSceneGraph()->GetRootNode(),
 			*mTransparentDrawStrategy,
 			*mForwardShadingPass,
-			ctxFwd);
+			ctxFwd,
+			"Forward Transparency Pass");
 	}
-
-#ifdef _DEBUG
-	mCommandList->endMarker();
-	mCommandList->beginMarker("Blit Pass");
-#endif
 
 	if (mUIOptions.mEnableDeferredShading)
 	{
@@ -441,10 +439,6 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	{
 		m_CommonPasses->BlitTexture(mCommandList, aFramebuffer, mRenderTargets->mOutputColor, mBindingCache.get());
 	}
-
-#ifdef _DEBUG
-	mCommandList->endMarker();
-#endif
 
 	mCommandList->close();
 	GetDevice()->executeCommandList(mCommandList);
