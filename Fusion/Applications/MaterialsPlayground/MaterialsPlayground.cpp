@@ -185,7 +185,6 @@ bool MaterialsPlayground::Init()
 	
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
-	mFwdFramebuffer = std::make_unique<donut::engine::FramebufferFactory>(GetDevice());
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
@@ -317,19 +316,22 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			true); // TODO_RT: Investigate this value for the projection, should it be false or need to be true?
 	}
 
-	if (!mGBufferFillPass)
+	if (mUIOptions.mEnableDeferredShading)
 	{
-		mGBufferFillPass = std::make_unique<donut::render::GBufferFillPass>(GetDevice(), m_CommonPasses);
+		if (!mGBufferFillPass)
+		{
+			mGBufferFillPass = std::make_unique<donut::render::GBufferFillPass>(GetDevice(), m_CommonPasses);
 
-		donut::render::GBufferFillPass::CreateParameters params;
-		mGBufferFillPass->Init(*mShaderFactory, params);
-	}
+			donut::render::GBufferFillPass::CreateParameters params;
+			mGBufferFillPass->Init(*mShaderFactory, params);
+		}
 
-	if (!mDeferredLightingPass)
-	{
-		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
-		mDeferredLightingPass->Init(mShaderFactory);
-		mDeferredLightingPass->ResetBindingCache();
+		if (!mDeferredLightingPass)
+		{
+			mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
+			mDeferredLightingPass->Init(mShaderFactory);
+			mDeferredLightingPass->ResetBindingCache();
+		}
 	}
 
 	if (!mForwardShadingPass)
@@ -338,9 +340,6 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 		donut::render::ForwardShadingPass::CreateParameters forwardParams;
 		mForwardShadingPass->Init(*mShaderFactory, forwardParams);
-
-		mFwdFramebuffer->RenderTargets = { mRenderTargets->mOutputColor };
-		mFwdFramebuffer->DepthTarget = mRenderTargets->Depth;
 	}
 
 	nvrhi::Viewport windowViewport(float(fbinfo.width), float(fbinfo.height));
@@ -394,7 +393,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
-			*mFwdFramebuffer,
+			*mRenderTargets->mFwdFramebuffer,
 			mScene->GetSceneGraph()->GetRootNode(),
 			*mOpaqueDrawStrategy,
 			*mForwardShadingPass,
@@ -414,7 +413,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
-			*mFwdFramebuffer,
+			*mRenderTargets->mFwdFramebuffer,
 			mScene->GetSceneGraph()->GetRootNode(),
 			*mTransparentDrawStrategy,
 			*mForwardShadingPass,

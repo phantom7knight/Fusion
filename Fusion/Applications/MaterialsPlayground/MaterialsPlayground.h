@@ -52,6 +52,8 @@ class RenderTargets : public donut::render::GBufferRenderTargets
 public:
 	nvrhi::TextureHandle mOutputColor;
 
+	std::unique_ptr<donut::engine::FramebufferFactory> mFwdFramebuffer;
+
 	RenderTargets(nvrhi::IDevice* aDevice,
 		const dm::uint2 aSize,
 		const uint32_t aSampleCount,
@@ -60,16 +62,18 @@ public:
 	{
 		nvrhi::TextureDesc textureDesc;
 		textureDesc.format = nvrhi::Format::RGBA16_FLOAT;
-		textureDesc.dimension = nvrhi::TextureDimension::Texture2D;
 		textureDesc.initialState = nvrhi::ResourceStates::UnorderedAccess;
 		textureDesc.isUAV = true;
 		textureDesc.isRenderTarget = true;
 		textureDesc.keepInitialState = true;
-		textureDesc.debugName = "Lighting Pass: OutputBuffer";
+		textureDesc.debugName = "OutputBuffer";
 		textureDesc.width = aSize.x;
 		textureDesc.height = aSize.y;
 		textureDesc.sampleCount = aSampleCount;
+		textureDesc.dimension = aSampleCount > 1 ? nvrhi::TextureDimension::Texture2DMS : nvrhi::TextureDimension::Texture2D;
 		mOutputColor = aDevice->createTexture(textureDesc);
+
+		mFwdFramebuffer = std::make_unique<donut::engine::FramebufferFactory>(aDevice);
 
 		// Init GBuffer Render Targets
 		Init(aDevice,
@@ -77,6 +81,10 @@ public:
 			aSampleCount,
 			aEnableMotionVectors,
 			aUseReverseProjection);
+
+		mFwdFramebuffer->RenderTargets = { mOutputColor };
+		mFwdFramebuffer->DepthTarget = Depth;
+
 	}
 
 	void Clear(nvrhi::ICommandList* aCommandList)
@@ -116,7 +124,6 @@ private:
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
 	std::shared_ptr<donut::engine::Scene> mScene;
 	std::unique_ptr<donut::engine::BindingCache> mBindingCache;
-	std::unique_ptr<donut::engine::FramebufferFactory> mFwdFramebuffer;
 	std::shared_ptr<donut::engine::DirectionalLight> mSunLight;
 	std::unique_ptr<donut::render::GBufferFillPass> mGBufferFillPass;
 	std::unique_ptr<donut::render::DeferredLightingPass> mDeferredLightingPass;

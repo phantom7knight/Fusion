@@ -45,7 +45,7 @@ int main(int __argc, const char* __argv[])
 		return 1;
 	}
 
-	deviceManager->SetInformativeWindowTitle("Deferred");
+	deviceManager->SetInformativeWindowTitle("Material Playground");
 
 	{
 		// Shader Generation Setup
