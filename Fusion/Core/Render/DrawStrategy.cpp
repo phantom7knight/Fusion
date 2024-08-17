@@ -77,7 +77,10 @@ void InstancedOpaqueDrawStrategy::FillChunk()
         bool nodeVisible = false;
         if (subgraphContentRelevant)
         {
+            // Frustum Cull
             nodeVisible = m_ViewFrustum.intersectsWith(m_Walker->GetGlobalBoundingBox());
+
+            //TODO_RT: Look into Occlusion CUlling : https://interplayoflight.wordpress.com/2017/11/15/experiments-in-gpu-based-occlusion-culling/
 
             if (nodeVisible && nodeContentsRelevant)
             {
@@ -122,7 +125,7 @@ void InstancedOpaqueDrawStrategy::FillChunk()
             }
         }
 
-        m_Walker.Next(nodeVisible);
+        m_Walker.Next(true);
     }
 
     m_InstanceChunk.resize(itemCount);
@@ -160,7 +163,6 @@ const DrawItem* InstancedOpaqueDrawStrategy::GetNextItem()
     return m_InstancePtrChunk[m_ReadPtr++];
 }
 
-
 static int CompareDrawItemsTransparent(const DrawItem* a, const DrawItem* b)
 {
     if (a->instance == b->instance)
@@ -189,6 +191,7 @@ void TransparentDrawStrategy::PrepareForView(const std::shared_ptr<engine::Scene
         bool nodeVisible = false;
         if (subgraphContentRelevant)
         {
+            // Frustrum Cull
             nodeVisible = viewFrustum.intersectsWith(walker->GetGlobalBoundingBox());
 
             if (nodeVisible && nodeContentsRelevant)

@@ -32,46 +32,46 @@
 
 namespace donut::vfs
 {
-    class IBlob;
-    class IFileSystem;
+	class IBlob;
+	class IFileSystem;
 }
 
 namespace donut::engine
 {
-    // Shader Compile Helpers
-    bool ShadersCompile(std::filesystem::path aShaderConfigPath, std::filesystem::path aShaderIncludesPath, const nvrhi::GraphicsAPI aAPI = nvrhi::GraphicsAPI::D3D12);
+	// Shader Compile Helpers
+	bool ShadersCompile(std::filesystem::path aShaderConfigPath, std::filesystem::path aShaderIncludesPath, const nvrhi::GraphicsAPI aAPI = nvrhi::GraphicsAPI::D3D12);
 
-    struct ShaderMacro
-    {
-        std::string name;
-        std::string definition;
+	struct ShaderMacro
+	{
+		std::string name;
+		std::string definition;
 
-        ShaderMacro(const std::string& _name, const std::string& _definition)
-            : name(_name)
-            , definition(_definition)
-        { }
-    };
+		ShaderMacro(const std::string& _name, const std::string& _definition)
+			: name(_name)
+			, definition(_definition)
+		{ }
+	};
 
-    class ShaderFactory
-    {
-    private:
-        nvrhi::DeviceHandle m_Device;
-        std::unordered_map<std::string, std::shared_ptr<vfs::IBlob>> m_BytecodeCache;
+	class ShaderFactory
+	{
+	private:
+		nvrhi::DeviceHandle m_Device;
+		std::unordered_map<std::string, std::shared_ptr<vfs::IBlob>> m_BytecodeCache;
 		std::shared_ptr<vfs::IFileSystem> m_fs;
 		std::filesystem::path m_basePath;
 
-    public:
-        ShaderFactory(
-            nvrhi::DeviceHandle rendererInterface,
-            std::shared_ptr<vfs::IFileSystem> fs,
+	public:
+		ShaderFactory(
+			nvrhi::DeviceHandle rendererInterface,
+			std::shared_ptr<vfs::IFileSystem> fs,
 			const std::filesystem::path& basePath);
 
-        void ClearCache();
+		void ClearCache();
 
-        nvrhi::ShaderHandle CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, nvrhi::ShaderType shaderType);
-        nvrhi::ShaderHandle CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
-        nvrhi::ShaderLibraryHandle CreateShaderLibrary(const char* fileName, const std::vector<ShaderMacro>* pDefines);
+		nvrhi::ShaderHandle CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, nvrhi::ShaderType shaderType);
+		nvrhi::ShaderHandle CreateShader(const char* fileName, const char* entryName, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
+		nvrhi::ShaderLibraryHandle CreateShaderLibrary(const char* fileName, const std::vector<ShaderMacro>* pDefines);
 
-        std::shared_ptr<vfs::IBlob> GetBytecode(const char* fileName, const char* entryName);
-    };
+		std::shared_ptr<vfs::IBlob> GetBytecode(const char* fileName, const char* entryName);
+	};
 }

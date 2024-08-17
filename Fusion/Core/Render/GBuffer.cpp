@@ -83,7 +83,7 @@ void GBufferRenderTargets::Init(
     desc.isTypeless = true;
     desc.initialState = nvrhi::ResourceStates::DepthWrite;
     desc.clearValue = useReverseProjection ? nvrhi::Color(0.f) : nvrhi::Color(1.f);
-    desc.debugName = "GBuffer: Depth";
+    desc.debugName = "Depth Texture";
     Depth = device->createTexture(desc);
 
     desc.isTypeless = false;

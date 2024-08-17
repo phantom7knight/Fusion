@@ -90,7 +90,6 @@ void donut::render::RenderView(
         if (item->material == nullptr)
             continue;
 
-
         bool newBuffers = item->buffers != lastBuffers;
         bool newMaterial = item->material != lastMaterial || item->cullMode != lastCullMode;
 

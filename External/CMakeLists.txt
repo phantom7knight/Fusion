@@ -74,7 +74,15 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
-FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui taskflow) # D3D12MemoryAllocator
+# Set up Eventpp
+include(FetchContent)
+FetchContent_Declare(
+    eventpp
+    GIT_REPOSITORY https://github.com/wqking/eventpp
+    GIT_TAG        d2db8af2a46c79f8dc75759019fba487948e9442 # v0.1.3
+)
+
+FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui taskflow eventpp) # D3D12MemoryAllocator
 
 # set necessary path
 set(DEPENDENCY_PATH ${CMAKE_BINARY_DIR}/_deps)
@@ -134,6 +142,7 @@ glfw
 jsoncpp_static
 libstb
 libimgui
+eventpp
 # taskflow
 )
 
@@ -145,12 +154,13 @@ ${jsoncpp_SOURCE_DIR}/include
 ${cgltf_SOURCE_DIR}
 ${stb_SOURCE_DIR}
 ${imgui_SOURCE_DIR}
-${TASKFLOW_HEADERS_PATH} )
+${TASKFLOW_HEADERS_PATH}
 # ${nvrhi_vulkan_target}
 # ${nvrhi_SOURCE_DIR}/thirdparty/Vulkan-Headers/include/vulkan)
 # ${D3D12MemoryAllocator_SOURCE_DIR}/include
 # ${stb_SOURCE_DIR}
-# ${sdl2_SOURCE_DIR}/include 
+# ${sdl2_SOURCE_DIR}/include
+)
 
 # Now set the FOLDER property for the fetched target
 set_target_properties(update_mappings PROPERTIES FOLDER "External")
