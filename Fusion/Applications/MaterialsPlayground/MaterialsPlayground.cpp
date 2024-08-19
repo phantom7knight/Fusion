@@ -98,6 +98,30 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Checkbox("Enable Vsync", &mMaterialsPlaygroundApp->mUIOptions.mVsync);
 
+	ImGui::Checkbox("Enable Profiling", &mMaterialsPlaygroundApp->mUIOptions.mEnableProfiling);
+
+	if (mMaterialsPlaygroundApp->mUIOptions.mEnableProfiling)
+	{
+		ImGui::Begin("Profiling");
+
+		if (mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading)
+		{
+			ImGui::Text("GBuffer Fill Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mGBufferFillTimeTaken * 1000);
+			ImGui::Text("Deferred Lighting Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mDeferredLightingTimeTaken * 1000);
+		}
+		else
+		{
+			ImGui::Text("Forward Opaque Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mForwardOpaqueTimeTaken * 1000);
+		}
+
+		if (mMaterialsPlaygroundApp->mUIOptions.mEnableTranslucency)
+		{
+			ImGui::Text("Forward Transparency Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mForwardTransparentTimeTaken * 1000);
+		}
+
+		ImGui::End();
+	}
+
 	ImGui::Checkbox("Enable Deferred Shading", &mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading);
 
 	if (mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading)
@@ -110,7 +134,6 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Checkbox("Enable Transparency", &mMaterialsPlaygroundApp->mUIOptions.mEnableTranslucency);
 
-	// todo_rt; testing
 	ImGui::Checkbox("Enable Material Editor", &mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor);
 	if (mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor) // todo_rt; handle the turn on off condition better
 	{
@@ -361,6 +384,10 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	if (mUIOptions.mEnableDeferredShading)
 	{
 		donut::render::GBufferFillPass::Context ctx = {};
+
+		auto gbufferFillPassTimeQueryId = GetDevice()->createTimerQuery();
+		mCommandList->beginTimerQuery(gbufferFillPassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -371,15 +398,25 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			ctx,
 			"GBuffer Fill Pass");
 
+		mCommandList->endTimerQuery(gbufferFillPassTimeQueryId);
+		mUIOptions.mGBufferFillTimeTaken = GetDevice()->getTimerQueryTime(gbufferFillPassTimeQueryId);
+
 		deferredLightingInputs.SetGBuffer(*mRenderTargets);
 		deferredLightingInputs.output = mRenderTargets->mOutputColor;
 		deferredLightingInputs.ambientColorTop = PBRTesting_Private::ambientColorTop;
 		deferredLightingInputs.ambientColorBottom = PBRTesting_Private::ambientColorBottom;
 		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
+		auto deferredLightingTimeQueryId = GetDevice()->createTimerQuery();
+		mCommandList->beginTimerQuery(deferredLightingTimeQueryId);
+
 		mDeferredLightingPass->Render(mCommandList,
 			mView,
 			deferredLightingInputs);
+
+		mCommandList->endTimerQuery(deferredLightingTimeQueryId);
+		mUIOptions.mDeferredLightingTimeTaken = GetDevice()->getTimerQueryTime(deferredLightingTimeQueryId);
+
 	}
 	else
 	{
@@ -390,6 +427,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
+		auto fwdOpaquePassTimeQueryId = GetDevice()->createTimerQuery();
+		mCommandList->beginTimerQuery(fwdOpaquePassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -399,6 +439,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mForwardShadingPass,
 			ctxFwd,
 			"Forward Opaque Pass");
+
+		mCommandList->endTimerQuery(fwdOpaquePassTimeQueryId);
+		mUIOptions.mForwardOpaqueTimeTaken = GetDevice()->getTimerQueryTime(fwdOpaquePassTimeQueryId);
 	}
 
 	if (mUIOptions.mEnableTranslucency) // TODO_RT: check if we need this, "|| !mUIOptions.mEnableDeferredShading"
@@ -410,6 +453,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
+		auto fwdTransparencyPassTimeQueryId = GetDevice()->createTimerQuery();
+		mCommandList->beginTimerQuery(fwdTransparencyPassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -419,8 +465,12 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mForwardShadingPass,
 			ctxFwd,
 			"Forward Transparency Pass");
+
+		mCommandList->endTimerQuery(fwdTransparencyPassTimeQueryId);
+		mUIOptions.mForwardTransparentTimeTaken = GetDevice()->getTimerQueryTime(fwdTransparencyPassTimeQueryId);
 	}
 
+	// Render the final output
 	if (mUIOptions.mEnableDeferredShading)
 	{
 		switch (mUIOptions.mRTsViewMode)

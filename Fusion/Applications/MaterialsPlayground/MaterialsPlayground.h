@@ -28,8 +28,13 @@ struct UIOptions
 	bool mEnableMaterialEditor = false;
 	bool mEnableTranslucency = true;
 	bool mEnableDeferredShading = false;
+	bool mEnableProfiling = false;
 	int mRTsViewMode = 0;
 	int mCurrentlySelectedMeshIdx = 0;
+	float mGBufferFillTimeTaken = 0.f;
+	float mForwardOpaqueTimeTaken = 0.f;
+	float mForwardTransparentTimeTaken = 0.f;
+	float mDeferredLightingTimeTaken = 0.f;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
 };
 
