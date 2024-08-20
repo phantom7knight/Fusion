@@ -267,6 +267,11 @@ bool MaterialsPlayground::Init()
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
 
+	mGbufferFillPassTimeQueryId = GetDevice()->createTimerQuery();
+	mDeferredLightingTimeQueryId = GetDevice()->createTimerQuery();
+	mFwdOpaquePassTimeQueryId = GetDevice()->createTimerQuery();
+	mFwdTransparencyPassTimeQueryId = GetDevice()->createTimerQuery();
+
 	return true;
 }
 
@@ -385,8 +390,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	{
 		donut::render::GBufferFillPass::Context ctx = {};
 
-		auto gbufferFillPassTimeQueryId = GetDevice()->createTimerQuery();
-		mCommandList->beginTimerQuery(gbufferFillPassTimeQueryId);
+		mCommandList->beginTimerQuery(mGbufferFillPassTimeQueryId);
 
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
@@ -398,8 +402,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			ctx,
 			"GBuffer Fill Pass");
 
-		mCommandList->endTimerQuery(gbufferFillPassTimeQueryId);
-		mUIOptions.mGBufferFillTimeTaken = GetDevice()->getTimerQueryTime(gbufferFillPassTimeQueryId);
+		mCommandList->endTimerQuery(mGbufferFillPassTimeQueryId);
 
 		deferredLightingInputs.SetGBuffer(*mRenderTargets);
 		deferredLightingInputs.output = mRenderTargets->mOutputColor;
@@ -407,15 +410,14 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		deferredLightingInputs.ambientColorBottom = PBRTesting_Private::ambientColorBottom;
 		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
-		auto deferredLightingTimeQueryId = GetDevice()->createTimerQuery();
-		mCommandList->beginTimerQuery(deferredLightingTimeQueryId);
+		
+		mCommandList->beginTimerQuery(mDeferredLightingTimeQueryId);
 
 		mDeferredLightingPass->Render(mCommandList,
 			mView,
 			deferredLightingInputs);
 
-		mCommandList->endTimerQuery(deferredLightingTimeQueryId);
-		mUIOptions.mDeferredLightingTimeTaken = GetDevice()->getTimerQueryTime(deferredLightingTimeQueryId);
+		mCommandList->endTimerQuery(mDeferredLightingTimeQueryId);
 
 	}
 	else
@@ -427,8 +429,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
-		auto fwdOpaquePassTimeQueryId = GetDevice()->createTimerQuery();
-		mCommandList->beginTimerQuery(fwdOpaquePassTimeQueryId);
+		mCommandList->beginTimerQuery(mFwdOpaquePassTimeQueryId);
 
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
@@ -440,8 +441,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			ctxFwd,
 			"Forward Opaque Pass");
 
-		mCommandList->endTimerQuery(fwdOpaquePassTimeQueryId);
-		mUIOptions.mForwardOpaqueTimeTaken = GetDevice()->getTimerQueryTime(fwdOpaquePassTimeQueryId);
+		mCommandList->endTimerQuery(mFwdOpaquePassTimeQueryId);
 	}
 
 	if (mUIOptions.mEnableTranslucency) // TODO_RT: check if we need this, "|| !mUIOptions.mEnableDeferredShading"
@@ -453,8 +453,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
-		auto fwdTransparencyPassTimeQueryId = GetDevice()->createTimerQuery();
-		mCommandList->beginTimerQuery(fwdTransparencyPassTimeQueryId);
+		mCommandList->beginTimerQuery(mFwdTransparencyPassTimeQueryId);
 
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
@@ -466,8 +465,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			ctxFwd,
 			"Forward Transparency Pass");
 
-		mCommandList->endTimerQuery(fwdTransparencyPassTimeQueryId);
-		mUIOptions.mForwardTransparentTimeTaken = GetDevice()->getTimerQueryTime(fwdTransparencyPassTimeQueryId);
+		mCommandList->endTimerQuery(mFwdTransparencyPassTimeQueryId);
+		
 	}
 
 	// Render the final output
@@ -491,4 +490,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	mCommandList->close();
 	GetDevice()->executeCommandList(mCommandList);
+
+	mUIOptions.mGBufferFillTimeTaken = GetDevice()->getTimerQueryTime(mGbufferFillPassTimeQueryId);
+	mUIOptions.mDeferredLightingTimeTaken = GetDevice()->getTimerQueryTime(mDeferredLightingTimeQueryId);
+	mUIOptions.mForwardOpaqueTimeTaken = GetDevice()->getTimerQueryTime(mFwdOpaquePassTimeQueryId);
+	mUIOptions.mForwardTransparentTimeTaken = GetDevice()->getTimerQueryTime(mFwdTransparencyPassTimeQueryId);
 }

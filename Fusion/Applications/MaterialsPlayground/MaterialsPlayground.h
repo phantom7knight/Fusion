@@ -123,7 +123,6 @@ private:
 
 	nvrhi::CommandListHandle mCommandList;
 	donut::engine::PlanarView mView;
-	//donut::engine::PlanarView mPrevView; todo_rt; add this
 	donut::engine::CompositeView mCompView;
 	donut::app::FirstPersonCamera mCamera;
 	std::shared_ptr<donut::engine::ShaderFactory> mShaderFactory;
@@ -137,4 +136,10 @@ private:
 	std::unique_ptr<donut::render::TransparentDrawStrategy> mTransparentDrawStrategy;
 	std::vector<std::shared_ptr<donut::engine::SpotLight>> mLights;
 	std::shared_ptr<RenderTargets> mRenderTargets;
+
+	// time query
+	nvrhi::TimerQueryHandle mGbufferFillPassTimeQueryId;
+	nvrhi::TimerQueryHandle mDeferredLightingTimeQueryId;
+	nvrhi::TimerQueryHandle mFwdOpaquePassTimeQueryId;
+	nvrhi::TimerQueryHandle mFwdTransparencyPassTimeQueryId;
 };

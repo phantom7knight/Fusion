@@ -125,10 +125,6 @@ set(SRC_FILES
 	"Utilities/Math/sphere.h"
 	"Utilities/Math/vector.h"
 	"Utilities/Math/vector.cpp"
-	
-	"Utilities/Profiling/ImGuiProfilerRenderer.cpp"
-	"Utilities/Profiling/ImGuiProfilerRenderer.h"
-	"Utilities/Profiling/ProfilerTask.h"
 	)
 
 # Create source groups for better organization in IDEs
@@ -236,10 +232,6 @@ source_group("Utilities\\Math" FILES
 	"Utilities/Math/sphere.h"
 	"Utilities/Math/vector.h"
 	"Utilities/Math/vector.cpp")
-source_group("Utilities\\Profiling" FILES
-	"Utilities/Profiling/ImGuiProfilerRenderer.cpp"
-	"Utilities/Profiling/ImGuiProfilerRenderer.h"
-	"Utilities/Profiling/ProfilerTask.h")
 source_group("App\\Imgui" FILES
 	"App/Imgui/imgui_console.h"
 	"App/Imgui/imgui_console.cpp"
