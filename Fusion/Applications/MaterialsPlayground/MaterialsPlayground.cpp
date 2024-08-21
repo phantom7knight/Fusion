@@ -26,6 +26,7 @@ namespace PBRTesting_Private
 	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+
 	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
 	const std::filesystem::path damangedHelmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
@@ -145,21 +146,23 @@ void UIRenderer::BuildUI(void)
 			{
 				for (int i = 0; i < meshInstances.size(); ++i)
 				{
-					const bool idx = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
-					if (ImGui::Selectable(meshInstances[i]->GetMesh()->name.c_str(), idx))
+					const bool isSelected = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
+					std::string meshName = meshInstances[i]->GetMesh()->name + "_" + std::to_string(i); // Adding this to avoid duplication issue with imgui selection with same name
+					if (ImGui::Selectable(meshName.c_str(), isSelected))
 						mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx = i;
 
 					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-					if (idx)
+					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
 			}
 
-			const char* currentMeshMaterialName = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material->name.c_str();
+			auto& material = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
+			const char* currentMeshMaterialName = material->name.c_str();
 
 			donut::engine::MaterialsData matEditorData;
-			matEditorData.mGLTFMaterial = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
+			matEditorData.mGLTFMaterial = material;
 
 			mMaterialEditor->Show(matEditorData);
 
@@ -209,9 +212,10 @@ bool MaterialsPlayground::Init()
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
 
-	{ // scene setup
+	// scene setup
+	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::sponzaModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
