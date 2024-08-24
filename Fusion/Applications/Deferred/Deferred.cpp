@@ -28,7 +28,7 @@ namespace Deferred_Private
 	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
 	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
-	const std::filesystem::path helmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
+	const std::filesystem::path damagedHelmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
 	const std::filesystem::path carbonFibreModel = gltfAssetPath / "2.0/CarbonFibre/glTF/CarbonFibre.gltf";
 	const std::filesystem::path suzanneModel = gltfAssetPath / "2.0/Suzanne/glTF/Suzanne.gltf";
 	const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
@@ -93,10 +93,6 @@ void UIRenderer::BuildUI(void)
 	auto& arr = mDeferredApp->mUIOptions.mAppModeOptions;
 	ImGui::Combo("RT Targets", &mDeferredApp->mUIOptions.mRTsViewMode, arr.data(), arr.size());
 
-	ImGui::SeparatorText("Light Options:");
-
-	ImGui::DragFloat3(": Sun Light Pos", mDeferredApp->mUIOptions.mSunPos, -10.f, 10.f);
-
 	ImGui::End();
 }
 
@@ -125,7 +121,7 @@ bool DeferredApp::Init()
 
 	{ // scene setup
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, Deferred_Private::sponzaModel);
+		BeginLoadingScene(nativeFS, Deferred_Private::damagedHelmetModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -153,7 +149,7 @@ bool DeferredApp::Init()
 		}
 
 		// Light Setup
-		for (int x = 0; x < 1; ++x)
+		for (int x = 0; x < 0; ++x)
 		{
 			for (int y = 0; y < 1; ++y)
 			{

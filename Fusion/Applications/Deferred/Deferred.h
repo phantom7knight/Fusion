@@ -32,7 +32,6 @@ struct UIOptions
 	bool mVsync = false;
 	int mRTsViewMode = 0;
 	std::vector<const char*> mAppModeOptions = { "Final Image", "Diffuse", "Specular", "Normal", "Emissive", "Depth"};
-	float mSunPos[3] = { 0.f, 0.f, 0.f };
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
