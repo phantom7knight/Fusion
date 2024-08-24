@@ -13,7 +13,7 @@ option(NVRHI_WITH_RTXMU "Build nvrhi with RTXMU" OFF)
 FetchContent_Declare(
     nvrhi
     GIT_REPOSITORY https://github.com/NVIDIAGameWorks/nvrhi.git
-    GIT_TAG 970bf530c6b1ad5ec24da8dea468947c297b28e3
+    GIT_TAG 55b0dd4c2378e36033f16bdda3893dc2b09f9962 # July 3rd, 2024
     GIT_PROGRESS TRUE
 )
 
@@ -70,7 +70,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui
-  GIT_TAG c6e0284ac58b3f205c95365478888f7b53b077e2
+  GIT_TAG e471206b0889948c436f144669beb9b8875110c8 # Aug 20th, 2024
   GIT_PROGRESS TRUE
 )
 

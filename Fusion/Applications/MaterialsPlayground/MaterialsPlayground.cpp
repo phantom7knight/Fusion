@@ -26,6 +26,7 @@ namespace PBRTesting_Private
 	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+
 	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
 	const std::filesystem::path damangedHelmetModel = gltfAssetPath / "2.0/DamagedHelmet/glTF/DamagedHelmet.gltf";
@@ -35,7 +36,9 @@ namespace PBRTesting_Private
 	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 	const std::filesystem::path dragonAttenuationModel = gltfAssetPath / "2.0/DragonAttenuation/glTF/DragonAttenuation.gltf";
 	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
-	//const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
+	const std::filesystem::path shibaModel = gltfAssetPath / "2.0/shiba/scene.gltf";
+	const std::filesystem::path bookModel = gltfAssetPath / "2.0/storyBook/scene.gltf";
+	const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
 
 	constexpr dm::float3 ambientColorTop = 0.2f;
 	constexpr dm::float3 ambientColorBottom = ambientColorTop * float3(0.3f, 0.4f, 0.3f);
@@ -98,6 +101,30 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Checkbox("Enable Vsync", &mMaterialsPlaygroundApp->mUIOptions.mVsync);
 
+	ImGui::Checkbox("Enable Profiling", &mMaterialsPlaygroundApp->mUIOptions.mEnableProfiling);
+
+	if (mMaterialsPlaygroundApp->mUIOptions.mEnableProfiling)
+	{
+		ImGui::Begin("Profiling");
+
+		if (mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading)
+		{
+			ImGui::Text("GBuffer Fill Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mGBufferFillTimeTaken * 1000);
+			ImGui::Text("Deferred Lighting Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mDeferredLightingTimeTaken * 1000);
+		}
+		else
+		{
+			ImGui::Text("Forward Opaque Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mForwardOpaqueTimeTaken * 1000);
+		}
+
+		if (mMaterialsPlaygroundApp->mUIOptions.mEnableTranslucency)
+		{
+			ImGui::Text("Forward Transparency Pass: %3f ms", mMaterialsPlaygroundApp->mUIOptions.mForwardTransparentTimeTaken * 1000);
+		}
+
+		ImGui::End();
+	}
+
 	ImGui::Checkbox("Enable Deferred Shading", &mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading);
 
 	if (mMaterialsPlaygroundApp->mUIOptions.mEnableDeferredShading)
@@ -110,7 +137,6 @@ void UIRenderer::BuildUI(void)
 
 	ImGui::Checkbox("Enable Transparency", &mMaterialsPlaygroundApp->mUIOptions.mEnableTranslucency);
 
-	// todo_rt; testing
 	ImGui::Checkbox("Enable Material Editor", &mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor);
 	if (mMaterialsPlaygroundApp->mUIOptions.mEnableMaterialEditor) // todo_rt; handle the turn on off condition better
 	{
@@ -122,21 +148,23 @@ void UIRenderer::BuildUI(void)
 			{
 				for (int i = 0; i < meshInstances.size(); ++i)
 				{
-					const bool idx = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
-					if (ImGui::Selectable(meshInstances[i]->GetMesh()->name.c_str(), idx))
+					const bool isSelected = (mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx == i);
+					std::string meshName = meshInstances[i]->GetMesh()->name + "_" + std::to_string(i); // Adding this to avoid duplication issue with imgui selection with same name
+					if (ImGui::Selectable(meshName.c_str(), isSelected))
 						mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx = i;
 
 					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-					if (idx)
+					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
 			}
 
-			const char* currentMeshMaterialName = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material->name.c_str();
+			auto& material = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
+			const char* currentMeshMaterialName = material->name.c_str();
 
 			donut::engine::MaterialsData matEditorData;
-			matEditorData.mGLTFMaterial = meshInstances[mMaterialsPlaygroundApp->mUIOptions.mCurrentlySelectedMeshIdx]->GetMesh()->geometries[0]->material;
+			matEditorData.mGLTFMaterial = material;
 
 			mMaterialEditor->Show(matEditorData);
 
@@ -186,9 +214,10 @@ bool MaterialsPlayground::Init()
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
 
-	{ // scene setup
+	// scene setup
+	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::dragonAttenuationModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::bookModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -243,6 +272,11 @@ bool MaterialsPlayground::Init()
 		mDeferredLightingPass = std::make_unique<donut::render::DeferredLightingPass>(GetDevice(), m_CommonPasses);
 		mDeferredLightingPass->Init(mShaderFactory);
 	}
+
+	mGbufferFillPassTimeQueryId = GetDevice()->createTimerQuery();
+	mDeferredLightingTimeQueryId = GetDevice()->createTimerQuery();
+	mFwdOpaquePassTimeQueryId = GetDevice()->createTimerQuery();
+	mFwdTransparencyPassTimeQueryId = GetDevice()->createTimerQuery();
 
 	return true;
 }
@@ -361,6 +395,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 	if (mUIOptions.mEnableDeferredShading)
 	{
 		donut::render::GBufferFillPass::Context ctx = {};
+
+		mCommandList->beginTimerQuery(mGbufferFillPassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -371,15 +408,23 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			ctx,
 			"GBuffer Fill Pass");
 
+		mCommandList->endTimerQuery(mGbufferFillPassTimeQueryId);
+
 		deferredLightingInputs.SetGBuffer(*mRenderTargets);
 		deferredLightingInputs.output = mRenderTargets->mOutputColor;
 		deferredLightingInputs.ambientColorTop = PBRTesting_Private::ambientColorTop;
 		deferredLightingInputs.ambientColorBottom = PBRTesting_Private::ambientColorBottom;
 		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
+		
+		mCommandList->beginTimerQuery(mDeferredLightingTimeQueryId);
+
 		mDeferredLightingPass->Render(mCommandList,
 			mView,
 			deferredLightingInputs);
+
+		mCommandList->endTimerQuery(mDeferredLightingTimeQueryId);
+
 	}
 	else
 	{
@@ -390,6 +435,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
+		mCommandList->beginTimerQuery(mFwdOpaquePassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -399,6 +446,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mForwardShadingPass,
 			ctxFwd,
 			"Forward Opaque Pass");
+
+		mCommandList->endTimerQuery(mFwdOpaquePassTimeQueryId);
 	}
 
 	if (mUIOptions.mEnableTranslucency) // TODO_RT: check if we need this, "|| !mUIOptions.mEnableDeferredShading"
@@ -410,6 +459,8 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			PBRTesting_Private::ambientColorBottom,
 			{});
 
+		mCommandList->beginTimerQuery(mFwdTransparencyPassTimeQueryId);
+
 		donut::render::RenderCompositeView(mCommandList,
 			&mView,
 			&mView,
@@ -419,8 +470,12 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			*mForwardShadingPass,
 			ctxFwd,
 			"Forward Transparency Pass");
+
+		mCommandList->endTimerQuery(mFwdTransparencyPassTimeQueryId);
+		
 	}
 
+	// Render the final output
 	if (mUIOptions.mEnableDeferredShading)
 	{
 		switch (mUIOptions.mRTsViewMode)
@@ -441,4 +496,9 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 
 	mCommandList->close();
 	GetDevice()->executeCommandList(mCommandList);
+
+	mUIOptions.mGBufferFillTimeTaken = GetDevice()->getTimerQueryTime(mGbufferFillPassTimeQueryId);
+	mUIOptions.mDeferredLightingTimeTaken = GetDevice()->getTimerQueryTime(mDeferredLightingTimeQueryId);
+	mUIOptions.mForwardOpaqueTimeTaken = GetDevice()->getTimerQueryTime(mFwdOpaquePassTimeQueryId);
+	mUIOptions.mForwardTransparentTimeTaken = GetDevice()->getTimerQueryTime(mFwdTransparencyPassTimeQueryId);
 }

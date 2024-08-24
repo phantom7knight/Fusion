@@ -23,8 +23,6 @@ void donut::engine::MaterialEditor::GLTFMaterialSetup(std::shared_ptr<Material> 
 	bool isMatDirty = false;
 
 	ImGui::Text("Material Name: %s", aGLTFMaterial->name.c_str());
-
-
 	
 	{
 		isMatDirty |= ImGui::Checkbox("Use Base or Diffuse Texture", &aGLTFMaterial->enableBaseOrDiffuseTexture);
