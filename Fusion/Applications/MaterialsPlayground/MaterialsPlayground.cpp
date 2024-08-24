@@ -36,7 +36,9 @@ namespace PBRTesting_Private
 	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 	const std::filesystem::path dragonAttenuationModel = gltfAssetPath / "2.0/DragonAttenuation/glTF/DragonAttenuation.gltf";
 	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
-	//const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
+	const std::filesystem::path shibaModel = gltfAssetPath / "2.0/shiba/scene.gltf";
+	const std::filesystem::path bookModel = gltfAssetPath / "2.0/storyBook/scene.gltf";
+	const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
 
 	constexpr dm::float3 ambientColorTop = 0.2f;
 	constexpr dm::float3 ambientColorBottom = ambientColorTop * float3(0.3f, 0.4f, 0.3f);
@@ -215,7 +217,7 @@ bool MaterialsPlayground::Init()
 	// scene setup
 	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::sponzaModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::bookModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
