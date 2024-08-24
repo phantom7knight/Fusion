@@ -58,7 +58,7 @@ void donut::render::RenderView(
     nvrhi::DrawArguments currentDraw;
     currentDraw.instanceCount = 0;
 
-    auto flushDraw = [commandList, materialEvents, &graphicsState, &currentDraw, &eventMaterial, &pass, &passContext](const Material* material)
+    auto FlushDrawFn = [commandList, materialEvents, &graphicsState, &currentDraw, &eventMaterial, &pass, &passContext](const Material* material)
     {
         if (currentDraw.instanceCount == 0)
             return;
@@ -85,6 +85,7 @@ void donut::render::RenderView(
         currentDraw.instanceCount = 0;
     };
     
+    // Draw the items
     while (const DrawItem* item = drawStrategy.GetNextItem())
     {
         if (item->material == nullptr)
@@ -95,7 +96,7 @@ void donut::render::RenderView(
 
         if (newBuffers || newMaterial)
         {
-            flushDraw(lastMaterial);
+            FlushDrawFn(lastMaterial);
         }
 
         if (newBuffers)
@@ -138,14 +139,14 @@ void donut::render::RenderView(
             }
             else
             {
-                flushDraw(item->material);
+                FlushDrawFn(item->material);
 
                 currentDraw = args;
             }
         }
     }
 
-    flushDraw(lastMaterial);
+    FlushDrawFn(lastMaterial);
 
     if (materialEvents && eventMaterial)
         commandList->endMarker();
@@ -166,7 +167,7 @@ void donut::render::RenderCompositeView(
     if (passEvent)
         commandList->beginMarker(passEvent);
 
-    ViewType::Enum supportedViewTypes = pass.GetSupportedViewTypes();
+    ViewType::Enum supportedViewTypes = static_cast<ViewType::Enum>(pass.GetSupportedViewTypes());
 
     if (compositeViewPrev)
     {

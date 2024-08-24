@@ -227,7 +227,7 @@ void TransparentDrawStrategy::PrepareForView(const std::shared_ptr<engine::Scene
                         item.distanceToCamera = length(geometryGlobalBoundingBox.center() - viewOrigin);
                         if (material->doubleSided)
                         {
-                            if (DrawDoubleSidedMaterialsSeparately)
+                            if (mDrawDoubleSidedMaterialsSeparately)
                             {
                                 item.cullMode = nvrhi::RasterCullMode::Front;
                                 m_InstancesToDraw.push_back(item);

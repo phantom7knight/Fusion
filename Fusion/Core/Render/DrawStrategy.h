@@ -95,7 +95,7 @@ namespace donut::render
         size_t m_ReadPtr = 0;
 
     public:
-        bool DrawDoubleSidedMaterialsSeparately = true;
+        bool mDrawDoubleSidedMaterialsSeparately = true;
         
         void PrepareForView(
             const std::shared_ptr<engine::SceneGraphNode>& rootNode,

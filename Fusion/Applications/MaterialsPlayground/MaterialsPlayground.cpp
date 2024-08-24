@@ -26,6 +26,7 @@ namespace PBRTesting_Private
 	const std::filesystem::path renderPassesShaderPath = baseAssetsPath / "Shaders/RenderPasses/Generated";
 	const std::filesystem::path assetTexturesPath = baseAssetsPath / "Textures";
 	const std::filesystem::path gltfAssetPath = baseAssetsPath / "GLTFModels";
+	const std::filesystem::path modelsAssetPath = baseAssetsPath / "Models";
 
 	const std::filesystem::path duckModel = gltfAssetPath / "2.0/Duck/glTF/Duck.gltf";
 	const std::filesystem::path sponzaModel = gltfAssetPath / "2.0/Sponza/glTF/Sponza.gltf";
@@ -35,10 +36,12 @@ namespace PBRTesting_Private
 	const std::filesystem::path chessModel = gltfAssetPath / "2.0/ABeautifulGame/glTF/ABeautifulGame.gltf";
 	const std::filesystem::path planeModel = gltfAssetPath / "2.0/TwoSidedPlane/glTF/TwoSidedPlane.gltf";
 	const std::filesystem::path dragonAttenuationModel = gltfAssetPath / "2.0/DragonAttenuation/glTF/DragonAttenuation.gltf";
-	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
-	const std::filesystem::path shibaModel = gltfAssetPath / "2.0/shiba/scene.gltf";
-	const std::filesystem::path bookModel = gltfAssetPath / "2.0/storyBook/scene.gltf";
+	const std::filesystem::path bookModel = modelsAssetPath / "2.0/storyBook/scene.gltf";
 	const std::filesystem::path newSponzaModel = gltfAssetPath / "New Sponza/NewSponza_Main_glTF_002.gltf";
+	const std::filesystem::path transmissionTestModel = gltfAssetPath / "2.0/TransmissionTest/glTF/TransmissionTest.gltf";
+	const std::filesystem::path shibaModel = modelsAssetPath / "2.0/shiba/scene.gltf";
+	const std::filesystem::path cartoonTugboatModel = modelsAssetPath / "CartoonTugboat/CartoonTugboat.gltf";
+	const std::filesystem::path cartoonSmallCityModel = modelsAssetPath / "CartoonSmallCity/CartoonSmallCity.gltf";
 
 	constexpr dm::float3 ambientColorTop = 0.2f;
 	constexpr dm::float3 ambientColorBottom = ambientColorTop * float3(0.3f, 0.4f, 0.3f);
@@ -217,7 +220,7 @@ bool MaterialsPlayground::Init()
 	// scene setup
 	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::bookModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::cartoonTugboatModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
