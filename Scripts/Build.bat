@@ -13,7 +13,7 @@ cd Build
 
 rem Run CMake to configure the project
 rem cmake ..
-cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 ..
+cmake -G "Visual Studio 17 2022" -A x64 -T host=x64 ..
 
 rem Pause execution to keep the console window open
 pause
