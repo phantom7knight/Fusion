@@ -84,6 +84,7 @@ void main(
     float3 diffuseTerm = 0;
     float3 specularTerm = 0;
 
+    // Shadows
     [loop]
     for(uint nLight = 0; nLight < g_ForwardLight.numLights; nLight++)
     {
@@ -130,6 +131,7 @@ void main(
 
     float NdotV = saturate(-dot(surfaceMaterial.shadingNormal, viewIncident));
 
+    // Probes Calculation
     if(g_ForwardLight.numLightProbes > 0)
     {
         float3 N = surfaceMaterial.shadingNormal;
