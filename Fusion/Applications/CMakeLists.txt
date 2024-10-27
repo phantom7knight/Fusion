@@ -1,3 +1,4 @@
 add_subdirectory(Init)
 add_subdirectory(Deferred)
 add_subdirectory(MaterialsPlayground)
+add_subdirectory(MeshShaders)
