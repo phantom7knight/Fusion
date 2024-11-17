@@ -116,7 +116,6 @@ bool MeshShadersApp::Init()
 
 bool MeshShadersApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
 {
-	return false; // TODO_RT: Fix this once we decide to load models
 	assert(m_TextureCache);
 	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 

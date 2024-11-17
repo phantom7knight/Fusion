@@ -62,14 +62,11 @@ public:
 	}
 };
 
-
-
 GltfImporter::GltfImporter(std::shared_ptr<vfs::IFileSystem> fs, std::shared_ptr<SceneTypeFactory> sceneTypeFactory)
 	: m_fs(std::move(fs))
 	, m_SceneTypeFactory(std::move(sceneTypeFactory))
 {
 }
-
 
 struct cgltf_vfs_context
 {
@@ -78,7 +75,7 @@ struct cgltf_vfs_context
 };
 
 static cgltf_result cgltf_read_file_vfs(const struct cgltf_memory_options* memory_options,
-	const struct cgltf_file_options* file_options,const char* path, cgltf_size* size, void** data)
+	const struct cgltf_file_options* file_options, const char* path, cgltf_size* size, void** data)
 {
 	cgltf_vfs_context* context = (cgltf_vfs_context*)file_options->user_data;
 
@@ -141,7 +138,7 @@ static const cgltf_image* ParseDdsImage(const cgltf_texture* texture, const cglt
 		{
 			if (tokens[k].type != JSMN_STRING)
 				goto fail; // expecting a string key
-			
+
 			if (cgltf_json_strcmp(tokens + k, (const uint8_t*)ext.data, "source") == 0)
 			{
 				++k;
@@ -172,30 +169,30 @@ static const cgltf_image* ParseDdsImage(const cgltf_texture* texture, const cglt
 
 static const char* cgltf_error_to_string(cgltf_result res)
 {
-	switch(res)
+	switch (res)
 	{
-	case cgltf_result_success:
-		return "Success";
-	case cgltf_result_data_too_short:
-		return "Data is too short";
-	case cgltf_result_unknown_format:
-		return "Unknown format";
-	case cgltf_result_invalid_json:
-		return "Invalid JSON";
-	case cgltf_result_invalid_gltf:
-		return "Invalid glTF";
-	case cgltf_result_invalid_options:
-		return "Invalid options";
-	case cgltf_result_file_not_found:
-		return "File not found";
-	case cgltf_result_io_error:
-		return "I/O error";
-	case cgltf_result_out_of_memory:
-		return "Out of memory";
-	case cgltf_result_legacy_gltf:
-		return "Legacy glTF";
-	default:
-		return "Unknown error";
+		case cgltf_result_success:
+			return "Success";
+		case cgltf_result_data_too_short:
+			return "Data is too short";
+		case cgltf_result_unknown_format:
+			return "Unknown format";
+		case cgltf_result_invalid_json:
+			return "Invalid JSON";
+		case cgltf_result_invalid_gltf:
+			return "Invalid glTF";
+		case cgltf_result_invalid_options:
+			return "Invalid options";
+		case cgltf_result_file_not_found:
+			return "File not found";
+		case cgltf_result_io_error:
+			return "I/O error";
+		case cgltf_result_out_of_memory:
+			return "Out of memory";
+		case cgltf_result_legacy_gltf:
+			return "Legacy glTF";
+		default:
+			return "Unknown error";
 	}
 }
 
@@ -253,107 +250,107 @@ bool GltfImporter::Load(
 	std::unordered_map<const cgltf_image*, std::shared_ptr<LoadedTexture>> textures;
 
 	auto load_texture = [this, &textures, &textureCache, executor, &fileName, objects, &vfsContext, c_SearchForDds](const cgltf_texture* texture, bool sRGB)
-	{
-		if (!texture)
-			return std::shared_ptr<LoadedTexture>(nullptr);
-
-		// See if the extensions include a DDS image
-		const cgltf_image* ddsImage = ParseDdsImage(texture, objects);
-
-		if ((!texture->image || (!texture->image->uri && !texture->image->buffer_view)) && (!ddsImage || (!ddsImage->uri && !ddsImage->buffer_view)))
-			return std::shared_ptr<LoadedTexture>(nullptr);
-
-		// Pick either DDS or standard image, prefer DDS
-		const cgltf_image* activeImage = (ddsImage && (ddsImage->uri || ddsImage->buffer_view)) ? ddsImage : texture->image;
-
-		auto it = textures.find(activeImage);
-		if (it != textures.end())
-			return it->second;
-
-		std::shared_ptr<LoadedTexture> loadedTexture;
-
-		if (activeImage->buffer_view)
 		{
-			// If the image has inline data, like coming from a GLB container, use that.
+			if (!texture)
+				return std::shared_ptr<LoadedTexture>(nullptr);
 
-			const uint8_t* dataPtr = static_cast<const uint8_t*>(activeImage->buffer_view->buffer->data) + activeImage->buffer_view->offset;
-			const size_t dataSize = activeImage->buffer_view->size;
+			// See if the extensions include a DDS image
+			const cgltf_image* ddsImage = ParseDdsImage(texture, objects);
 
-			// We need to have a managed pointer to the texture data for async decoding.
-			std::shared_ptr<IBlob> textureData;
+			if ((!texture->image || (!texture->image->uri && !texture->image->buffer_view)) && (!ddsImage || (!ddsImage->uri && !ddsImage->buffer_view)))
+				return std::shared_ptr<LoadedTexture>(nullptr);
 
-			// Try to find an existing file blob that includes our data.
-			for (const auto& blob : vfsContext.blobs)
+			// Pick either DDS or standard image, prefer DDS
+			const cgltf_image* activeImage = (ddsImage && (ddsImage->uri || ddsImage->buffer_view)) ? ddsImage : texture->image;
+
+			auto it = textures.find(activeImage);
+			if (it != textures.end())
+				return it->second;
+
+			std::shared_ptr<LoadedTexture> loadedTexture;
+
+			if (activeImage->buffer_view)
 			{
-				const uint8_t* blobData = static_cast<const uint8_t*>(blob->data());
-				const size_t blobSize = blob->size();
+				// If the image has inline data, like coming from a GLB container, use that.
 
-				if (blobData < dataPtr && blobData + blobSize > dataPtr)
+				const uint8_t* dataPtr = static_cast<const uint8_t*>(activeImage->buffer_view->buffer->data) + activeImage->buffer_view->offset;
+				const size_t dataSize = activeImage->buffer_view->size;
+
+				// We need to have a managed pointer to the texture data for async decoding.
+				std::shared_ptr<IBlob> textureData;
+
+				// Try to find an existing file blob that includes our data.
+				for (const auto& blob : vfsContext.blobs)
 				{
-					// Found the file blob - create a range blob out of it and keep a strong reference.
-					assert(dataPtr + dataSize <= blobData + blobSize);
-					textureData = std::make_shared<BufferRegionBlob>(blob, dataPtr - blobData, dataSize);
-					break;
+					const uint8_t* blobData = static_cast<const uint8_t*>(blob->data());
+					const size_t blobSize = blob->size();
+
+					if (blobData < dataPtr && blobData + blobSize > dataPtr)
+					{
+						// Found the file blob - create a range blob out of it and keep a strong reference.
+						assert(dataPtr + dataSize <= blobData + blobSize);
+						textureData = std::make_shared<BufferRegionBlob>(blob, dataPtr - blobData, dataSize);
+						break;
+					}
 				}
-			}
 
-			// Didn't find a file blob - copy the data into a new container.
-			if (!textureData)
-			{
-				void* dataCopy = malloc(dataSize);
-				assert(dataCopy);
-				memcpy(dataCopy, dataPtr, dataSize);
-				textureData = std::make_shared<vfs::Blob>(dataCopy, dataSize);
-			}
+				// Didn't find a file blob - copy the data into a new container.
+				if (!textureData)
+				{
+					void* dataCopy = malloc(dataSize);
+					assert(dataCopy);
+					memcpy(dataCopy, dataPtr, dataSize);
+					textureData = std::make_shared<vfs::Blob>(dataCopy, dataSize);
+				}
 
-			uint64_t imageIndex = activeImage - objects->images;
-			std::string name = activeImage->name ? activeImage->name : fileName.filename().generic_string() + "[" + std::to_string(imageIndex) + "]";
-			std::string mimeType = activeImage->mime_type ? activeImage->mime_type : "";
-
-#ifdef DONUT_WITH_TASKFLOW
-			if (executor)
-				loadedTexture = textureCache.LoadTextureFromMemoryAsync(textureData, name, mimeType, sRGB, *executor);
-			else
-#endif
-				loadedTexture = textureCache.LoadTextureFromMemoryDeferred(textureData, name, mimeType, sRGB);
-		}
-		else
-		{
-			// Decode %-encoded characters in the URI, because cgltf doesn't do that for some reason.
-			std::string uri = activeImage->uri;
-			cgltf_decode_uri(uri.data());
-
-			// No inline data - read a file.
-			std::filesystem::path filePath = fileName.parent_path() / uri;
-
-			// Try to replace the texture with DDS, if enabled.
-			if (c_SearchForDds && !ddsImage)
-			{
-				std::filesystem::path filePathDDS = filePath;
-
-				filePathDDS.replace_extension(".dds");
-
-				if (m_fs->fileExists(filePathDDS))
-					filePath = filePathDDS;
-			}
+				uint64_t imageIndex = activeImage - objects->images;
+				std::string name = activeImage->name ? activeImage->name : fileName.filename().generic_string() + "[" + std::to_string(imageIndex) + "]";
+				std::string mimeType = activeImage->mime_type ? activeImage->mime_type : "";
 
 #ifdef DONUT_WITH_TASKFLOW
-			if (executor)
-				loadedTexture = textureCache.LoadTextureFromFileAsync(filePath, sRGB, *executor);
-			else
+				if (executor)
+					loadedTexture = textureCache.LoadTextureFromMemoryAsync(textureData, name, mimeType, sRGB, *executor);
+				else
 #endif
-				loadedTexture = textureCache.LoadTextureFromFileDeferred(filePath, sRGB);
-		}
-		textures[activeImage] = loadedTexture;
-		return loadedTexture;
-	};
+					loadedTexture = textureCache.LoadTextureFromMemoryDeferred(textureData, name, mimeType, sRGB);
+			}
+			else
+			{
+				// Decode %-encoded characters in the URI, because cgltf doesn't do that for some reason.
+				std::string uri = activeImage->uri;
+				cgltf_decode_uri(uri.data());
+
+				// No inline data - read a file.
+				std::filesystem::path filePath = fileName.parent_path() / uri;
+
+				// Try to replace the texture with DDS, if enabled.
+				if (c_SearchForDds && !ddsImage)
+				{
+					std::filesystem::path filePathDDS = filePath;
+
+					filePathDDS.replace_extension(".dds");
+
+					if (m_fs->fileExists(filePathDDS))
+						filePath = filePathDDS;
+				}
+
+#ifdef DONUT_WITH_TASKFLOW
+				if (executor)
+					loadedTexture = textureCache.LoadTextureFromFileAsync(filePath, sRGB, *executor);
+				else
+#endif
+					loadedTexture = textureCache.LoadTextureFromFileDeferred(filePath, sRGB);
+			}
+			textures[activeImage] = loadedTexture;
+			return loadedTexture;
+		};
 
 	std::unordered_map<const cgltf_material*, std::shared_ptr<Material>> materials;
-	
+
 	for (size_t mat_idx = 0; mat_idx < objects->materials_count; mat_idx++)
 	{
 		const cgltf_material& material = objects->materials[mat_idx];
-		
+
 		std::shared_ptr<Material> matinfo = m_SceneTypeFactory->CreateMaterial();
 		if (material.name) matinfo->name = material.name;
 
@@ -414,14 +411,14 @@ bool GltfImporter::Load(
 
 		switch (material.alpha_mode)
 		{
-		case cgltf_alpha_mode_opaque: matinfo->domain = useTransmission ? MaterialDomain::Transmissive : MaterialDomain::Opaque; break;
-		case cgltf_alpha_mode_mask: matinfo->domain = useTransmission ? MaterialDomain::TransmissiveAlphaTested : MaterialDomain::AlphaTested; break;
-		case cgltf_alpha_mode_blend: matinfo->domain = useTransmission ? MaterialDomain::TransmissiveAlphaBlended : MaterialDomain::AlphaBlended; break;
+			case cgltf_alpha_mode_opaque: matinfo->domain = useTransmission ? MaterialDomain::Transmissive : MaterialDomain::Opaque; break;
+			case cgltf_alpha_mode_mask: matinfo->domain = useTransmission ? MaterialDomain::TransmissiveAlphaTested : MaterialDomain::AlphaTested; break;
+			case cgltf_alpha_mode_blend: matinfo->domain = useTransmission ? MaterialDomain::TransmissiveAlphaBlended : MaterialDomain::AlphaBlended; break;
 		}
 
 		materials[&material] = matinfo;
 	}
-	
+
 	size_t totalIndices = 0;
 	size_t totalVertices = 0;
 	bool hasJoints = false;
@@ -429,7 +426,7 @@ bool GltfImporter::Load(
 	for (size_t mesh_idx = 0; mesh_idx < objects->meshes_count; mesh_idx++)
 	{
 		const cgltf_mesh& mesh = objects->meshes[mesh_idx];
-		
+
 		for (size_t prim_idx = 0; prim_idx < mesh.primitives_count; prim_idx++)
 		{
 			const cgltf_primitive& prim = mesh.primitives[prim_idx];
@@ -457,10 +454,6 @@ bool GltfImporter::Load(
 					}
 				}
 			}
-
-			// todo_rt; testing
-			auto idx_ = prim.material;
-
 		}
 	}
 
@@ -500,7 +493,7 @@ bool GltfImporter::Load(
 		//meshes.push_back(minfo);
 
 		meshMap[&mesh] = minfo;
-		
+
 		for (size_t prim_idx = 0; prim_idx < mesh.primitives_count; prim_idx++)
 		{
 			const cgltf_primitive& prim = mesh.primitives[prim_idx];
@@ -523,46 +516,46 @@ bool GltfImporter::Load(
 			const cgltf_accessor* texcoords = nullptr;
 			const cgltf_accessor* joint_weights = nullptr;
 			const cgltf_accessor* joint_indices = nullptr;
-			
+
 			for (size_t attr_idx = 0; attr_idx < prim.attributes_count; attr_idx++)
 			{
 				const cgltf_attribute& attr = prim.attributes[attr_idx];
 
 				// ReSharper disable once CppIncompleteSwitchStatement
 				// ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
-				switch(attr.type)  // NOLINT(clang-diagnostic-switch)
+				switch (attr.type)  // NOLINT(clang-diagnostic-switch)
 				{
-				case cgltf_attribute_type_position:
-					assert(attr.data->type == cgltf_type_vec3);
-					assert(attr.data->component_type == cgltf_component_type_r_32f);
-					positions = attr.data;
-					break;
-				case cgltf_attribute_type_normal:
-					assert(attr.data->type == cgltf_type_vec3);
-					assert(attr.data->component_type == cgltf_component_type_r_32f);
-					normals = attr.data;
-					break;
-				case cgltf_attribute_type_tangent:
-					assert(attr.data->type == cgltf_type_vec4);
-					assert(attr.data->component_type == cgltf_component_type_r_32f);
-					tangents = attr.data;
-					break;
-				case cgltf_attribute_type_texcoord:
-					assert(attr.data->type == cgltf_type_vec2);
-					assert(attr.data->component_type == cgltf_component_type_r_32f);
-					if (attr.index == 0)
-						texcoords = attr.data;
-					break;
-				case cgltf_attribute_type_joints:
-					assert(attr.data->type == cgltf_type_vec4);
-					assert(attr.data->component_type == cgltf_component_type_r_8u || attr.data->component_type == cgltf_component_type_r_16u);
-					joint_indices = attr.data;
-					break;
-				case cgltf_attribute_type_weights:
-					assert(attr.data->type == cgltf_type_vec4);
-					assert(attr.data->component_type == cgltf_component_type_r_8u || attr.data->component_type == cgltf_component_type_r_16u || attr.data->component_type == cgltf_component_type_r_32f);
-					joint_weights = attr.data;
-					break;
+					case cgltf_attribute_type_position:
+						assert(attr.data->type == cgltf_type_vec3);
+						assert(attr.data->component_type == cgltf_component_type_r_32f);
+						positions = attr.data;
+						break;
+					case cgltf_attribute_type_normal:
+						assert(attr.data->type == cgltf_type_vec3);
+						assert(attr.data->component_type == cgltf_component_type_r_32f);
+						normals = attr.data;
+						break;
+					case cgltf_attribute_type_tangent:
+						assert(attr.data->type == cgltf_type_vec4);
+						assert(attr.data->component_type == cgltf_component_type_r_32f);
+						tangents = attr.data;
+						break;
+					case cgltf_attribute_type_texcoord:
+						assert(attr.data->type == cgltf_type_vec2);
+						assert(attr.data->component_type == cgltf_component_type_r_32f);
+						if (attr.index == 0)
+							texcoords = attr.data;
+						break;
+					case cgltf_attribute_type_joints:
+						assert(attr.data->type == cgltf_type_vec4);
+						assert(attr.data->component_type == cgltf_component_type_r_8u || attr.data->component_type == cgltf_component_type_r_16u);
+						joint_indices = attr.data;
+						break;
+					case cgltf_attribute_type_weights:
+						assert(attr.data->type == cgltf_type_vec4);
+						assert(attr.data->component_type == cgltf_component_type_r_8u || attr.data->component_type == cgltf_component_type_r_16u || attr.data->component_type == cgltf_component_type_r_32f);
+						joint_weights = attr.data;
+						break;
 				}
 			}
 
@@ -579,40 +572,40 @@ bool GltfImporter::Load(
 
 				uint32_t* indexDst = buffers->indexData.data() + totalIndices;
 
-				switch(prim.indices->component_type)
+				switch (prim.indices->component_type)
 				{
-				case cgltf_component_type_r_8u:
-					if (!indexStride) indexStride = sizeof(uint8_t);
-					for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
-					{
-						*indexDst = *(const uint8_t*)indexSrc;
+					case cgltf_component_type_r_8u:
+						if (!indexStride) indexStride = sizeof(uint8_t);
+						for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
+						{
+							*indexDst = *(const uint8_t*)indexSrc;
 
-						indexSrc += indexStride;
-						indexDst++;
-					}
-					break;
-				case cgltf_component_type_r_16u:
-					if (!indexStride) indexStride = sizeof(uint16_t);
-					for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
-					{
-						*indexDst = *(const uint16_t*)indexSrc;
+							indexSrc += indexStride;
+							indexDst++;
+						}
+						break;
+					case cgltf_component_type_r_16u:
+						if (!indexStride) indexStride = sizeof(uint16_t);
+						for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
+						{
+							*indexDst = *(const uint16_t*)indexSrc;
 
-						indexSrc += indexStride;
-						indexDst++;
-					}
-					break;
-				case cgltf_component_type_r_32u:
-					if (!indexStride) indexStride = sizeof(uint32_t);
-					for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
-					{
-						*indexDst = *(const uint32_t*)indexSrc;
+							indexSrc += indexStride;
+							indexDst++;
+						}
+						break;
+					case cgltf_component_type_r_32u:
+						if (!indexStride) indexStride = sizeof(uint32_t);
+						for (size_t i_idx = 0; i_idx < indexCount; i_idx++)
+						{
+							*indexDst = *(const uint32_t*)indexSrc;
 
-						indexSrc += indexStride;
-						indexDst++;
-					}
-					break;
-				default: 
-					assert(false);
+							indexSrc += indexStride;
+							indexDst++;
+						}
+						break;
+					default:
+						assert(false);
 				}
 			}
 			else
@@ -669,7 +662,7 @@ bool GltfImporter::Load(
 
 				auto [tangentSrc, tangentStride] = cgltf_buffer_iterator(tangents, sizeof(float) * 4);
 				uint32_t* tangentDst = buffers->tangentData.data() + totalVertices;
-				
+
 				for (size_t v_idx = 0; v_idx < tangents->count; v_idx++)
 				{
 					float4 tangent = (const float*)tangentSrc;
@@ -791,7 +784,7 @@ bool GltfImporter::Load(
 						*(float4*)tangentSrc = float4(tangent, sign);
 						tangentSrc += tangentStride;
 					}
-					
+
 					normalSrc += normalStride;
 					++tangentDst;
 				}
@@ -859,7 +852,7 @@ bool GltfImporter::Load(
 							float(weightSrcUshort[1]) / 65535.f,
 							float(weightSrcUshort[2]) / 65535.f,
 							float(weightSrcUshort[3]) / 65535.f);
-						
+
 						weightSrc += weightStride;
 						++weightDst;
 					}
@@ -916,7 +909,7 @@ bool GltfImporter::Load(
 		else
 		{
 			std::shared_ptr<OrthographicCamera> orthographicCamera = std::make_shared<OrthographicCamera>();
-			
+
 			orthographicCamera->zNear = src->data.orthographic.znear;
 			orthographicCamera->zFar = src->data.orthographic.zfar;
 			orthographicCamera->xMag = src->data.orthographic.xmag;
@@ -934,35 +927,35 @@ bool GltfImporter::Load(
 		const cgltf_light* src = &objects->lights[light_idx];
 		std::shared_ptr<Light> dst;
 
-		switch(src->type)  // NOLINT(clang-diagnostic-switch-enum)
+		switch (src->type)  // NOLINT(clang-diagnostic-switch-enum)
 		{
-		case cgltf_light_type_directional: {
-			auto directional = std::make_shared<DirectionalLight>();
-			directional->irradiance = src->intensity;
-			directional->color = src->color;
-			dst = directional;
-			break;
-		}
-		case cgltf_light_type_point: {
-			auto point = std::make_shared<PointLight>();
-			point->intensity = src->intensity;
-			point->color = src->color;
-			point->range = src->range;
-			dst = point;
-			break;
-		}
-		case cgltf_light_type_spot: {
-			auto spot = std::make_shared<SpotLight>();
-			spot->intensity = src->intensity;
-			spot->color = src->color;
-			spot->range = src->range;
-			spot->innerAngle = dm::degrees(src->spot_inner_cone_angle);
-			spot->outerAngle = dm::degrees(src->spot_outer_cone_angle);
-			dst = spot;
-			break;
-		}
-		default:
-			break;
+			case cgltf_light_type_directional: {
+				auto directional = std::make_shared<DirectionalLight>();
+				directional->irradiance = src->intensity;
+				directional->color = src->color;
+				dst = directional;
+				break;
+			}
+			case cgltf_light_type_point: {
+				auto point = std::make_shared<PointLight>();
+				point->intensity = src->intensity;
+				point->color = src->color;
+				point->range = src->range;
+				dst = point;
+				break;
+			}
+			case cgltf_light_type_spot: {
+				auto spot = std::make_shared<SpotLight>();
+				spot->intensity = src->intensity;
+				spot->color = src->color;
+				spot->range = src->range;
+				spot->innerAngle = dm::degrees(src->spot_inner_cone_angle);
+				spot->outerAngle = dm::degrees(src->spot_outer_cone_angle);
+				dst = spot;
+				break;
+			}
+			default:
+				break;
 		}
 
 		if (dst)
@@ -976,7 +969,7 @@ bool GltfImporter::Load(
 	std::shared_ptr<SceneGraphNode> root = std::make_shared<SceneGraphNode>();
 	std::unordered_map<cgltf_node*, std::shared_ptr<SceneGraphNode>> nodeMap;
 	std::vector<cgltf_node*> skinnedNodes;
-	
+
 	struct StackItem
 	{
 		std::shared_ptr<SceneGraphNode> dstParent;
@@ -993,7 +986,7 @@ bool GltfImporter::Load(
 	context.dstParent = root;
 	context.srcNodes = objects->scene->nodes;
 	context.srcCount = objects->scene->nodes_count;
-	
+
 	while (context.srcCount > 0)
 	{
 		cgltf_node* src = *context.srcNodes;
@@ -1007,7 +1000,7 @@ bool GltfImporter::Load(
 		if (src->has_matrix)
 		{
 			// decompose the matrix into TRS
-			affine3 aff = affine3(&src->matrix[0], 
+			affine3 aff = affine3(&src->matrix[0],
 				&src->matrix[4], &src->matrix[8], &src->matrix[12]);
 
 			double3 translation;
@@ -1163,7 +1156,7 @@ bool GltfImporter::Load(
 	}
 
 	std::unordered_map<const cgltf_animation_sampler*, std::shared_ptr<animation::Sampler>> animationSamplers;
-	
+
 	for (size_t a_idx = 0; a_idx < objects->animations_count; a_idx++)
 	{
 		const cgltf_animation* srcAnim = &objects->animations[a_idx];
@@ -1178,15 +1171,15 @@ bool GltfImporter::Load(
 
 			switch (srcSampler->interpolation)
 			{
-			case cgltf_interpolation_type_linear:
-				dstSampler->SetInterpolationMode(animation::InterpolationMode::Linear);
-				break;
-			case cgltf_interpolation_type_step:
-				dstSampler->SetInterpolationMode(animation::InterpolationMode::Step);
-				break;
-			case cgltf_interpolation_type_cubic_spline:
-				dstSampler->SetInterpolationMode(animation::InterpolationMode::HermiteSpline);
-				break;
+				case cgltf_interpolation_type_linear:
+					dstSampler->SetInterpolationMode(animation::InterpolationMode::Linear);
+					break;
+				case cgltf_interpolation_type_step:
+					dstSampler->SetInterpolationMode(animation::InterpolationMode::Step);
+					break;
+				case cgltf_interpolation_type_cubic_spline:
+					dstSampler->SetInterpolationMode(animation::InterpolationMode::HermiteSpline);
+					break;
 			}
 
 			const cgltf_accessor* times = srcSampler->input;
@@ -1256,7 +1249,7 @@ bool GltfImporter::Load(
 				continue;
 
 			auto dstTrack = std::make_shared<SceneGraphAnimationChannel>(dstSampler, dstNode, attribute);
-			
+
 			dstAnim->AddChannel(dstTrack);
 		}
 

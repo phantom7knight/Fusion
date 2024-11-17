@@ -17,6 +17,14 @@ FetchContent_Declare(
     GIT_PROGRESS TRUE
 )
 
+# Set up meshoptimizer
+FetchContent_Declare(
+    meshoptimizer
+    GIT_REPOSITORY https://github.com/zeux/meshoptimizer.git
+    GIT_TAG a64a212836d471756f86121aa5afc3547ff6196c # Nov 16th, 2024
+    GIT_PROGRESS TRUE
+)
+
 # Set up STB
 FetchContent_Declare(
   stb
@@ -82,7 +90,16 @@ FetchContent_Declare(
     GIT_TAG        d2db8af2a46c79f8dc75759019fba487948e9442 # v0.1.3
 )
 
-FetchContent_MakeAvailable(nvrhi glfw jsoncpp cgltf stb imgui taskflow eventpp) # D3D12MemoryAllocator
+FetchContent_MakeAvailable(
+	nvrhi 
+	glfw 
+	jsoncpp 
+	cgltf 
+	stb 
+	imgui 
+	taskflow 
+	eventpp 
+	meshoptimizer) # D3D12MemoryAllocator
 
 # set necessary path
 set(DEPENDENCY_PATH ${CMAKE_BINARY_DIR}/_deps)
@@ -143,6 +160,7 @@ jsoncpp_static
 libstb
 libimgui
 eventpp
+meshoptimizer
 # taskflow
 )
 
@@ -169,8 +187,4 @@ set_target_properties(jsoncpp_object PROPERTIES FOLDER "External")
 set_target_properties(libimgui PROPERTIES FOLDER "External")
 set_target_properties(libstb PROPERTIES FOLDER "External")
 set_target_properties(glfw PROPERTIES FOLDER "External")
-# set_target_properties(SDL2 PROPERTIES FOLDER "External")
-# set_target_properties(SDL2main PROPERTIES FOLDER "External")
-# set_target_properties(SDL2-static PROPERTIES FOLDER "External")
-# set_target_properties(sdl_headers_copy PROPERTIES FOLDER "External")
-#set_target_properties(stb PROPERTIES FOLDER "External")
+set_target_properties(meshoptimizer PROPERTIES FOLDER "External")
