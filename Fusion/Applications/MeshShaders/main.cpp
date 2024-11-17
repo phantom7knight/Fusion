@@ -23,7 +23,7 @@ namespace MainInit_Private
 	bool locShaderSetup(const nvrhi::GraphicsAPI aAPI)
 	{
 		// Generate Init Shaders and Common Shaders
-		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/Init/";
+		std::filesystem::path appShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Applications/MeshShaders/";
 		std::filesystem::path commonShaderConfigPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Common/";
 		std::filesystem::path includeShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/Includes/";
 		std::filesystem::path renderPassesShaderPath = donut::app::GetDirectoryWithExecutable() / "../../../Assets/Shaders/RenderPasses/";
@@ -41,6 +41,12 @@ namespace MainInit_Private
 int main(int __argc, const char* __argv[])
 {
 	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::D3D12;
+
+	if (API == nvrhi::GraphicsAPI::VULKAN)
+	{
+		donut::log::fatal("Mesh Shaders are not supported on Vulkan at the moment, please change it to nvrhi::GraphicsAPI::D3D12 instead!!!");
+		return 0;
+	}
 
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 

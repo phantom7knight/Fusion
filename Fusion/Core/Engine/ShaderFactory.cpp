@@ -132,7 +132,7 @@ bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::f
 		arguments.push_back(outputExtArg.c_str());
 		arguments.push_back("--shaderModel=6_5");
 	}
-	else if (aAPI==nvrhi::GraphicsAPI::VULKAN)
+	else if (aAPI == nvrhi::GraphicsAPI::VULKAN)
 	{
 		platformArg += "SPIRV";
 		compilerArg += "C:/VulkanSDK/1.3.216.0/Bin/dxc.exe";
@@ -156,6 +156,10 @@ bool donut::engine::ShadersCompile(std::filesystem::path aBaseShaderPath, std::f
 		assert("Invalid Platform");
 		return false;
 	}
+
+#if _DEBUG
+	//arguments.push_back("--PDB");
+#endif
 
 	uint8_t arrSize = (uint8_t)arguments.size();
 
@@ -226,7 +230,7 @@ nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char
 {
 	std::shared_ptr<IBlob> byteCode = GetBytecode(fileName, entryName);
 
-	if(!byteCode)
+	if (!byteCode)
 		return nullptr;
 
 	std::vector<ShaderMake::ShaderConstant> constants;
@@ -245,7 +249,7 @@ nvrhi::ShaderHandle ShaderFactory::CreateShader(const char* fileName, const char
 	{
 		const std::string message = ShaderMake::FormatShaderNotFoundMessage(byteCode->data(), byteCode->size(), constants.data(), uint32_t(constants.size()));
 		log::error("%s", message.c_str());
-		
+
 		return nullptr;
 	}
 
@@ -265,7 +269,7 @@ nvrhi::ShaderLibraryHandle ShaderFactory::CreateShaderLibrary(const char* fileNa
 		for (const ShaderMacro& define : *pDefines)
 			constants.push_back(ShaderMake::ShaderConstant{ define.name.c_str(), define.definition.c_str() });
 	}
-	
+
 	const void* permutationBytecode = nullptr;
 	size_t permutationSize = 0;
 	if (!ShaderMake::FindPermutationInBlob(byteCode->data(), byteCode->size(), constants.data(), uint32_t(constants.size()), &permutationBytecode, &permutationSize))

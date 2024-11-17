@@ -7,7 +7,7 @@
 #include "../../Core/Engine/TextureCache.h"
 #include "../../Core/App/DeviceManager.h"
 
-using namespace donut::math;
+using namespace dm;
 #include "../../../Assets/Shaders/Includes/lighting_cb.h"
 
 namespace Init_Private
@@ -78,7 +78,7 @@ bool InitApp::InitAppShaderSetup(std::shared_ptr<donut::engine::ShaderFactory> a
 {
 	mTriangle.mVertexShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
 	mTriangle.mPixelShader = aShaderFactory->CreateShader("Init/Triangle.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
-	
+
 	mCube.mVertexShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_vs", nullptr, nvrhi::ShaderType::Vertex);
 	mCube.mPixelShader = aShaderFactory->CreateShader("Init/Cube.hlsl", "main_ps", nullptr, nvrhi::ShaderType::Pixel);
 
@@ -107,7 +107,7 @@ bool InitApp::Init()
 	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
 	m_TextureCache = std::make_shared<donut::engine::TextureCache>(GetDevice(), nativeFS, nullptr);
 
-	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), mShaderFactory);
+	// todo_rt; fix this,remove this or combine with the ::ApplicationBase::m_TextureCache
 	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
 
 	if (!InitAppShaderSetup(mShaderFactory))
@@ -116,127 +116,132 @@ bool InitApp::Init()
 	mCommandList = GetDevice()->createCommandList();
 
 #pragma region Cube
-		mCube.mConstantBuffer = GetDevice()->createBuffer(nvrhi::utils::CreateStaticConstantBufferDesc
-		(sizeof(locInitHelpers::ConstantBufferEntry) * locInitHelpers::cNumViews, "Cube ConstantBuffer")
-			.setInitialState(nvrhi::ResourceStates::ConstantBuffer)
-			.setKeepInitialState(true));
+	mCube.mConstantBuffer = GetDevice()->createBuffer(nvrhi::utils::CreateStaticConstantBufferDesc
+	(sizeof(locInitHelpers::ConstantBufferEntry) * locInitHelpers::cNumViews, "Cube ConstantBuffer")
+		.setInitialState(nvrhi::ResourceStates::ConstantBuffer)
+		.setKeepInitialState(true));
 
-		nvrhi::VertexAttributeDesc attributes[] = {
-				nvrhi::VertexAttributeDesc()
-					.setName("POSITION")
-					.setFormat(nvrhi::Format::RGB32_FLOAT)
-					.setOffset(0)
-					.setBufferIndex(0)
-					.setElementStride(sizeof(locInitHelpers::Vertex)),
-				nvrhi::VertexAttributeDesc()
-					.setName("UV")
-					.setFormat(nvrhi::Format::RG32_FLOAT)
-					.setOffset(0)
-					.setBufferIndex(1)
-					.setElementStride(sizeof(locInitHelpers::Vertex)),
+	nvrhi::VertexAttributeDesc attributes[] = {
+			nvrhi::VertexAttributeDesc()
+				.setName("POSITION")
+				.setFormat(nvrhi::Format::RGB32_FLOAT)
+				.setOffset(0)
+				.setBufferIndex(0)
+				.setElementStride(sizeof(locInitHelpers::Vertex)),
+			nvrhi::VertexAttributeDesc()
+				.setName("UV")
+				.setFormat(nvrhi::Format::RG32_FLOAT)
+				.setOffset(0)
+				.setBufferIndex(1)
+				.setElementStride(sizeof(locInitHelpers::Vertex)),
+	};
+
+	mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
+
+	mCommandList->open();
+
+	// Cube Buffers
+	nvrhi::BufferDesc vertexBufferDesc;
+	vertexBufferDesc.byteSize = sizeof(locInitHelpers::gVertices);
+	vertexBufferDesc.isVertexBuffer = true;
+	vertexBufferDesc.debugName = "Cube VertexBuffer";
+	vertexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
+	mCube.mVertexBuffer = GetDevice()->createBuffer(vertexBufferDesc);
+
+	mCommandList->beginTrackingBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::CopyDest);
+	mCommandList->writeBuffer(mCube.mVertexBuffer, locInitHelpers::gVertices, sizeof(locInitHelpers::gVertices));
+	mCommandList->setPermanentBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::VertexBuffer);
+
+	nvrhi::BufferDesc indexBufferDesc;
+	indexBufferDesc.byteSize = sizeof(locInitHelpers::gIndices);
+	indexBufferDesc.isIndexBuffer = true;
+	indexBufferDesc.debugName = "Cube IndexBuffer";
+	indexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
+	mCube.mIndexBuffer = GetDevice()->createBuffer(indexBufferDesc);
+
+	mCommandList->beginTrackingBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::CopyDest);
+	mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
+	mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
+
+	// Textures
+	std::shared_ptr<donut::engine::LoadedTexture> windowTexture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
+	if (!windowTexture->texture)
+	{
+		donut::log::error("Couldn't load the %s texture", windowTexture->path.c_str());
+		return false;
+	}
+
+	mCube.mWindowTexture = windowTexture->texture;
+
+	mCommandList->close();
+	GetDevice()->executeCommandList(mCommandList);
+
+	// Create a single binding layout and multiple binding sets, one set per view.
+	// The different binding sets use different slices of the same constant buffer.
+	for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
+	{
+		nvrhi::BindingSetDesc bindingSetDesc;
+
+		// Note: using viewIndex to construct a buffer range.
+		nvrhi::BindingSetItem constBuffBindingSetItem = nvrhi::BindingSetItem::ConstantBuffer(0,
+			mCube.mConstantBuffer,
+			nvrhi::BufferRange(sizeof(locInitHelpers::ConstantBufferEntry) * viewIndex,
+				sizeof(locInitHelpers::ConstantBufferEntry)));
+
+		// Texture and sampler are the same for all model views.
+		nvrhi::BindingSetItem texSRVBindingSetItem = nvrhi::BindingSetItem::Texture_SRV(0, mCube.mWindowTexture);
+		nvrhi::BindingSetItem samplerBindingSetItem = nvrhi::BindingSetItem::Sampler(0, m_CommonPasses->m_AnisotropicWrapSampler);
+
+		bindingSetDesc.bindings = {
+			constBuffBindingSetItem,
+			texSRVBindingSetItem,
+			samplerBindingSetItem
 		};
 
-		mCube.mInputLayout = GetDevice()->createInputLayout(attributes, uint32_t(std::size(attributes)), mCube.mVertexShader);
-
-
-		mCommandList = GetDevice()->createCommandList();
-		mCommandList->open();
-
-		// Cube Buffers
-		nvrhi::BufferDesc vertexBufferDesc;
-		vertexBufferDesc.byteSize = sizeof(locInitHelpers::gVertices);
-		vertexBufferDesc.isVertexBuffer = true;
-		vertexBufferDesc.debugName = "Cube VertexBuffer";
-		vertexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
-		mCube.mVertexBuffer = GetDevice()->createBuffer(vertexBufferDesc);
-
-		mCommandList->beginTrackingBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::CopyDest);
-		mCommandList->writeBuffer(mCube.mVertexBuffer, locInitHelpers::gVertices, sizeof(locInitHelpers::gVertices));
-		mCommandList->setPermanentBufferState(mCube.mVertexBuffer, nvrhi::ResourceStates::VertexBuffer);
-
-		nvrhi::BufferDesc indexBufferDesc;
-		indexBufferDesc.byteSize = sizeof(locInitHelpers::gIndices);
-		indexBufferDesc.isIndexBuffer = true;
-		indexBufferDesc.debugName = "Cube IndexBuffer";
-		indexBufferDesc.initialState = nvrhi::ResourceStates::CopyDest;
-		mCube.mIndexBuffer = GetDevice()->createBuffer(indexBufferDesc);
-
-		mCommandList->beginTrackingBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::CopyDest);
-		mCommandList->writeBuffer(mCube.mIndexBuffer, locInitHelpers::gIndices, sizeof(locInitHelpers::gIndices));
-		mCommandList->setPermanentBufferState(mCube.mIndexBuffer, nvrhi::ResourceStates::IndexBuffer);
-
-		// Textures
-		std::shared_ptr<donut::engine::LoadedTexture> texture = textureCache.LoadTextureFromFile("/assets/Textures/window.png", true, nullptr, mCommandList);
-		mCube.mTexture = texture->texture;
-
-		mCommandList->close();
-		GetDevice()->executeCommandList(mCommandList);
-
-		if (!texture->texture)
+		// Create the binding layout (if it's empty -- so, on the first iteration) and the binding set.
+		if (!nvrhi::utils::CreateBindingSetAndLayout(
+			GetDevice(),
+			nvrhi::ShaderType::All,
+			0,
+			bindingSetDesc,
+			mCube.mBindingLayout,
+			mCube.mBindingSets[viewIndex]))
 		{
-			donut::log::error("Couldn't load the texture");
+			donut::log::error("Couldn't create the binding set or layout");
 			return false;
 		}
-
-		// Create a single binding layout and multiple binding sets, one set per view.
-		// The different binding sets use different slices of the same constant buffer.
-		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
-		{
-			nvrhi::BindingSetDesc bindingSetDesc;
-			bindingSetDesc.bindings = {
-				// Note: using viewIndex to construct a buffer range.
-				nvrhi::BindingSetItem::ConstantBuffer(0,
-				mCube.mConstantBuffer,
-				nvrhi::BufferRange(sizeof(locInitHelpers::ConstantBufferEntry) * viewIndex,
-				sizeof(locInitHelpers::ConstantBufferEntry))),
-				// Texutre and sampler are the same for all model views.
-				nvrhi::BindingSetItem::Texture_SRV(0, mCube.mTexture),
-				nvrhi::BindingSetItem::Sampler(0, cmnRenderPasses.m_AnisotropicWrapSampler)
-			};
-
-			// Create the binding layout (if it's empty -- so, on the first iteration) and the binding set.
-			if (!nvrhi::utils::CreateBindingSetAndLayout(GetDevice(),
-				nvrhi::ShaderType::All,
-				0,
-				bindingSetDesc,
-				mCube.mBindingLayout,
-				mCube.mBindingSets[viewIndex]))
-			{
-				donut::log::error("Couldn't create the binding set or layout");
-				return false;
-			}
-		}
+	}
 #pragma endregion
-	
+
 #pragma region Model
-		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, Init_Private::carbonFibreFileName);
+	SetAsynchronousLoadingEnabled(false);
+	BeginLoadingScene(nativeFS, Init_Private::sponzaFileName);
 
-		mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
+	mModel.mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 
-		mModel.m_SunLight = std::make_shared<donut::engine::DirectionalLight>();
-		mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mModel.m_SunLight);
-		mModel.m_SunLight->SetDirection(double3(0.1, -1.0, 0.15));
-		mModel.m_SunLight->SetName("Sun");
-		mModel.m_SunLight->angularSize = 0.53f;
-		mModel.m_SunLight->irradiance = 2.f;
+	mModel.m_SunLight = std::make_shared<donut::engine::DirectionalLight>();
+	mScene->GetSceneGraph()->AttachLeafNode(mScene->GetSceneGraph()->GetRootNode(), mModel.m_SunLight);
+	mModel.m_SunLight->SetDirection(double3(0.1, -1.0, 0.15));
+	mModel.m_SunLight->SetName("Sun");
+	mModel.m_SunLight->angularSize = 0.53f;
+	mModel.m_SunLight->irradiance = 2.f;
 
-		mScene->FinishedLoading(GetFrameIndex());
-
-		// camera setup
-		mCamera.LookAt(donut::math::float3(5.f, 10.8f, 10.f), donut::math::float3(1.f, 1.8f, 0.f));
-		mCamera.SetMoveSpeed(3.f);
+	mScene->FinishedLoading(GetFrameIndex());
 #pragma endregion
+
+	// camera setup
+	mCamera.LookAt(dm::float3(5.f, 10.8f, 10.f), dm::float3(1.f, 1.8f, 0.f));
+	mCamera.SetMoveSpeed(3.f);
 
 	return true;
 }
 
-bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& sceneFileName)
+bool InitApp::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFileSystem, const std::filesystem::path& aSceneFileName)
 {
 	assert(m_TextureCache);
 	donut::engine::Scene* scene = new donut::engine::Scene(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
 
-	if (scene->Load(sceneFileName))
+	if (scene->Load(aSceneFileName))
 	{
 		mScene = std::unique_ptr<donut::engine::Scene>(std::move(scene));
 		return true;
@@ -294,10 +299,20 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			psoDesc.renderState.depthStencilState.depthTestEnable = false;
 
 			mTriangle.mGraphicsPipeline = GetDevice()->createGraphicsPipeline(psoDesc, framebuffer);
+
+			// todo_rt;testing
+
+			// Serialize the PSO to a blob
+			//mTriangle.mGraphicsPipeline->GetCachedBlob(&psoCacheBlob);
+
+			//// Save the blob data to disk for caching
+			//std::ofstream cacheFile("pso_cache.bin", std::ios::binary);
+			//cacheFile.write((char*)psoCacheBlob->GetBufferPointer(), psoCacheBlob->GetBufferSize());
+			//cacheFile.close();
+
 		}
 
 		mCommandList->open();
-
 		nvrhi::utils::ClearColorAttachment(mCommandList, framebuffer, 0, nvrhi::Color(0.f));
 
 		nvrhi::GraphicsState state;
@@ -345,17 +360,17 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 		locInitHelpers::ConstantBufferEntry modelConstants[locInitHelpers::cNumViews];
 		for (uint32_t viewIndex = 0; viewIndex < locInitHelpers::cNumViews; ++viewIndex)
 		{
-			donut::math::affine3 viewMatrix = donut::math::rotation(normalize(locInitHelpers::gRotationAxes[viewIndex]), mCube.mRotation)
-				* donut::math::yawPitchRoll(0.f, donut::math::radians(-30.f), 0.f)
-				* donut::math::translation(donut::math::float3(0, 0, 2));
+			dm::affine3 viewMatrix = dm::rotation(normalize(locInitHelpers::gRotationAxes[viewIndex]), mCube.mRotation)
+				* dm::yawPitchRoll(0.f, dm::radians(-30.f), 0.f)
+				* dm::translation(dm::float3(0, 0, 2));
 
-			donut::math::float4x4 projMatrix;
+			dm::float4x4 projMatrix;
 
-			projMatrix= donut::math::perspProjD3DStyle(donut::math::radians(60.f),
+			projMatrix = dm::perspProjD3DStyle(dm::radians(60.f),
 				float(fbinfo.width) / float(fbinfo.height),
 				0.1f,
 				10.f);
-			donut::math::float4x4 viewProjMatrix = donut::math::affineToHomogeneous(viewMatrix) * projMatrix;			
+			dm::float4x4 viewProjMatrix = dm::affineToHomogeneous(viewMatrix) * projMatrix;
 			modelConstants[viewIndex].viewProjMatrix = viewProjMatrix;
 		}
 
@@ -446,13 +461,13 @@ void InitApp::Render(nvrhi::IFramebuffer* framebuffer)
 			constants.ambientColor,
 			{});
 
-		donut::render::RenderCompositeView(mCommandList, 
-			&mModel.mView, 
-			&mModel.mView, 
+		donut::render::RenderCompositeView(mCommandList,
+			&mModel.mView,
+			&mModel.mView,
 			*mModel.mRenderTargets->mFramebuffer,
-			mScene->GetSceneGraph()->GetRootNode(), 
-			*mModel.mOpaqueDrawStrategy, 
-			*mModel.mForwardPass, 
+			mScene->GetSceneGraph()->GetRootNode(),
+			*mModel.mOpaqueDrawStrategy,
+			*mModel.mForwardPass,
 			forwardContext);
 #ifdef _DEBUG
 		mCommandList->endMarker();

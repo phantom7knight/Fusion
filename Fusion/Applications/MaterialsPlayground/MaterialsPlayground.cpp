@@ -188,14 +188,14 @@ void UIRenderer::BuildUI(void)
 				//	ImGui::EndCombo();
 				//}
 #pragma endregion
-			
+
 		}
 	}
 	ImGui::End();
 }
 
 bool MaterialsPlayground::Init()
-{	
+{
 	std::shared_ptr<donut::vfs::RootFileSystem> rootFS = std::make_shared<donut::vfs::RootFileSystem>();
 	rootFS->mount("/shaders/Common", PBRTesting_Private::commonShaderPath);
 	rootFS->mount("/assets/Textures", PBRTesting_Private::assetTexturesPath);
@@ -209,18 +209,15 @@ bool MaterialsPlayground::Init()
 	auto nativeFS = std::make_shared<donut::vfs::NativeFileSystem>();
 	m_TextureCache = std::make_shared<donut::engine::TextureCache>(GetDevice(), nativeFS, nullptr);
 
-	donut::engine::CommonRenderPasses cmnRenderPasses(GetDevice(), mShaderFactory);
-	donut::engine::TextureCache textureCache(GetDevice(), rootFS, nullptr);
-
 	mCommandList = GetDevice()->createCommandList();
-	
+
 	mOpaqueDrawStrategy = std::make_unique<donut::render::InstancedOpaqueDrawStrategy>();
 	mTransparentDrawStrategy = std::make_unique<donut::render::TransparentDrawStrategy>();
 
 	// scene setup
 	{
 		SetAsynchronousLoadingEnabled(false);
-		BeginLoadingScene(nativeFS, PBRTesting_Private::cartoonTugboatModel);
+		BeginLoadingScene(nativeFS, PBRTesting_Private::chessModel);
 
 		// Sun Light
 		mSunLight = std::make_shared<donut::engine::DirectionalLight>();
@@ -288,9 +285,9 @@ bool MaterialsPlayground::LoadScene(std::shared_ptr<donut::vfs::IFileSystem> aFi
 {
 	assert(m_TextureCache);
 
-	if(!mScene)
+	if (!mScene)
 		mScene = std::make_shared<donut::engine::Scene>(GetDevice(), *mShaderFactory, aFileSystem, m_TextureCache, nullptr, nullptr);
-	
+
 	if (mScene->Load(sceneFileName))
 	{
 		return true;
@@ -330,7 +327,7 @@ bool MaterialsPlayground::MouseButtonUpdate(int button, int action, int mods)
 
 void MaterialsPlayground::BackBufferResized(const uint32_t width, const uint32_t height, const uint32_t sampleCount)
 {
-	 // TODO_RT: Support This
+	// TODO_RT: Support This
 	mRenderTargets = nullptr;
 	mGBufferFillPass = nullptr;
 	mDeferredLightingPass = nullptr;
@@ -358,7 +355,6 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		if (!mGBufferFillPass)
 		{
 			mGBufferFillPass = std::make_unique<donut::render::GBufferFillPass>(GetDevice(), m_CommonPasses);
-
 			donut::render::GBufferFillPass::CreateParameters params;
 			mGBufferFillPass->Init(*mShaderFactory, params);
 		}
@@ -419,7 +415,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 		deferredLightingInputs.ambientColorBottom = PBRTesting_Private::ambientColorBottom;
 		deferredLightingInputs.lights = &mScene->GetSceneGraph()->GetLights();
 
-		
+
 		mCommandList->beginTimerQuery(mDeferredLightingTimeQueryId);
 
 		mDeferredLightingPass->Render(mCommandList,
@@ -475,7 +471,7 @@ void MaterialsPlayground::Render(nvrhi::IFramebuffer* aFramebuffer)
 			"Forward Transparency Pass");
 
 		mCommandList->endTimerQuery(mFwdTransparencyPassTimeQueryId);
-		
+
 	}
 
 	// Render the final output

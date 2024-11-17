@@ -27,6 +27,6 @@ DONUT_WITH_TASKFLOW=1
 )
 
 # Now set the FOLDER property for the fetched target
-set_target_properties(MeshShaders PROPERTIES FOLDER "Applications/Mesh Shading")
+set_target_properties(MeshShaders PROPERTIES FOLDER "Applications/Raster/Mesh Shading")
 
 add_compile_options(/TP)

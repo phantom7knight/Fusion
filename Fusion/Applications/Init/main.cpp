@@ -40,7 +40,7 @@ namespace MainInit_Private
 
 int main(int __argc, const char* __argv[])
 {
-	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::D3D12;
+	constexpr nvrhi::GraphicsAPI API = nvrhi::GraphicsAPI::VULKAN;
 
 	donut::app::DeviceManager* deviceManager = donut::app::DeviceManager::Create(API);
 
@@ -76,7 +76,7 @@ int main(int __argc, const char* __argv[])
 			deviceManager->AddRenderPassToBack(uiRenderer.get());
 
 			deviceManager->RunMessageLoop();
-			
+
 			deviceManager->RemoveRenderPass(example.get());
 			deviceManager->RemoveRenderPass(uiRenderer.get());
 		}

@@ -198,7 +198,7 @@ private:
 		nvrhi::BufferHandle mConstantBuffer;
 		nvrhi::BufferHandle mVertexBuffer;
 		nvrhi::BufferHandle mIndexBuffer;
-		nvrhi::TextureHandle mTexture;
+		nvrhi::TextureHandle mWindowTexture;
 		nvrhi::InputLayoutHandle mInputLayout;
 		nvrhi::BindingLayoutHandle mBindingLayout;
 		nvrhi::BindingSetHandle mBindingSets[locInitHelpers::cNumViews];

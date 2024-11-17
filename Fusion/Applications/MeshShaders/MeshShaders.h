@@ -90,8 +90,8 @@ class MeshShadersApp;
 struct UIOptions
 {
 	bool mVsync = false;
-	int mAppMode = 2;
-	std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
+	//int mAppMode = 2;
+	//std::vector<const char*> mAppModeOptions = { "Triangle", "Cube", "Model" };
 };
 
 class UIRenderer : public donut::app::ImGui_Renderer
@@ -186,34 +186,20 @@ private:
 
 	struct Triangle
 	{
-		nvrhi::ShaderHandle mVertexShader;
+		nvrhi::ShaderHandle mMeshShader;
 		nvrhi::ShaderHandle mPixelShader;
-		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
+		nvrhi::MeshletPipelineHandle mTriangleMeshletPipeline;
+
 	}mTriangle;
 
-	struct Cube
-	{
-		nvrhi::ShaderHandle mVertexShader;
-		nvrhi::ShaderHandle mPixelShader;
-		nvrhi::BufferHandle mConstantBuffer;
-		nvrhi::BufferHandle mVertexBuffer;
-		nvrhi::BufferHandle mIndexBuffer;
-		nvrhi::TextureHandle mTexture;
-		nvrhi::InputLayoutHandle mInputLayout;
-		nvrhi::BindingLayoutHandle mBindingLayout;
-		nvrhi::BindingSetHandle mBindingSets[locInitHelpers::cNumViews];
-		nvrhi::GraphicsPipelineHandle mGraphicsPipeline;
-		float mRotation = 0.f;
-	}mCube;
-
-	struct Model
+	/*struct Model
 	{
 		std::unique_ptr<donut::render::ForwardShadingPass> mForwardPass;
 		std::unique_ptr<donut::render::InstancedOpaqueDrawStrategy> mOpaqueDrawStrategy;
 		std::unique_ptr<RenderTargets> mRenderTargets;
 		std::shared_ptr<donut::engine::DirectionalLight>  m_SunLight;
 		donut::engine::PlanarView mView;
-	}mModel;
+	}mModel;*/
 
 	nvrhi::CommandListHandle mCommandList;
 	donut::app::FirstPersonCamera mCamera;
